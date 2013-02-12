@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>FX Demo</title>
+
+  <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
+  <script type='text/javascript' src='filters.js'></script>
+
+  <script>
+  $(function(){
+    var img = $('.main-image'),
+        orig = img.clone().hide().appendTo(document.body);
+    $('.kv').click(function(){
+        img.replaceWith(orig.clone().show().filterMe('kv'));
+        img = $('.main-image').eq(0);
+    });
+    $('.nash').click(function(){
+        img.replaceWith(orig.clone().show().filterMe('nash'));
+        img = $('.main-image').eq(0);
+    });
+    $('.orig').click(function(){
+        img.replaceWith(orig.clone().show());
+        img = $('.main-image').eq(0);
+    });
+  });
+  </script>
+
+  <style>
+  .main-image{
+      width: 460px;
+      height: 401px;
+  }
+  .fx a{
+      text-align: center;
+      font-family: 'Helvetica', Arial, sans-serif;
+      color: black;
+      display: inline-block;
+  }
+  .fx a img{
+       display: block;
+   }
+  </style>
+
+
+</head>
+<body>
+    <div class="image">
+        <img class="main-image" src="image.png">
+    </div>
+    <div class="fx">
+        <a class="orig">
+            <img src="thumbs/original.jpg">
+            Original
+        </a>
+        <a class="kv">
+            <img src="thumbs/kv.jpg">
+            KV
+        </a>
+        <a class="nash">
+            <img src="thumbs/nash.jpg">
+            Nash
+        </a>
+        </div>
+    </body>
+</html>
+
