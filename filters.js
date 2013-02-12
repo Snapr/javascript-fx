@@ -82,6 +82,53 @@ var CubicSpline = function() {
   return CubicSpline;
 }();
 
+// from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
+function rgbToHsl(r, g, b){
+    r /= 255, g /= 255, b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+
+    if(max == min){
+        h = s = 0; // achromatic
+    }else{
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch(max){
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return [h, s, l];
+}
+
+function hslToRgb(h, s, l){
+    var r, g, b;
+
+    if(s == 0){
+        r = g = b = l; // achromatic
+    }else{
+        function hue2rgb(p, q, t){
+            if(t < 0) t += 1;
+            if(t > 1) t -= 1;
+            if(t < 1/6) return p + (q - p) * 6 * t;
+            if(t < 1/2) return q;
+            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        }
+
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+
+    return [r * 255, g * 255, b * 255];
+}
+
 
 // based on http://matthewruddy.github.com/jQuery-filter.me/
 (function($) {
@@ -230,6 +277,52 @@ var CubicSpline = function() {
             },
             levels: function(layer){
                 // TODO
+            },
+            hue: function(layer){
+                // TODO
+            },
+            saturation: function(layer){
+
+                var saturation = layer.adjustment.amount / 100;
+
+                // Get the canvas image data
+                var imageData = base.ctx.getImageData( 0, 0, base.canvas.width, base.canvas.height ),
+                    data = imageData.data;
+
+                // Apply the desaturation
+                for ( var i = 0; i < data.length; i += 4 ) {
+                    var hsl = rgbToHsl(data[i], data[i+1], data[i+2]);
+                    var sat;
+                    // adapted from https://github.com/jseidelin/pixastic/blob/master/actions/hsl.js
+                    // claims to match photoshop but photoshop seems to ramp up exponentinally winth
+                    // increasing saturation this does not. Photoshop +100 sat != 100% saturation
+                    if (saturation < 0) {
+                        sat = hsl[1] * (saturation + 1);
+                    } else {
+                        sat = hsl[1] * (saturation * 2 + 1);
+                    }
+                    // clip
+                    if(sat > 255){
+                        sat = 255;
+                    }
+                    var rgb = hslToRgb(hsl[0], sat, hsl[2]);
+                    data[i] = rgb[0];
+                    data[i+1] = rgb[1];
+                    data[i+2] = rgb[2];
+                }
+
+                // Restore modified image data
+                imageData.data = data;
+
+                // Put the image data
+                base.putImageData(imageData);
+
+            },
+            lightness: function(layer){
+                // TODO
+            },
+            blur: function(layer){
+                // TODO
             }
         };
 
@@ -274,36 +367,122 @@ var CubicSpline = function() {
             "name": "KV",
             "slug": "kv",
             "layers": [
-            {
-                "type": "adjustment",
-                "opacity": 100,
-                "blending_mode": "normal",
-                "mask_image": false,
-                "adjustment": {
-                    "type": "curves",
-                    "rgb": [],
-                    "red": [[43,0],[93,32],[189,92],[245,192],[254,255]],
-                    "green": [[36,0],[45,32],[79,64],[146,128],[184,192],[195,255]],
-                    "blue": [[69,0],[71,64],[117,192],[124,255]]
+                {
+                    "type": "adjustment",
+                    "opacity": 100,
+                    "blending_mode": "normal",
+                    "mask_image": false,
+                    "adjustment": {
+                        "type": "curves",
+                        "rgb": [],
+                        "red": [[43,0],[93,32],[189,92],[245,192],[254,255]],
+                        "green": [[36,0],[45,32],[79,64],[146,128],[184,192],[195,255]],
+                        "blue": [[69,0],[71,64],[117,192],[124,255]]
+                    }
                 }
-            }
-        ]
+            ]
         },
         'nash': {
             "name": "Nash",
             "slug": "nash",
+            "layers": [
+                {
+                    "type": "adjustment",
+                    "opacity": 100,
+                    "blending_mode": "normal",
+                    "mask_image": false,
+                    "adjustment": {
+                        "type": "curves",
+                        "rgb": [],
+                        "red": [[56,0],[56,29],[93,64],[152,92],[214,140],[245,192],[255,240],[255,255]],
+                        "green": [[38,0],[49,16],[111,64],[148,92],[188,140],[212,192],[221,240],[221,255]],
+                        "blue": [[97,0],[117,31],[144,92],[158,128],[165,165],[175,240]]
+                    }
+                }
+            ]
+        },
+        'bran': {
+            "name": "Bran",
+            "slug": "bran",
+            "layers": [
+                {
+                    "type": "adjustment",
+                    "opacity": 100,
+                    "blending_mode": "normal",
+                    "mask_image": false,
+                    "adjustment": {
+                        "type": "curves",
+                        "rgb": [],
+                        "red": [[50,0],[51,16],[69,32],[85,58],[120,92],[186,140],[245,192],[255,255],[254,245]],
+                        "green": [[0,0],[2,16],[18,32],[116,92],[182,128],[211,167],[227,192],[240,224],[252,255]],
+                        "blue": [[48,0],[50,16],[77,62],[110,92],[144,128],[153,140],[180,167],[192,192],[217,224],[225,224],[225,255]]
+                    }
+                },
+                {
+                    "type": "adjustment",
+                    "opacity": 100,
+                    "blending_mode": "normal",
+                    "mask_image": false,
+                    "adjustment":
+                     {
+                        "type": "saturation",
+                         "amount": -33
+                      }
+                },
+                {
+                    "type": "adjustment",
+                    "opacity": 100,
+                    "blending_mode": "normal",
+                    "mask_image": "assets/bran-vignette.jpg",
+                    "adjustment": {
+                        "type": "curves",
+                        "rgb": [[0,0],[34,42],[81,115],[139,184],[206,227],[255,255]],
+                        "red": [],
+                        "green": [],
+                        "blue": []
+                    }
+                },
+                {
+                    "type": "image",
+                    "opacity": 100,
+                    "blending_mode": "normal",
+                    "mask_image": false,
+                    "image": {
+                        "image": "assets/bran-frame.png",
+                        "scale": true,
+                        "top": 0,
+                        "left": 0
+                    }
+                }
+            ]
+        },
+
+        'goth': {
+            "name": "Goth",
+            "slug": "goth",
             "layers": [
             {
                 "type": "adjustment",
                 "opacity": 100,
                 "blending_mode": "normal",
                 "mask_image": false,
+                "adjustment":
+                 {
+                    "type": "saturation",
+                     "amount": -100
+                  }
+            },
+            {
+                "type": "adjustment",
+                "opacity": 100,
+                "blending_mode": "normal",
+                "mask_image": false,
                 "adjustment": {
                     "type": "curves",
-                    "rgb": [],
-                    "red": [[56,0],[56,29],[93,64],[152,92],[214,140],[245,192],[255,240],[255,255]],
-                    "green": [[38,0],[49,16],[111,64],[148,92],[188,140],[212,192],[221,240],[221,255]],
-                    "blue": [[97,0],[117,31],[144,92],[158,128],[165,165],[175,240]]
+                    "rgb": [[0,0],[255,176]],
+                    "red": [[0,0],[3,16],[25,64],[40,92],[66,128],[83,140],[116,164],[165,192],[214,224],[234,240],[255,255]],
+                    "green": [[0,0],[2,16],[19,64],[72,128],[165,192],[212,224],[252,255]],
+                    "blue": [[0,0],[0,16],[23,64],[48,92],[88,128],[124,164],[151,192],[197,224],[225,255]]
                 }
             }
             ]

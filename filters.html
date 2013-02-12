@@ -20,6 +20,14 @@
         img.replaceWith(orig.clone().show().filterMe('nash'));
         img = $('.main-image').eq(0);
     });
+    $('.bran').click(function(){
+        img.replaceWith(orig.clone().show().filterMe('bran'));
+        img = $('.main-image').eq(0);
+    });
+    $('.goth').click(function(){
+        img.replaceWith(orig.clone().show().filterMe('goth'));
+        img = $('.main-image').eq(0);
+    });
     $('.orig').click(function(){
         img.replaceWith(orig.clone().show());
         img = $('.main-image').eq(0);
@@ -61,6 +69,14 @@
         <a class="nash">
             <img src="thumbs/nash.jpg">
             Nash
+        </a>
+        <a class="bran">
+            <img src="thumbs/bran.jpg">
+            Bran
+        </a>
+        <a class="goth">
+            <img src="thumbs/goth.jpg">
+            Goth
         </a>
         </div>
     </body>
