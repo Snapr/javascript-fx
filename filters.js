@@ -405,55 +405,55 @@ function hslToRgb(h, s, l){
             "name": "Bran",
             "slug": "bran",
             "layers": [
-                {
-                    "type": "adjustment",
-                    "opacity": 100,
-                    "blending_mode": "normal",
-                    "mask_image": false,
-                    "adjustment": {
-                        "type": "curves",
-                        "rgb": [],
-                        "red": [[50,0],[51,16],[69,32],[85,58],[120,92],[186,140],[245,192],[255,255],[254,245]],
-                        "green": [[0,0],[2,16],[18,32],[116,92],[182,128],[211,167],[227,192],[240,224],[252,255]],
-                        "blue": [[48,0],[50,16],[77,62],[110,92],[144,128],[153,140],[180,167],[192,192],[217,224],[225,224],[225,255]]
-                    }
-                },
-                {
-                    "type": "adjustment",
-                    "opacity": 100,
-                    "blending_mode": "normal",
-                    "mask_image": false,
-                    "adjustment":
-                     {
-                        "type": "saturation",
-                         "amount": -33
-                      }
-                },
-                {
-                    "type": "adjustment",
-                    "opacity": 100,
-                    "blending_mode": "normal",
-                    "mask_image": "assets/bran-vignette.jpg",
-                    "adjustment": {
-                        "type": "curves",
-                        "rgb": [[0,0],[34,42],[81,115],[139,184],[206,227],[255,255]],
-                        "red": [],
-                        "green": [],
-                        "blue": []
-                    }
-                },
-                {
-                    "type": "image",
-                    "opacity": 100,
-                    "blending_mode": "normal",
-                    "mask_image": false,
-                    "image": {
-                        "image": "assets/bran-frame.png",
-                        "scale": true,
-                        "top": 0,
-                        "left": 0
-                    }
+            {
+                "type": "adjustment",
+                "opacity": 100,
+                "blending_mode": "normal",
+                "mask_image": false,
+                "adjustment": {
+                    "type": "curves",
+                    "rgb": [],
+                    "red": [[50,0],[51,16],[69,32],[85,58],[120,92],[186,140],[245,192],[255,255],[254,245]],
+                    "green": [[0,0],[2,16],[18,32],[116,92],[182,128],[211,167],[227,192],[240,224],[252,255]],
+                    "blue": [[28,0],[50,16],[77,62],[110,92],[144,128],[153,140],[180,167],[192,192],[217,224],[225,244],[225,255]]
                 }
+            },
+            {
+                "type": "adjustment",
+                "opacity": 100,
+                "blending_mode": "normal",
+                "mask_image": false,
+                "adjustment":
+                {
+                    "type": "saturation",
+                    "amount": -33
+                }
+            },
+            {
+                "type": "adjustment",
+                "opacity": 100,
+                "blending_mode": "normal",
+                "mask_image": "assets/bran-vignette.jpg",
+                "adjustment": {
+                    "type": "curves",
+                    "rgb": [[0,0],[34,42],[81,115],[139,184],[206,227],[255,255]],
+                    "red": [],
+                    "green": [],
+                    "blue": []
+                }
+            },
+            {
+                "type": "image",
+                "opacity": 100,
+                "blending_mode": "normal",
+                "mask_image": false,
+                "image": {
+                    "image": "assets/bran-frame.png",
+                    "scale": true,
+                    "top": 0,
+                    "left": 0
+                }
+            }
             ]
         },
 
