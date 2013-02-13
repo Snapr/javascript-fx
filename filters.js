@@ -34,16 +34,20 @@ Canvas.prototype.get_data_url = function() {
 
 var FX = function(url, effects){
     var fx = this;
+    this.deferred = $.Deferred();
     this.canvas = new Canvas(url);
     this.canvas.deferred.done(function(){
+
+        var data = fx.canvas.get_data(),
+            pixels = data.data;
+
         $.each(effects.layers, function(i, layer){
-            var filter = new filters[layer.type](layer),
-                data = fx.canvas.get_data(),
-                pixels = data.data;
+
+            var filter = new filters[layer.type](layer);
 
             if(layer.mask_image){
                 console.warn('image masks not implimented');
-                // for now...
+                //for now...
                 for ( i = 0; i < pixels.length/2; i += 4 ) {
                     var rgb = filter.process(i, [pixels[i], pixels[i+1], pixels[i+2]]);
                     pixels[i  ] = rgb[0];
@@ -58,10 +62,11 @@ var FX = function(url, effects){
                     pixels[i+2] = rgb[2];
                 }
             }
-
-            data.data = pixels;
-            fx.canvas.put_data(data);
         });
+
+        data.data = pixels;
+        fx.canvas.put_data(data);
+        fx.deferred.resolve();
     });
 };
 
@@ -255,33 +260,36 @@ filters.hue = function(layer){
     // TODO
     console.warn('hue not implimented');
 };
+filters.hue.prototype = filters.hsl.prototype;
 filters.hue.prototype.process = function(i, rgb){ return rgb; };
 
 filters.saturation = function(layer){
     this.saturation = layer.adjustment.amount / 100;
 };
+//filters.saturation.prototype = filters.hsl.prototype;
 filters.saturation.prototype.process = function(i, rgb){
-    var hsl = this.rgbToHsl(rgb[0], rgb[1], rgb[2]);
+    var hsl = filters.hsl.prototype.rgbToHsl(rgb[0], rgb[1], rgb[2]);
     var sat;
     // adapted from https://github.com/jseidelin/pixastic/blob/master/actions/hsl.js
     // claims to match photoshop but photoshop seems to ramp up exponentinally winth
     // increasing saturation this does not. Photoshop +100 sat != 100% saturation
-    if (this.saturation < 0) {
-        sat = hsl[1] * (this.saturation + 1);
+    if (this.filter.saturation < 0) {
+        sat = hsl[1] * (this.filter.saturation + 1);
     } else {
-        sat = hsl[1] * (this.saturation * 2 + 1);
+        sat = hsl[1] * (this.filter.saturation * 2 + 1);
     }
     // clip
     if(sat > 255){
         sat = 255;
     }
-    return this.hslToRgb(hsl[0], sat, hsl[2]);
+    return filters.hsl.prototype.hslToRgb(hsl[0], sat, hsl[2]);
 };
 
 filters.lightness = function(layer){
     // TODO
     console.warn('lightness not implimented');
 };
+filters.lightness.prototype = filters.hsl.prototype;
 filters.lightness.prototype.process = function(i, rgb){ return rgb; };
 
 filters.blur = function(layer){
@@ -303,74 +311,21 @@ filters.image = function(layer){
 filters.image.prototype.process = function(i, rgb){ return rgb; };
 
 
-x = new FX('image.png', {
-            "name": "Nash",
-            "slug": "nash",
-            "layers": [
-                {
-                    "type": "adjustment",
-                    "opacity": 100,
-                    "blending_mode": "normal",
-                    "mask_image": false,
-                    "adjustment": {
-                        "type": "curves",
-                        "rgb": [],
-                        "red": [[56,0],[56,29],[93,64],[152,92],[214,140],[245,192],[255,240],[255,255]],
-                        "green": [[38,0],[49,16],[111,64],[148,92],[188,140],[212,192],[221,240],[221,255]],
-                        "blue": [[97,0],[117,31],[144,92],[158,128],[165,165],[175,240]]
-                    }
-                }
-            ]
+$.fn.snapr_fx = function(filter_slug) {
+    return this.each(function() {
+        var element = $(this);
+        x = new FX(element.attr('src'), filters_specs[filter_slug]);
+        x.deferred.done(function(){
+            element.attr('src', x.canvas.get_data_url());
         });
-
-$(function(){
-$('img').eq(0).attr('src', x.canvas.get_data_url());
-
-});
+    });
+};
 
 filters_specs = {
-kv: {
-            "name": "KV",
-            "slug": "kv",
-            "layers": [
-                {
-                    "type": "adjustment",
-                    "opacity": 100,
-                    "blending_mode": "normal",
-                    "mask_image": false,
-                    "adjustment": {
-                        "type": "curves",
-                        "rgb": [],
-                        "red": [[43,0],[93,32],[189,92],[245,192],[254,255]],
-                        "green": [[36,0],[45,32],[79,64],[146,128],[184,192],[195,255]],
-                        "blue": [[69,0],[71,64],[117,192],[124,255]]
-                    }
-                }
-            ]
-        },
-        'nash': {
-            "name": "Nash",
-            "slug": "nash",
-            "layers": [
-                {
-                    "type": "adjustment",
-                    "opacity": 100,
-                    "blending_mode": "normal",
-                    "mask_image": false,
-                    "adjustment": {
-                        "type": "curves",
-                        "rgb": [],
-                        "red": [[56,0],[56,29],[93,64],[152,92],[214,140],[245,192],[255,240],[255,255]],
-                        "green": [[38,0],[49,16],[111,64],[148,92],[188,140],[212,192],[221,240],[221,255]],
-                        "blue": [[97,0],[117,31],[144,92],[158,128],[165,165],[175,240]]
-                    }
-                }
-            ]
-        },
-        'bran': {
-            "name": "Bran",
-            "slug": "bran",
-            "layers": [
+    kv: {
+        "name": "KV",
+        "slug": "kv",
+        "layers": [
             {
                 "type": "adjustment",
                 "opacity": 100,
@@ -379,78 +334,116 @@ kv: {
                 "adjustment": {
                     "type": "curves",
                     "rgb": [],
-                    "red": [[50,0],[51,16],[69,32],[85,58],[120,92],[186,140],[245,192],[255,255],[254,245]],
-                    "green": [[0,0],[2,16],[18,32],[116,92],[182,128],[211,167],[227,192],[240,224],[252,255]],
-                    "blue": [[28,0],[50,16],[77,62],[110,92],[144,128],[153,140],[180,167],[192,192],[217,224],[225,244],[225,255]]
-                }
-            },
-            {
-                "type": "adjustment",
-                "opacity": 100,
-                "blending_mode": "normal",
-                "mask_image": false,
-                "adjustment":
-                {
-                    "type": "saturation",
-                    "amount": -33
-                }
-            },
-            {
-                "type": "adjustment",
-                "opacity": 100,
-                "blending_mode": "normal",
-                "mask_image": "assets/bran-vignette.jpg",
-                "adjustment": {
-                    "type": "curves",
-                    "rgb": [[0,0],[34,42],[81,115],[139,184],[206,227],[255,255]],
-                    "red": [],
-                    "green": [],
-                    "blue": []
-                }
-            },
-            {
-                "type": "image",
-                "opacity": 100,
-                "blending_mode": "normal",
-                "mask_image": false,
-                "image": {
-                    "image": "assets/bran-frame.png",
-                    "scale": true,
-                    "top": 0,
-                    "left": 0
+                    "red": [[43,0],[93,32],[189,92],[245,192],[254,255]],
+                    "green": [[36,0],[45,32],[79,64],[146,128],[184,192],[195,255]],
+                    "blue": [[69,0],[71,64],[117,192],[124,255]]
                 }
             }
-            ]
+        ]
+    },
+    'nash': {
+        "name": "Nash",
+        "slug": "nash",
+        "layers": [
+            {
+                "type": "adjustment",
+                "opacity": 100,
+                "blending_mode": "normal",
+                "mask_image": false,
+                "adjustment": {
+                    "type": "curves",
+                    "rgb": [],
+                    "red": [[56,0],[56,29],[93,64],[152,92],[214,140],[245,192],[255,240],[255,255]],
+                    "green": [[38,0],[49,16],[111,64],[148,92],[188,140],[212,192],[221,240],[221,255]],
+                    "blue": [[97,0],[117,31],[144,92],[158,128],[165,165],[175,240]]
+                }
+            }
+        ]
+    },
+    'bran': {
+        "name": "Bran",
+        "slug": "bran",
+        "layers": [
+        {
+            "type": "adjustment",
+            "opacity": 100,
+            "blending_mode": "normal",
+            "mask_image": false,
+            "adjustment": {
+                "type": "curves",
+                "rgb": [],
+                "red": [[50,0],[51,16],[69,32],[85,58],[120,92],[186,140],[245,192],[255,255],[254,245]],
+                "green": [[0,0],[2,16],[18,32],[116,92],[182,128],[211,167],[227,192],[240,224],[252,255]],
+                "blue": [[28,0],[50,16],[77,62],[110,92],[144,128],[153,140],[180,167],[192,192],[217,224],[225,244],[225,255]]
+            }
         },
-
-        'goth': {
-            "name": "Goth",
-            "slug": "goth",
-            "layers": [
+        {
+            "type": "adjustment",
+            "opacity": 100,
+            "blending_mode": "normal",
+            "mask_image": false,
+            "adjustment":
             {
-                "type": "adjustment",
-                "opacity": 100,
-                "blending_mode": "normal",
-                "mask_image": false,
-                "adjustment":
-                 {
-                    "type": "saturation",
-                     "amount": -100
-                  }
-            },
-            {
-                "type": "adjustment",
-                "opacity": 100,
-                "blending_mode": "normal",
-                "mask_image": false,
-                "adjustment": {
-                    "type": "curves",
-                    "rgb": [[0,0],[255,176]],
-                    "red": [[0,0],[3,16],[25,64],[40,92],[66,128],[83,140],[116,164],[165,192],[214,224],[234,240],[255,255]],
-                    "green": [[0,0],[2,16],[19,64],[72,128],[165,192],[212,224],[252,255]],
-                    "blue": [[0,0],[0,16],[23,64],[48,92],[88,128],[124,164],[151,192],[197,224],[225,255]]
-                }
+                "type": "saturation",
+                "amount": -33
             }
-            ]
+        },
+        {
+            "type": "adjustment",
+            "opacity": 100,
+            "blending_mode": "normal",
+            "mask_image": "assets/bran-vignette.jpg",
+            "adjustment": {
+                "type": "curves",
+                "rgb": [[0,0],[34,42],[81,115],[139,184],[206,227],[255,255]],
+                "red": [],
+                "green": [],
+                "blue": []
+            }
+        },
+        {
+            "type": "image",
+            "opacity": 100,
+            "blending_mode": "normal",
+            "mask_image": false,
+            "image": {
+                "image": "assets/bran-frame.png",
+                "scale": true,
+                "top": 0,
+                "left": 0
+            }
         }
+        ]
+    },
+
+    'goth': {
+        "name": "Goth",
+        "slug": "goth",
+        "layers": [
+        {
+            "type": "adjustment",
+            "opacity": 100,
+            "blending_mode": "normal",
+            "mask_image": false,
+            "adjustment":
+             {
+                "type": "saturation",
+                 "amount": -100
+              }
+        },
+        {
+            "type": "adjustment",
+            "opacity": 100,
+            "blending_mode": "normal",
+            "mask_image": false,
+            "adjustment": {
+                "type": "curves",
+                "rgb": [[0,0],[255,176]],
+                "red": [[0,0],[3,16],[25,64],[40,92],[66,128],[83,140],[116,164],[165,192],[214,224],[234,240],[255,255]],
+                "green": [[0,0],[2,16],[19,64],[72,128],[165,192],[212,224],[252,255]],
+                "blue": [[0,0],[0,16],[23,64],[48,92],[88,128],[124,164],[151,192],[197,224],[225,255]]
+            }
+        }
+        ]
     }
+}
