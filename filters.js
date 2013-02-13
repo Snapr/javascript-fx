@@ -311,17 +311,17 @@ filters.image = function(layer){
 filters.image.prototype.process = function(i, rgb){ return rgb; };
 
 
-$.fn.snapr_fx = function(filter_slug) {
+$.fn.snapr_fx = function(orig, filter_slug) {
     return this.each(function() {
         var element = $(this);
-        x = new FX(element.attr('src'), filters_specs[filter_slug]);
+        var x = new FX(orig.attr('src'), filters_specs[filter_slug]);
         x.deferred.done(function(){
             element.attr('src', x.canvas.get_data_url());
         });
     });
 };
 
-filters_specs = {
+var filters_specs = {
     kv: {
         "name": "KV",
         "slug": "kv",

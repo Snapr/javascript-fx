@@ -13,20 +13,16 @@
     var img = $('.main-image'),
         orig = img.clone().hide().appendTo(document.body);
     $('.kv').click(function(){
-        img.replaceWith(orig.clone().show().snapr_fx('kv'));
-        img = $('.main-image').eq(0);
+        img.snapr_fx(orig, 'kv');
     });
     $('.nash').click(function(){
-        img.replaceWith(orig.clone().show().snapr_fx('nash'));
-        img = $('.main-image').eq(0);
+        img.snapr_fx(orig, 'nash');
     });
     $('.bran').click(function(){
-        img.replaceWith(orig.clone().show().snapr_fx('bran'));
-        img = $('.main-image').eq(0);
+        img.snapr_fx(orig, 'bran');
     });
     $('.goth').click(function(){
-        img.replaceWith(orig.clone().show().snapr_fx('goth'));
-        img = $('.main-image').eq(0);
+        img.snapr_fx(orig, 'goth');
     });
     $('.orig').click(function(){
         img.replaceWith(orig.clone().show());
