@@ -9,24 +9,36 @@
   <script type='text/javascript' src='filters.js'></script>
 
   <script>
+
+
+  var pack = 'zombies';
+
+
   $(function(){
     var img = $('.main-image'),
         orig = img.clone().hide().appendTo(document.body);
-    $('.kv').click(function(){
-        img.snapr_fx(orig, 'kv');
-    });
-    $('.nash').click(function(){
-        img.snapr_fx(orig, 'nash');
-    });
-    $('.bran').click(function(){
-        img.snapr_fx(orig, 'bran');
-    });
-    $('.goth').click(function(){
-        img.snapr_fx(orig, 'goth');
-    });
-    $('.orig').click(function(){
-        img.replaceWith(orig.clone().show());
-        img = $('.main-image').eq(0);
+    window.img = img;
+    window.orig = orig;
+
+    $.ajax({
+        url: 'filter-packs/'+pack+'/filter-pack.json',
+        success: function(pack){
+            $('.fx').append(
+                $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/original-thumb@2x.png">Original </a>')
+                .click(function(){
+                    img.replaceWith(orig.clone().show());
+                    img = $('.main-image').eq(0);
+                })
+            );
+            $.each(pack.filter_pack.filters, function(i, filter){
+                $('.fx').append(
+                    $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
+                    .click(function(){
+                        img.snapr_fx(orig, pack.filter_pack.slug, filter.slug);
+                    })
+                );
+            });
+        }
     });
   });
   </script>
@@ -53,28 +65,7 @@
     <div class="image">
         <img class="main-image" src="image.png">
     </div>
-    <div class="fx">
-        <a class="orig">
-            <img src="thumbs/original.jpg">
-            Original
-        </a>
-        <a class="kv">
-            <img src="thumbs/kv.jpg">
-            KV
-        </a>
-        <a class="nash">
-            <img src="thumbs/nash.jpg">
-            Nash
-        </a>
-        <a class="bran">
-            <img src="thumbs/bran.png">
-            Bran
-        </a>
-        <a class="goth">
-            <img src="thumbs/goth.png">
-            Goth
-        </a>
-        </div>
+    <div class="fx"></div>
     </body>
 </html>
 

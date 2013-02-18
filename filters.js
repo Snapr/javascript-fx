@@ -31,11 +31,12 @@ Canvas.prototype.get_data_url = function() {
     return this.canvas.toDataURL( 'image/jpeg', 1.0 );
 };
 
-var FX = function(url, effects){
+var FX = function(url, effects, asset_prefix){
     console.group(effects.name);
     var fx = this;
     this.effects = effects;
     this.layer_index = -1;  // so next layer is 0
+    this.asset_prefix = asset_prefix || '';
     this.deferred = $.Deferred();
     this.canvas = new Canvas(url);
     this.canvas.deferred.done(function(){
@@ -62,7 +63,7 @@ FX.prototype.apply_next_layer = function(){
     filter.deferred.done(function(){
 
         if(layer.mask_image){
-            var mask = new Canvas(layer.mask_image, fx.canvas.width, fx.canvas.height);
+            var mask = new Canvas(fx.asset_prefix+layer.mask_image, fx.canvas.width, fx.canvas.height);
             mask.deferred.done(function(){
                 var mask_pixels = mask.get_data().data;
                 for ( var i = 0; i < fx.pixels.length; i += 4 ) {
@@ -295,11 +296,17 @@ filters.hsl.prototype.hslToRgb = function(h, s, l){
 };
 
 filters.hue = function(layer){
-    // TODO
-    console.warn('hue not implimented');
+    this.hue = layer.adjustment.amount;
 };
 filters.hue.prototype = filters.hsl.prototype;
-filters.hue.prototype.process = function(i, rgb){ return rgb; };
+filters.hue.prototype.process = function(i, rgb){
+    var hsl = filters.hsl.prototype.rgbToHsl(rgb[0], rgb[1], rgb[2]);
+    hsl[0] += this.filter.hue;
+    if(hsl[0]>255){
+        hsl[0] -= 255;
+    }
+    return filters.hsl.prototype.hslToRgb(hsl[0], hsl[1], hsl[2]);
+};
 
 filters.saturation = function(layer){
     this.saturation = layer.adjustment.amount / 100;
@@ -309,8 +316,8 @@ filters.saturation.prototype.process = function(i, rgb){
     var hsl = filters.hsl.prototype.rgbToHsl(rgb[0], rgb[1], rgb[2]);
     var sat;
     // adapted from https://github.com/jseidelin/pixastic/blob/master/actions/hsl.js
-    // claims to match photoshop but photoshop seems to ramp up exponentinally winth
-    // increasing saturation this does not. Photoshop +100 sat != 100% saturation
+    // claims to match photoshop but photoshop seems to ramp up exponentinally with
+    // increasing saturation and this does not. Photoshop +100 sat != 100% saturation
     if (this.filter.saturation < 0) {
         sat = hsl[1] * (this.filter.saturation + 1);
     } else {
@@ -324,11 +331,23 @@ filters.saturation.prototype.process = function(i, rgb){
 };
 
 filters.lightness = function(layer){
-    // TODO
-    console.warn('lightness not implimented');
+    this.lightness = layer.adjustment.amount / 100;
 };
 filters.lightness.prototype = filters.hsl.prototype;
-filters.lightness.prototype.process = function(i, rgb){ return rgb; };
+filters.lightness.prototype.process = function(i, rgb){
+    var hsl = filters.hsl.prototype.rgbToHsl(rgb[0], rgb[1], rgb[2]);
+    var lightness;
+    if (this.filter.lightness < 0) {
+        lightness = hsl[2] * (this.filter.lightness + 1);
+    } else {
+        lightness = hsl[2] * (this.filter.lightness * 2 + 1);
+    }
+    // clip
+    if(lightness > 255){
+        lightness = 255;
+    }
+    return filters.hsl.prototype.hslToRgb(hsl[0], hsl[1], lightness);
+};
 
 filters.blur = function(layer){
     // TODO
@@ -337,16 +356,16 @@ filters.blur = function(layer){
 filters.blur.prototype.process = function(i, rgb){ return rgb; };
 
 filters.color = function(layer){
-    // TODO
-    console.warn('color not implimented');
+    this.color = layer.color.rgb;
+    this.deferred = $.Deferred().resolve();
 };
-filters.color.prototype.process = function(i, rgb){ return rgb; };
+filters.color.prototype.process = function(i, rgb){ return this.color; };
 
 filters.image = function(layer, fx){
     this.url = layer.image.image;
     this.width = fx.canvas.width;
     this.height = fx.canvas.height;
-    this.canvas = new Canvas(this.url, this.width, this.height);
+    this.canvas = new Canvas(fx.asset_prefix+this.url, this.width, this.height);
     this.deferred = $.Deferred();
     var image_filter = this;
     this.canvas.deferred.done(function(){
@@ -480,13 +499,19 @@ var blend_modes = {
 };
 
 
-$.fn.snapr_fx = function(orig, filter_slug) {
-    return this.each(function() {
-        var element = $(this);
-        var x = new FX(orig.attr('src'), filters_specs[filter_slug]);
-        x.deferred.done(function(){
-            element.attr('src', x.canvas.get_data_url());
-        });
+$.fn.snapr_fx = function(orig, pack, filter_slug) {
+    var elements = this;
+    $.ajax({
+        url: 'filter-packs/'+pack+'/filters/' + filter_slug + '/filter.json',
+        success: function(data){
+            elements.each(function() {
+                var element = $(this);
+                var x = new FX(orig.attr('src'), data.filter, 'filter-packs/zombies/filters/' + filter_slug + '/');
+                x.deferred.done(function(){
+                    element.attr('src', x.canvas.get_data_url());
+                });
+            });
+        }
     });
 };
 

@@ -1,0 +1,3 @@
+[submodule "filter-packs"]
+	path = filter-packs
+	url = git@github.com:Snapr/filter-packs.git
