@@ -1,5 +1,5 @@
 // based on http://matthewruddy.github.com/jQuery-filter.me/
-var Canvas = function(url){
+var Canvas = function(url, width, height){
     var base = this;
     this.canvas = document.createElement('canvas');
     this.context = this.canvas.getContext('2d');
@@ -8,9 +8,8 @@ var Canvas = function(url){
     this.deferred = $.Deferred();
     this.image.onload = function() {
 
-        // Set the canvas dimensions
-        base.canvas.width = this.width;
-        base.canvas.height = this.height;
+        base.width = base.canvas.width = width || this.width;
+        base.height = base.canvas.height = height || this.height;
 
         // Draw the image onto the canvas
         base.context.drawImage(this, 0, 0, this.width, this.height, 0, 0, base.canvas.width, base.canvas.height);
@@ -33,48 +32,87 @@ Canvas.prototype.get_data_url = function() {
 };
 
 var FX = function(url, effects){
+    console.group(effects.name);
     var fx = this;
+    this.effects = effects;
+    this.layer_index = -1;  // so next layer is 0
     this.deferred = $.Deferred();
     this.canvas = new Canvas(url);
     this.canvas.deferred.done(function(){
-
-        var data = fx.canvas.get_data(),
-            pixels = data.data;
-
-        $.each(effects.layers, function(i, layer){
-
-            var filter = new filters[layer.type](layer);
-
-            if(layer.mask_image){
-                console.warn('image masks not implimented');
-                //for now...
-                for ( i = 0; i < pixels.length/2; i += 4 ) {
-                    var rgb = filter.process(i, [pixels[i], pixels[i+1], pixels[i+2]]);
-                    pixels[i  ] = rgb[0];
-                    pixels[i+1] = rgb[1];
-                    pixels[i+2] = rgb[2];
-                }
-            }else{
-                for ( i = 0; i < pixels.length; i += 4 ) {
-                    var rgb = filter.process(i, [pixels[i], pixels[i+1], pixels[i+2]]);
-                    pixels[i  ] = rgb[0];
-                    pixels[i+1] = rgb[1];
-                    pixels[i+2] = rgb[2];
-                }
-            }
-        });
-
-        data.data = pixels;
-        fx.canvas.put_data(data);
-        fx.deferred.resolve();
+        fx.data = fx.canvas.get_data();
+        fx.pixels = fx.data.data;
+        fx.apply_next_layer();
     });
+};
+FX.prototype.apply_next_layer = function(){
+    this.layer_index++;
+    if(this.layer_index >= this.effects.layers.length){
+        this.finish();
+        return;
+    }
+
+    console.log("applying", this.effects.layers[this.layer_index].type, "layer");
+
+    var fx = this,
+        layer = this.effects.layers[this.layer_index],
+        filter = new filters[layer.type](layer, fx),
+        blend = blend_modes[layer.blending_mode || 'normal'];
+
+    // when the filter is ready
+    filter.deferred.done(function(){
+
+        if(layer.mask_image){
+            var mask = new Canvas(layer.mask_image, fx.canvas.width, fx.canvas.height);
+            mask.deferred.done(function(){
+                var mask_pixels = mask.get_data().data;
+                for ( var i = 0; i < fx.pixels.length; i += 4 ) {
+                    var rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
+                    var opacity = rgb[3];
+                    if(opacity >= 0){
+                        opacity = opacity / 255;
+                    }else{
+                        opacity = 1;
+                    }
+                    opacity = opacity * (mask_pixels[i]/255);
+                    fx.pixels[i  ] = blend(fx.pixels[i  ], rgb[0], opacity);
+                    fx.pixels[i+1] = blend(fx.pixels[i+1], rgb[1], opacity);
+                    fx.pixels[i+2] = blend(fx.pixels[i+2], rgb[2], opacity);
+                }
+                fx.apply_next_layer();
+            });
+        }else{
+            for ( var i = 0; i < fx.pixels.length; i += 4 ) {
+                var rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
+                var opacity = rgb[3];
+                if(opacity >= 0){
+                    opacity = opacity / 255;
+                }else{
+                    opacity = 1;
+                }
+                fx.pixels[i  ] = blend(fx.pixels[i  ], rgb[0], opacity);
+                fx.pixels[i+1] = blend(fx.pixels[i+1], rgb[1], opacity);
+                fx.pixels[i+2] = blend(fx.pixels[i+2], rgb[2], opacity);
+            }
+            fx.apply_next_layer();
+        }
+    });
+};
+FX.prototype.finish = function(){
+    this.data.data = this.pixels;
+    this.canvas.put_data(this.data);
+    this.deferred.resolve();
+
+    console.groupEnd(this.effects.name);
 };
 
 var filters = {};
 
 filters.adjustment = function(layer){
+    console.log(" - ", layer.adjustment.type);
+
     this.filter = new filters[layer.adjustment.type](layer);
     this.process = this.filter.process;
+    this.deferred = $.Deferred().resolve();
 };
 
 filters.curves = function(layer){
@@ -304,11 +342,47 @@ filters.color = function(layer){
 };
 filters.color.prototype.process = function(i, rgb){ return rgb; };
 
-filters.image = function(layer){
-    // TODO
-    console.warn('image not implimented');
+filters.image = function(layer, fx){
+    this.url = layer.image.image;
+    this.width = fx.canvas.width;
+    this.height = fx.canvas.height;
+    this.canvas = new Canvas(this.url, this.width, this.height);
+    this.deferred = $.Deferred();
+    var image_filter = this;
+    this.canvas.deferred.done(function(){
+        image_filter.data = image_filter.canvas.get_data();
+        image_filter.pixels = image_filter.data.data;
+        image_filter.deferred.resolve();
+    });
 };
-filters.image.prototype.process = function(i, rgb){ return rgb; };
+filters.image.prototype.process = function(i, rgb){
+    return [this.pixels[i], this.pixels[i+1], this.pixels[i+2], this.pixels[i+3]];
+};
+
+var blend_modes = {
+    normal: function(orig, overlay, opacity){
+        return overlay * opacity + orig * (1 - opacity);
+    },
+    multiply: function(orig, overlay, opacity){ return overlay; },
+    screen: function(orig, overlay, opacity){ return overlay; },
+    overlay: function(orig, overlay, opacity){ return overlay; },
+    darken: function(orig, overlay, opacity){ return overlay; },
+    lighten: function(orig, overlay, opacity){ return overlay; },
+    color_dodge: function(orig, overlay, opacity){ return overlay; },
+    color_burn: function(orig, overlay, opacity){ return overlay; },
+    soft_light: function(orig, overlay, opacity){ return overlay; },
+    hard_light: function(orig, overlay, opacity){ return overlay; },
+    difference: function(orig, overlay, opacity){ return overlay; },
+    exclusion: function(orig, overlay, opacity){ return overlay; },
+    hue: function(orig, overlay, opacity){ return overlay; },
+    saturation: function(orig, overlay, opacity){ return overlay; },
+    color: function(orig, overlay, opacity){ return overlay; },
+    luminosity: function(orig, overlay, opacity){ return overlay; },
+    subtract: function(orig, overlay, opacity){ return overlay; },
+    add: function(orig, overlay, opacity){ return overlay; },
+    divide: function(orig, overlay, opacity){ return overlay; },
+    linear_burn: function(orig, overlay, opacity){ return overlay; }
+};
 
 
 $.fn.snapr_fx = function(orig, filter_slug) {
@@ -380,7 +454,7 @@ var filters_specs = {
         {
             "type": "adjustment",
             "opacity": 100,
-            "blending_mode": "normal",
+            "blending_mode": "multiply",
             "mask_image": false,
             "adjustment":
             {
@@ -388,26 +462,26 @@ var filters_specs = {
                 "amount": -33
             }
         },
-        // {
-        //             "type": "adjustment",
-        //             "opacity": 100,
-        //             "blending_mode": "normal",
-        //             "mask_image": "assets/bran-vignette.jpg",
-        //             "adjustment": {
-        //                 "type": "curves",
-        //                 "rgb": [[0,0],[34,42],[81,115],[139,184],[206,227],[255,255]],
-        //                 "red": [],
-        //                 "green": [],
-        //                 "blue": []
-        //             }
-        //         },
+        {
+                    "type": "adjustment",
+                    "opacity": 100,
+                    "blending_mode": "normal",
+                    "mask_image": "bran-vignette.jpg",
+                    "adjustment": {
+                        "type": "curves",
+                        "rgb": [[0,0],[34,42],[81,115],[139,184],[206,227],[255,255]],
+                        "red": [],
+                        "green": [],
+                        "blue": []
+                    }
+                },
         {
             "type": "image",
             "opacity": 100,
             "blending_mode": "normal",
             "mask_image": false,
             "image": {
-                "image": "assets/bran-frame.png",
+                "image": "bran-frame.png",
                 "scale": true,
                 "top": 0,
                 "left": 0
