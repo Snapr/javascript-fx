@@ -363,25 +363,120 @@ var blend_modes = {
     normal: function(orig, overlay, opacity){
         return overlay * opacity + orig * (1 - opacity);
     },
-    multiply: function(orig, overlay, opacity){ return overlay; },
-    screen: function(orig, overlay, opacity){ return overlay; },
-    overlay: function(orig, overlay, opacity){ return overlay; },
-    darken: function(orig, overlay, opacity){ return overlay; },
-    lighten: function(orig, overlay, opacity){ return overlay; },
-    color_dodge: function(orig, overlay, opacity){ return overlay; },
-    color_burn: function(orig, overlay, opacity){ return overlay; },
-    soft_light: function(orig, overlay, opacity){ return overlay; },
-    hard_light: function(orig, overlay, opacity){ return overlay; },
-    difference: function(orig, overlay, opacity){ return overlay; },
-    exclusion: function(orig, overlay, opacity){ return overlay; },
-    hue: function(orig, overlay, opacity){ return overlay; },
-    saturation: function(orig, overlay, opacity){ return overlay; },
-    color: function(orig, overlay, opacity){ return overlay; },
-    luminosity: function(orig, overlay, opacity){ return overlay; },
-    subtract: function(orig, overlay, opacity){ return overlay; },
-    add: function(orig, overlay, opacity){ return overlay; },
-    divide: function(orig, overlay, opacity){ return overlay; },
-    linear_burn: function(orig, overlay, opacity){ return overlay; }
+    multiply: function(orig, overlay, opacity){
+        overlay = orig * overlay / 255;
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    screen: function(orig, overlay, opacity){
+        overlay = (255 - ( ((255-overlay)*(255-orig)) >> 8));
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    overlay: function(orig, overlay, opacity){
+        if (orig < 128){
+            overlay = orig*overlay*(2 / 255);
+        }
+        else{
+            overlay = 255 - (255-orig)*(255-overlay)*(2 / 255);
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    darken: function(orig, overlay, opacity){
+        if(orig < overlay){
+            overlay = orig;
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    lighten: function(orig, overlay, opacity){
+        if(orig > overlay){
+            overlay = orig;
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    color_dodge: function(orig, overlay, opacity){
+        var x = (orig<<8)/(255-overlay);
+        if (x > 255 || overlay == 255){
+            overlay = 255;
+        }else{
+            overlay = x;
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    color_burn: function(orig, overlay, opacity){
+        var x = 255-((255-orig)<<8)/overlay;
+        if (x < 0 || overlay === 0){
+            overlay = 0;
+        }else{
+            overlay = x;
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    soft_light: function(orig, overlay, opacity){
+        if (orig < 128){
+            overlay = ((overlay>>1) + 64) * orig * (2/255);
+        }else{
+            overlay = 255 - (191 - (overlay>>1)) * (255-orig) * (2/255);
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    hard_light: function(orig, overlay, opacity){
+        if (overlay < 128){
+            overlay = orig * overlay * (2/255);
+        }else{
+            overlay = 255 - (255-orig) * (255-overlay) * (2/255);
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    difference: function(orig, overlay, opacity){
+        var x = orig - overlay;
+        if (x < 0){
+            overlay = -x;
+        }else{
+            overlay = x;
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    exclusion: function(orig, overlay, opacity){
+        overlay = orig - (orig * (2/255) - 1) * overlay;
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    hue: function(orig, overlay, opacity){
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    saturation: function(orig, overlay, opacity){
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    color: function(orig, overlay, opacity){
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    luminosity: function(orig, overlay, opacity){
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    subtract: function(orig, overlay, opacity){
+        overlay = orig - overlay;
+        if(overlay < 0){
+            overlay = 0;
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    add: function(orig, overlay, opacity){
+        overlay = orig + overlay;
+        if(overlay > 255){
+            overlay = 255;
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    divide: function(orig, overlay, opacity){
+        overlay = (orig / overlay) * 255;
+        return blend_modes.normal(orig, overlay, opacity);
+    },
+    linear_burn: function(orig, overlay, opacity){
+        if ((orig + overlay) < 255){
+            overlay = 0;
+        }else{
+            overlay = (orig + overlay - 255);
+        }
+        return blend_modes.normal(orig, overlay, opacity);
+    }
 };
 
 
