@@ -343,7 +343,9 @@ FX.prototype.apply_next_layer = function(){
             mask.deferred.done(function(){
                 var mask_pixels = mask.get_data().data;
                 for ( var i = 0; i < fx.pixels.length; i += 4 ) {
+
                     var rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
+
                     var opacity = rgb[3];
                     if(opacity >= 0){
                         opacity = opacity / 255;
@@ -351,6 +353,8 @@ FX.prototype.apply_next_layer = function(){
                         opacity = 1;
                     }
                     opacity = opacity * (mask_pixels[i]/255);
+                    opacity = opacity * (layer.opacity/100);
+
                     rgb = blender.process(
                         [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]],
                         [rgb[0], rgb[1], rgb[2]],
@@ -366,13 +370,17 @@ FX.prototype.apply_next_layer = function(){
             });
         }else{
             for ( var i = 0; i < fx.pixels.length; i += 4 ) {
+
                 var rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
+
                 var opacity = rgb[3];
                 if(opacity >= 0){  // >=0 ensures a number, not undefined
                     opacity = opacity / 255;
                 }else{
                     opacity = 1;
                 }
+                opacity = opacity * (layer.opacity/100);
+
                 rgb = blender.process(
                     [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]],
                     [rgb[0], rgb[1], rgb[2]],
@@ -549,7 +557,6 @@ filters.levels = function(layer){
             gamma = levels.mid;
 
         return (Math.pow(((x-levels.black) / range),(1/gamma)) * range)/slope;
-        return (Math.pow(((x*slope)/range), gamma) * range) + levels.black;
     };
     window.interpolate = this.interpolate;
 };
