@@ -1,325 +1,25 @@
-var SnaprFX = {
-    utils: {
-        // from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
-        rgbToHsl: function(r, g, b){
-            r /= 255, g /= 255, b /= 255;
-            var max = Math.max(r, g, b), min = Math.min(r, g, b);
-            var h, s, l = (max + min) / 2;
+/*jslint bitwise: true */
 
-            if(max == min){
-                h = s = 0; // achromatic
-            }else{
-                var d = max - min;
-                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-                switch(max){
-                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                    case g: h = (b - r) / d + 2; break;
-                    case b: h = (r - g) / d + 4; break;
-                }
-                h /= 6;
-            }
+var r=0,g=1,b=2,o=3;
 
-            return [h, s, l];
-        },
-        hslToRgb: function(h, s, l){
-            var r, g, b;
+var SnaprFX = {};
 
-            if(s === 0){
-                r = g = b = l; // achromatic
-            }else{
-                function hue2rgb(p, q, t){
-                    if(t < 0){ t += 1; }
-                    if(t > 1){ t -= 1; }
-                    if(t < 1/6){ return p + (q - p) * 6 * t; }
-                    if(t < 1/2){ return q; }
-                    if(t < 2/3){ return p + (q - p) * (2/3 - t) * 6; }
-                    return p;
-                }
 
-                var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                var p = 2 * l - q;
-                r = hue2rgb(p, q, h + 1/3);
-                g = hue2rgb(p, q, h);
-                b = hue2rgb(p, q, h - 1/3);
-            }
-
-            return [r * 255, g * 255, b * 255];
-        }
-    },
-
-    Blender: function(mode){
-        console.log(' - Blend:', mode);
-
-        this.mode = SnaprFX.blend_modes[mode];
-
-        // does this blend mode require all RGB values
-        if(this.mode.rgb){
-            this.process = function(orig, overlay, opacity){
-
-                overlay = this.mode.process(orig, overlay);
-
-                var mix = [];
-                for (var i = 0; i <3; i++) {
-                    mix[i] = overlay[i] * opacity + orig[i] * (1 - opacity);
-                }
-                return mix;
-            };
-        // or can it work with the channels individually
-        }else{
-            this.process = function(orig, overlay, opacity){
-                var mix = [];
-                for (var i = 0; i <3; i++) {
-                    mix[i] = this.mode.process(orig[i], overlay[i]);
-                    mix[i] = mix[i] * opacity + orig[i] * (1 - opacity);
-                }
-                return mix;
-            };
-        }
-    },
-
-    blend_modes: {
-        normal: {
-            rgb: false,
-            process: function(orig, overlay, opacity){ return overlay; }
-        },
-
-        multiply: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                return orig * overlay / 255;
-            }
-        },
-
-        screen: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                return 255 - ( ((255-overlay)*(255-orig)) >> 8);
-            }
-        },
-
-        overlay: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                if (orig < 128){
-                    return orig*overlay*(2 / 255);
-                }else{
-                    return 255 - (255-orig)*(255-overlay)*(2 / 255);
-                }
-            }
-        },
-
-        darken: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                if(orig < overlay){
-                    overlay = orig;
-                }
-                return overlay;
-            }
-        },
-
-        lighten: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                if(orig > overlay){
-                    overlay = orig;
-                }
-                return overlay;
-            }
-
-        },
-        color_dodge: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                var x = (orig<<8)/(255-overlay);
-                if (x > 255 || overlay == 255){
-                    return 255;
-                }else{
-                    return x;
-                }
-            }
-        },
-
-        color_burn: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                var x = 255-((255-orig)<<8)/overlay;
-                if (x < 0 || overlay === 0){
-                    return 0;
-                }else{
-                    return x;
-                }
-            }
-        },
-
-        soft_light: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                if (orig < 128){
-                    return ((overlay>>1) + 64) * orig * (2/255);
-                }else{
-                    return 255 - (191 - (overlay>>1)) * (255-orig) * (2/255);
-                }
-            }
-        },
-
-        hard_light: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                if (overlay < 128){
-                    return orig * overlay * (2/255);
-                }else{
-                    return 255 - (255-orig) * (255-overlay) * (2/255);
-                }
-            }
-        },
-
-        difference: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                var x = orig - overlay;
-                if (x < 0){
-                    return -x;
-                }else{
-                    return x;
-                }
-            }
-        },
-
-        exclusion: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                return orig - (orig * (2/255) - 1) * overlay;
-            }
-        },
-
-        hue: {
-            rgb: true,
-            process: function(orig, overlay, opacity){
-                return overlay;
-            }
-        },
-
-        saturation: {
-            rgb: true,
-            process: function(orig, overlay, opacity){
-                return overlay;
-            }
-        },
-
-        color: {
-            rgb: true,
-            process: function(orig, overlay, opacity){
-                var orig_hsb = SnaprFX.utils.rgbToHsl(orig[0], orig[1], orig[2]),
-                    overlay_hsb = SnaprFX.utils.rgbToHsl(overlay[0], overlay[1], overlay[2]);
-
-                if(!window.x){
-                    window.x = [orig_hsb, overlay_hsb];
-                }
-
-                return SnaprFX.utils.hslToRgb(overlay_hsb[0], overlay_hsb[1], orig_hsb[2]);
-            }
-        },
-
-        luminosity: {
-            rgb: true,
-            process: function(orig, overlay, opacity){
-                return overlay;
-            }
-        },
-
-        subtract: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                overlay = orig - overlay;
-                if(overlay < 0){
-                    overlay = 0;
-                }
-                return overlay;
-            }
-        },
-
-        add: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                overlay = orig + overlay;
-                if(overlay > 255){
-                    overlay = 255;
-                }
-                return overlay;
-            }
-        },
-
-        divide: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                return (orig / overlay) * 255;
-            }
-
-        },
-        linear_burn: {
-            rgb: false,
-            process: function(orig, overlay, opacity){
-                if ((orig + overlay) < 255){
-                    return 0;
-                }else{
-                    return (orig + overlay - 255);
-                }
-            }
-        }
-    }
-};
-
-// based on http://matthewruddy.github.com/jQuery-filter.me/
-var Canvas = function(url, width, height){
-    console.time('get image');
-    var base = this;
-    this.canvas = document.createElement('canvas');
-    this.context = this.canvas.getContext('2d');
-    this.image = new Image();
-    this.image.src = url;
-    this.deferred = $.Deferred();
-    this.image.onload = function() {
-
-        base.width = base.canvas.width = width || this.width;
-        base.height = base.canvas.height = height || this.height;
-
-        // Draw the image onto the canvas
-        base.context.drawImage(this, 0, 0, this.width, this.height, 0, 0, base.canvas.width, base.canvas.height);
-
-        base.deferred.resolve();
-        console.timeEnd('get image');
-    };
-};
-
-Canvas.prototype.get_data = function(callback){
-    return this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
-};
-
-Canvas.prototype.put_data = function(data) {
-    this.context.putImageData(data, 0, 0);
-    return this;
-};
-
-Canvas.prototype.get_data_url = function() {
-    return this.canvas.toDataURL( 'image/jpeg', 1.0 );
-};
-
-var FX = function(url, effects, asset_prefix){
+// Core object - actually applys the effects to the image
+SnaprFX.FX = function(url, effects, asset_prefix){
     console.group(effects.name);
     var fx = this;
     this.effects = effects;
     this.layer_index = -1;  // so next layer is 0
     this.asset_prefix = asset_prefix || '';
     this.deferred = $.Deferred();
-    this.canvas = new Canvas(url);
+    this.canvas = new SnaprFX.Canvas(url);
     this.canvas.deferred.done(function(){
-        fx.data = fx.canvas.get_data();
-        fx.pixels = fx.data.data;
+        fx.pixels = fx.canvas.get_data();
         fx.apply_next_layer();
     });
 };
-FX.prototype.apply_next_layer = function(){
+SnaprFX.FX.prototype.apply_next_layer = function(){
     this.layer_index++;
     if(this.layer_index >= this.effects.layers.length){
         this.finish();
@@ -332,21 +32,39 @@ FX.prototype.apply_next_layer = function(){
 
     var fx = this,
         layer = this.effects.layers[this.layer_index],
-        filter = new filters[layer.type](layer, fx),
+        filter = new SnaprFX.filters[layer.type](layer, fx),
         blender = new SnaprFX.Blender(layer.blending_mode || 'normal');
 
     // when the filter is ready
     filter.deferred.done(function(){
 
+        var whole_canvas_result;
+        if(filter.whole_canvas){
+            // put modified px back on canvas (not needed if this is the first layer)
+            if(this.layer_index !== 0){
+                fx.canvas.put_data(fx.pixels);
+            }
+            filter.process(fx.canvas);
+
+            whole_canvas_result = fx.canvas.get_data();
+        }
+
         if(layer.mask_image){
-            var mask = new Canvas(fx.asset_prefix+layer.mask_image, fx.canvas.width, fx.canvas.height);
+            var mask = new SnaprFX.Canvas(fx.asset_prefix+layer.mask_image, fx.canvas.width, fx.canvas.height);
             mask.deferred.done(function(){
-                var mask_pixels = mask.get_data().data;
+
+                var mask_pixels = mask.get_data();
                 for ( var i = 0; i < fx.pixels.length; i += 4 ) {
 
-                    var rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
+                    var rgb;
+                    if(filter.whole_canvas){
+                        rgb = [whole_canvas_result[i], whole_canvas_result[i+1], whole_canvas_result[i+2], whole_canvas_result[i+3]];
+                    }else{
+                        rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
+                    }
 
-                    var opacity = rgb[3];
+
+                    var opacity = rgb[o];
                     if(opacity >= 0){
                         opacity = opacity / 255;
                     }else{
@@ -357,38 +75,46 @@ FX.prototype.apply_next_layer = function(){
 
                     rgb = blender.process(
                         [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]],
-                        [rgb[0], rgb[1], rgb[2]],
+                        [rgb[r], rgb[g], rgb[b]],
                         opacity
                     );
-                    fx.pixels[i  ] = rgb[0];
-                    fx.pixels[i+1] = rgb[1];
-                    fx.pixels[i+2] = rgb[2];
+                    fx.pixels[i  ] = rgb[r];
+                    fx.pixels[i+1] = rgb[g];
+                    fx.pixels[i+2] = rgb[b];
                 }
 
                 console.timeEnd("applying " + fx.effects.layers[fx.layer_index].type + " layer");
                 fx.apply_next_layer();
             });
         }else{
-            for ( var i = 0; i < fx.pixels.length; i += 4 ) {
 
-                var rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
-
-                var opacity = rgb[3];
-                if(opacity >= 0){  // >=0 ensures a number, not undefined
-                    opacity = opacity / 255;
-                }else{
-                    opacity = 1;
+            if(filter.whole_canvas){
+                // set px to result px one by one, setting fx.pixels = whole_canvas_result fails ??!
+                for ( var px = 0; px < fx.pixels.length; px++ ) {
+                    fx.pixels[px] = whole_canvas_result[px];
                 }
-                opacity = opacity * (layer.opacity/100);
+            }else{
+                for ( var i = 0; i < fx.pixels.length; i += 4 ) {
 
-                rgb = blender.process(
-                    [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]],
-                    [rgb[0], rgb[1], rgb[2]],
-                    opacity
-                );
-                fx.pixels[i  ] = rgb[0];
-                fx.pixels[i+1] = rgb[1];
-                fx.pixels[i+2] = rgb[2];
+                    var rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
+
+                    var opacity = rgb[o];
+                    if(opacity >= 0){  // >=0 ensures a number, not undefined
+                        opacity = opacity / 255;
+                    }else{
+                        opacity = 1;
+                    }
+                    opacity = opacity * (layer.opacity/100);
+
+                    rgb = blender.process(
+                        [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]],
+                        [rgb[r], rgb[g], rgb[b]],
+                        opacity
+                    );
+                    fx.pixels[i  ] = rgb[r];
+                    fx.pixels[i+1] = rgb[g];
+                    fx.pixels[i+2] = rgb[b];
+                }
             }
 
             console.timeEnd("applying " + fx.effects.layers[fx.layer_index].type + " layer");
@@ -396,27 +122,360 @@ FX.prototype.apply_next_layer = function(){
         }
     });
 };
-FX.prototype.finish = function(){
+SnaprFX.FX.prototype.finish = function(){
     console.time('writing data back');
-    this.data.data = this.pixels;
-    this.canvas.put_data(this.data);
+    this.canvas.put_data(this.pixels);
     this.deferred.resolve();
     console.timeEnd('writing data back');
 
     console.groupEnd(this.effects.name);
 };
 
-var filters = {};
 
-filters.adjustment = function(layer){
+// Utilities
+// ---------
+
+SnaprFX.utils = {
+    // from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
+    rgbToHsl: function(r, g, b){
+        r /= 255, g /= 255, b /= 255;
+        var max = Math.max(r, g, b), min = Math.min(r, g, b);
+        var h, s, l = (max + min) / 2;
+
+        if(max == min){
+            h = s = 0; // achromatic
+        }else{
+            var d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch(max){
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+
+        return [h, s, l];
+    },
+    hslToRgb: function(h, s, l){
+        var r, g, b;
+
+        if(s === 0){
+            r = g = b = l; // achromatic
+        }else{
+            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            var p = 2 * l - q;
+            r = SnaprFX.utils.hueToRgb(p, q, h + 1/3);
+            g = SnaprFX.utils.hueToRgb(p, q, h);
+            b = SnaprFX.utils.hueToRgb(p, q, h - 1/3);
+        }
+
+        return [r * 255, g * 255, b * 255];
+    },
+    hueToRgb: function(p, q, t){
+        if(t < 0){ t += 1; }
+        if(t > 1){ t -= 1; }
+        if(t < 1/6){ return p + (q - p) * 6 * t; }
+        if(t < 1/2){ return q; }
+        if(t < 2/3){ return p + (q - p) * (2/3 - t) * 6; }
+        return p;
+    }
+};
+
+
+// Canvas
+// ------
+
+// gets an image file and reads its pixels
+// based on http://matthewruddy.github.com/jQuery-filter.me/
+SnaprFX.Canvas = function(url, width, height){
+    console.time('get image');
+
+    var base = this;
+    this.deferred = $.Deferred();  // to notify when read to read
+
+    // create canvas
+    this.canvas = document.createElement('canvas');
+    this.context = this.canvas.getContext('2d');
+
+    // get image
+    this.image = new Image();
+    this.image.src = url;
+
+    this.image.onload = function() {
+
+        // scale canvas to image size if none specified
+        base.width = base.canvas.width = width || this.width;
+        base.height = base.canvas.height = height || this.height;
+
+        // Draw the image onto the canvas
+        base.context.drawImage(this, 0, 0, this.width, this.height, 0, 0, base.canvas.width, base.canvas.height);
+
+        // notify that it's ready
+        base.deferred.resolve();
+
+        console.timeEnd('get image');
+    };
+};
+
+SnaprFX.Canvas.prototype.get_data = function(){
+    var image_data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    this.data = this.data || image_data;
+    return image_data.data;
+};
+
+SnaprFX.Canvas.prototype.put_data = function(data) {
+    this.data.data = data;
+    this.context.putImageData(this.data, 0, 0);
+    return this;
+};
+
+SnaprFX.Canvas.prototype.get_data_url = function() {
+    return this.canvas.toDataURL( 'image/jpeg', 1.0 );
+};
+
+
+// Blender
+// -------
+
+// Blends two layers together
+SnaprFX.Blender = function(mode){
+    console.log(' - Blend:', mode);
+
+    this.mode = this.blend_modes[mode];
+
+    // does this blend mode require all RGB values
+    if(this.mode.rgb){
+        this.process = function(orig, overlay, opacity){
+
+            // the the blended result
+            overlay = this.mode.process(orig, overlay);
+
+            // apply it to the underlying layer with opacity
+            var mix = [];
+            for (var channel = r; channel <= b; channel++) {
+                mix[channel] = overlay[channel] * opacity + orig[channel] * (1 - opacity);
+            }
+            return mix;
+        };
+    // or can it work with the channels individually
+    }else{
+        this.process = function(orig, overlay, opacity){
+            var mix = [];
+            for (var channel = r; channel <= b; channel++) {
+                mix[channel] = this.mode.process(orig[channel], overlay[channel]);
+                mix[channel] = mix[channel] * opacity + orig[channel] * (1 - opacity);
+            }
+            return mix;
+        };
+    }
+};
+
+SnaprFX.Blender.prototype.blend_modes = {
+    normal: {
+        rgb: false,
+        process: function(orig, overlay, opacity){ return overlay; }
+    },
+
+    multiply: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            return orig * overlay / 255;
+        }
+    },
+
+    screen: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            return 255 - ( ((255-overlay)*(255-orig)) >> 8);
+        }
+    },
+
+    overlay: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            if (orig < 128){
+                return orig*overlay*(2 / 255);
+            }else{
+                return 255 - (255-orig)*(255-overlay)*(2 / 255);
+            }
+        }
+    },
+
+    darken: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            if(orig < overlay){
+                overlay = orig;
+            }
+            return overlay;
+        }
+    },
+
+    lighten: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            if(orig > overlay){
+                overlay = orig;
+            }
+            return overlay;
+        }
+
+    },
+    color_dodge: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            var x = (orig<<8)/(255-overlay);
+            if (x > 255 || overlay == 255){
+                return 255;
+            }else{
+                return x;
+            }
+        }
+    },
+
+    color_burn: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            var x = 255-((255-orig)<<8)/overlay;
+            if (x < 0 || overlay === 0){
+                return 0;
+            }else{
+                return x;
+            }
+        }
+    },
+
+    soft_light: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            if (orig < 128){
+                return ((overlay>>1) + 64) * orig * (2/255);
+            }else{
+                return 255 - (191 - (overlay>>1)) * (255-orig) * (2/255);
+            }
+        }
+    },
+
+    hard_light: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            if (overlay < 128){
+                return orig * overlay * (2/255);
+            }else{
+                return 255 - (255-orig) * (255-overlay) * (2/255);
+            }
+        }
+    },
+
+    difference: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            var x = orig - overlay;
+            if (x < 0){
+                return -x;
+            }else{
+                return x;
+            }
+        }
+    },
+
+    exclusion: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            return orig - (orig * (2/255) - 1) * overlay;
+        }
+    },
+
+    hue: {
+        rgb: true,
+        process: function(orig, overlay, opacity){
+            return overlay;
+        }
+    },
+
+    saturation: {
+        rgb: true,
+        process: function(orig, overlay, opacity){
+            return overlay;
+        }
+    },
+
+    color: {
+        rgb: true,
+        process: function(orig, overlay, opacity){
+            var orig_hsb = SnaprFX.utils.rgbToHsl(orig[0], orig[1], orig[2]),
+                overlay_hsb = SnaprFX.utils.rgbToHsl(overlay[0], overlay[1], overlay[2]);
+
+            if(!window.x){
+                window.x = [orig_hsb, overlay_hsb];
+            }
+
+            return SnaprFX.utils.hslToRgb(overlay_hsb[0], overlay_hsb[1], orig_hsb[2]);
+        }
+    },
+
+    luminosity: {
+        rgb: true,
+        process: function(orig, overlay, opacity){
+            return overlay;
+        }
+    },
+
+    subtract: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            overlay = orig - overlay;
+            if(overlay < 0){
+                overlay = 0;
+            }
+            return overlay;
+        }
+    },
+
+    add: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            overlay = orig + overlay;
+            if(overlay > 255){
+                overlay = 255;
+            }
+            return overlay;
+        }
+    },
+
+    divide: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            return (orig / overlay) * 255;
+        }
+
+    },
+    linear_burn: {
+        rgb: false,
+        process: function(orig, overlay, opacity){
+            if ((orig + overlay) < 255){
+                return 0;
+            }else{
+                return (orig + overlay - 255);
+            }
+        }
+    }
+};
+
+SnaprFX.filters = {};
+
+SnaprFX.filters.adjustment = function(layer){
+    // adjustment layer is just a wrapper for real adjustment type
     console.log(" - Adjustment:", layer.adjustment.type);
 
-    this.filter = new filters[layer.adjustment.type](layer);
+    this.filter = new SnaprFX.filters[layer.adjustment.type](layer);
+    this.whole_canvas = this.filter.whole_canvas;
     this.process = this.filter.process;
     this.deferred = $.Deferred().resolve();
 };
 
-filters.curves = function(layer){
+SnaprFX.filters.curves = function(layer){
     this.curves = layer.adjustment;
     this.splines = {};
 
@@ -443,7 +502,7 @@ filters.curves = function(layer){
 
     });
 };
-filters.curves.prototype.process = function(i, rgb){
+SnaprFX.filters.curves.prototype.process = function(i, rgb){
 
     // Apply the curve to R, G, B values
     rgb[0] = this.filter.splines.red.interpolate(rgb[0]);
@@ -458,7 +517,7 @@ filters.curves.prototype.process = function(i, rgb){
     return rgb;
 };
 // CubicSplines based on http://blog.mackerron.com/2011/01/01/javascript-cubic-splines/
-filters.curves.prototype.CubicSpline = function() {
+SnaprFX.filters.curves.prototype.CubicSpline = function() {
     function CubicSpline(x, a) {
         var b, c, d, h, i, k, l, n, s, u, y, z, _ref;
         if (!((x !== null) && (a !== null))) {
@@ -548,32 +607,33 @@ filters.curves.prototype.CubicSpline = function() {
     return CubicSpline;
 }();
 
-filters.levels = function(layer){
+
+SnaprFX.filters.levels = function(layer){
     var levels = layer.adjustment;
     this.interpolate = function(x){
 
         var range = levels.white - levels.black,
             slope = range/255,
-            gamma = levels.mid;
+            gamma = levels.mid,
+            min = levels.black;
 
-        return (Math.pow(((x-levels.black) / range),(1/gamma)) * range)/slope;
+        return (Math.pow(((x-min) / range),(1/gamma)) * range)/slope;
     };
-    window.interpolate = this.interpolate;
 };
-filters.levels.prototype.process = function(i, rgb){
+SnaprFX.filters.levels.prototype.process = function(i, rgb){
 
-    rgb[0] = this.filter.interpolate(rgb[0]);
-    rgb[1] = this.filter.interpolate(rgb[1]);
-    rgb[2] = this.filter.interpolate(rgb[2]);
+    rgb[r] = this.filter.interpolate(rgb[r]);
+    rgb[g] = this.filter.interpolate(rgb[g]);
+    rgb[b] = this.filter.interpolate(rgb[b]);
 
     return rgb;
 };
 
-filters.hue = function(layer){
+SnaprFX.filters.hue = function(layer){
     this.hue = layer.adjustment.amount;
 };
-filters.hue.prototype.process = function(i, rgb){
-    var hsl = SnaprFX.utils.rgbToHsl(rgb[0], rgb[1], rgb[2]);
+SnaprFX.filters.hue.prototype.process = function(i, rgb){
+    var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
     hsl[0] += this.filter.hue/255;
     if(hsl[0]>1){
         hsl[0] -= 1;
@@ -584,11 +644,11 @@ filters.hue.prototype.process = function(i, rgb){
     return SnaprFX.utils.hslToRgb(hsl[0], hsl[1], hsl[2]);
 };
 
-filters.saturation = function(layer){
+SnaprFX.filters.saturation = function(layer){
     this.saturation = layer.adjustment.amount / 100;
 };
-filters.saturation.prototype.process = function(i, rgb){
-    var hsl = SnaprFX.utils.rgbToHsl(rgb[0], rgb[1], rgb[2]);
+SnaprFX.filters.saturation.prototype.process = function(i, rgb){
+    var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
     var sat;
     // adapted from https://github.com/jseidelin/pixastic/blob/master/actions/hsl.js
     // claims to match photoshop but photoshop seems to ramp up exponentinally with
@@ -605,11 +665,11 @@ filters.saturation.prototype.process = function(i, rgb){
     return SnaprFX.utils.hslToRgb(hsl[0], sat, hsl[2]);
 };
 
-filters.lightness = function(layer){
+SnaprFX.filters.lightness = function(layer){
     this.lightness = layer.adjustment.amount / 100;
 };
-filters.lightness.prototype.process = function(i, rgb){
-    var hsl = SnaprFX.utils.rgbToHsl(rgb[0], rgb[1], rgb[2]);
+SnaprFX.filters.lightness.prototype.process = function(i, rgb){
+    var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
     var lightness;
     if (this.filter.lightness < 0) {
         lightness = hsl[2] * (this.filter.lightness + 1);
@@ -623,35 +683,69 @@ filters.lightness.prototype.process = function(i, rgb){
     return SnaprFX.utils.hslToRgb(hsl[0], hsl[1], lightness);
 };
 
-filters.blur = function(layer){
-    // TODO
-    console.warn(' - blur not implimented');
+SnaprFX.filters.blur = function(layer){
+    this.whole_canvas = true;
+    this.amount = Math.max(0, Math.min(5, layer.adjustment.amount));
 };
-filters.blur.prototype.process = function(i, rgb){ return rgb; };
+SnaprFX.filters.blur.prototype.process = function(canvas){
 
-filters.color = function(layer){
+    var scale = 2;
+    var smallWidth = Math.round(canvas.width / scale);
+    var smallHeight = Math.round(canvas.height / scale);
+
+    var copy = document.createElement("canvas");
+    copy.width = smallWidth;
+    copy.height = smallHeight;
+
+    var steps = Math.round(this.filter.amount * 20);
+
+    var copyCtx = copy.getContext("2d");
+    for (var i=0; i<steps; i++) {
+        var scaledWidth = Math.max(1,Math.round(smallWidth - i));
+        var scaledHeight = Math.max(1,Math.round(smallHeight - i));
+
+        copyCtx.clearRect(0,0,smallWidth,smallHeight);
+
+        copyCtx.drawImage(
+            canvas.canvas,
+            0, 0, canvas.width, canvas.height,
+            0, 0, scaledWidth, scaledHeight
+        );
+
+        canvas.context.drawImage(
+            copy,
+            0, 0, scaledWidth, scaledHeight,
+            0, 0, canvas.width, canvas.height
+        );
+    }
+
+};
+
+SnaprFX.filters.color = function(layer){
     this.color = layer.color.rgb;
     this.deferred = $.Deferred().resolve();
 };
-filters.color.prototype.process = function(i, rgb){ return this.color; };
+SnaprFX.filters.color.prototype.process = function(i, rgb){ return this.color; };
 
-filters.image = function(layer, fx){
+SnaprFX.filters.image = function(layer, fx){
     this.url = layer.image.image;
     this.width = fx.canvas.width;
     this.height = fx.canvas.height;
-    this.canvas = new Canvas(fx.asset_prefix+this.url, this.width, this.height);
+    this.canvas = new SnaprFX.Canvas(fx.asset_prefix+this.url, this.width, this.height);
     this.deferred = $.Deferred();
     var image_filter = this;
     this.canvas.deferred.done(function(){
-        image_filter.data = image_filter.canvas.get_data();
-        image_filter.pixels = image_filter.data.data;
+        image_filter.pixels = image_filter.canvas.get_data();
         image_filter.deferred.resolve();
     });
 };
-filters.image.prototype.process = function(i, rgb){
+SnaprFX.filters.image.prototype.process = function(i, rgb){
     return [this.pixels[i], this.pixels[i+1], this.pixels[i+2], this.pixels[i+3]];
 };
 
+
+// jQuery Plugin
+// -------------
 
 $.fn.snapr_fx = function(orig, pack, filter_slug) {
     var elements = this;
@@ -660,7 +754,7 @@ $.fn.snapr_fx = function(orig, pack, filter_slug) {
         success: function(data){
             elements.each(function() {
                 var element = $(this);
-                var x = new FX(orig.attr('src'), data.filter, 'filter-packs/zombies/filters/' + filter_slug + '/');
+                var x = new SnaprFX.FX(orig.attr('src'), data.filter, 'filter-packs/zombies/filters/' + filter_slug + '/');
                 x.deferred.done(function(){
                     element.attr('src', x.canvas.get_data_url());
                 });
