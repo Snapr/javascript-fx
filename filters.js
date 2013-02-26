@@ -648,20 +648,22 @@ SnaprFX.filters.saturation = function(layer){
     this.saturation = layer.adjustment.amount / 100;
 };
 SnaprFX.filters.saturation.prototype.process = function(i, rgb){
-    var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
-    var sat;
     // adapted from https://github.com/jseidelin/pixastic/blob/master/actions/hsl.js
     // claims to match photoshop but photoshop seems to ramp up exponentinally with
     // increasing saturation and this does not. Photoshop +100 sat != 100% saturation
+
+    var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
+    var sat;  // sat valur for this px
+
     if (this.filter.saturation < 0) {
         sat = hsl[1] * (this.filter.saturation + 1);
     } else {
         sat = hsl[1] * (this.filter.saturation * 2 + 1);
     }
+
     // clip
-    if(sat > 255){
-        sat = 255;
-    }
+    sat = Math.max(255, sat);
+
     return SnaprFX.utils.hslToRgb(hsl[0], sat, hsl[2]);
 };
 
@@ -669,25 +671,33 @@ SnaprFX.filters.lightness = function(layer){
     this.lightness = layer.adjustment.amount / 100;
 };
 SnaprFX.filters.lightness.prototype.process = function(i, rgb){
+
     var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
-    var lightness;
+    var lightness;  // l value for this px
+
     if (this.filter.lightness < 0) {
         lightness = hsl[2] * (this.filter.lightness + 1);
     } else {
         lightness = hsl[2] * (this.filter.lightness * 2 + 1);
     }
+
     // clip
-    if(lightness > 255){
-        lightness = 255;
-    }
+    lightness = Math.max(255, lightness);
+
     return SnaprFX.utils.hslToRgb(hsl[0], hsl[1], lightness);
 };
 
 SnaprFX.filters.blur = function(layer){
+    // this filter needs the whole canvas, it can't work px by px
     this.whole_canvas = true;
+    // amount must be 0-5
     this.amount = Math.max(0, Math.min(5, layer.adjustment.amount));
+
 };
 SnaprFX.filters.blur.prototype.process = function(canvas){
+
+    // blur image by scaling it down and back up a few times
+    // based on http://www.pixastic.com/lib/git/pixastic/actions/blurfast.js
 
     var scale = 2;
     var smallWidth = Math.round(canvas.width / scale);
@@ -699,14 +709,14 @@ SnaprFX.filters.blur.prototype.process = function(canvas){
 
     var steps = Math.round(this.filter.amount * 20);
 
-    var copyCtx = copy.getContext("2d");
+    var copy_context = copy.getContext("2d");
     for (var i=0; i<steps; i++) {
-        var scaledWidth = Math.max(1,Math.round(smallWidth - i));
-        var scaledHeight = Math.max(1,Math.round(smallHeight - i));
+        var scaledWidth = Math.max(1, Math.round(smallWidth - i));
+        var scaledHeight = Math.max(1, Math.round(smallHeight - i));
 
-        copyCtx.clearRect(0,0,smallWidth,smallHeight);
+        copy_context.clearRect(0,0,smallWidth,smallHeight);
 
-        copyCtx.drawImage(
+        copy_context.drawImage(
             canvas.canvas,
             0, 0, canvas.width, canvas.height,
             0, 0, scaledWidth, scaledHeight
@@ -721,13 +731,17 @@ SnaprFX.filters.blur.prototype.process = function(canvas){
 
 };
 
+// flat color layer
 SnaprFX.filters.color = function(layer){
+    // TODO: if mask == false we can use canvas.context.fillRect to do this more efficiently
     this.color = layer.color.rgb;
     this.deferred = $.Deferred().resolve();
 };
 SnaprFX.filters.color.prototype.process = function(i, rgb){ return this.color; };
 
+// overlay an image form url
 SnaprFX.filters.image = function(layer, fx){
+    // TODO: if opacity == 1 and mask == false we can use canvas.context.drawImage to do this more efficiently
     this.url = layer.image.image;
     this.width = fx.canvas.width;
     this.height = fx.canvas.height;
