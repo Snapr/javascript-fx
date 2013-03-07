@@ -717,19 +717,15 @@ SnaprFX.filters.lightness = function(layer){
 };
 SnaprFX.filters.lightness.prototype.process = function(i, rgb){
 
-    var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
-    var lightness;  // l value for this px
+    var lightness = this.filter.lightness,
+        multiplier = lightness < 0 ? 1 + lightness : 1 - lightness,
+        increase = lightness < 0 ? 0 : lightness * 255;
 
-    if (this.filter.lightness < 0) {
-        lightness = hsl[2] * (this.filter.lightness + 1);
-    } else {
-        lightness = hsl[2] * (this.filter.lightness * 2 + 1);
-    }
-
-    // clip
-    lightness = Math.min(255, lightness);
-
-    return SnaprFX.utils.hslToRgb(hsl[0], hsl[1], lightness);
+    return [
+        Math.min(rgb[r] * multiplier + increase, 255),
+        Math.min(rgb[g] * multiplier + increase, 255),
+        Math.min(rgb[b] * multiplier + increase, 255)
+    ];
 };
 
 SnaprFX.filters.blur = function(layer){
