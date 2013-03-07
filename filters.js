@@ -813,7 +813,7 @@ $.fn.snapr_fx = function(orig, pack, filter_slug) {
         success: function(data){
             elements.each(function() {
                 var element = $(this);
-                var x = new SnaprFX.FX(orig.attr('src'), data.filter, 'filter-packs/zombies/filters/' + filter_slug + '/');
+                var x = new SnaprFX.FX(orig.attr('src'), data.filter, 'filter-packs/'+ pack +'/filters/' + filter_slug + '/');
                 x.deferred.done(function(){
                     element.attr('src', x.canvas.get_data_url());
                 });
