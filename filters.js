@@ -1,17 +1,37 @@
 /*jslint bitwise: true */
 
+
+// Overview
+// --------
+
+// Load image into canvas
+// For each layer in effect
+//     If the filter can operate on the whole Canvas
+//         Put the px back on the canvas
+//         Run the filter
+//     If the filter runs px by px
+//         Run the filter on each px
+
+//     Create a blender to mix the results with the underlying image using the right blend mode
+//         take into account overall layer opacity, px opacity from filter and opacity from mask
+
+// put the px back on the canvas
+// return data url
+
+
+
 var r=0,g=1,b=2,o=3;
 
 var SnaprFX = {};
 
 
-// Core object - actually applys the effects to the image
+// Core object - actually applies the effects to the image
 SnaprFX.FX = function(url, effects, asset_prefix){
     console.group(effects.name);
     var fx = this;
     this.effects = effects;
-    this.layer_index = -1;  // so next layer is 0
-    this.asset_prefix = asset_prefix || '';
+    this.layer_index = -1;  // so first time we call 'next' layer it's 0
+    this.asset_prefix = asset_prefix || '';  // path prefix for masks, images
     this.deferred = $.Deferred();
     this.canvas = new SnaprFX.Canvas(url);
     this.canvas.deferred.done(function(){
@@ -20,7 +40,11 @@ SnaprFX.FX = function(url, effects, asset_prefix){
     });
 };
 SnaprFX.FX.prototype.apply_next_layer = function(){
+    // apply_next_layer allows processing to be deffered until something is ready (eg, loading mask image)
+    // after this layer is finished apply_next_layer will be called again
+
     this.layer_index++;
+    // if there are no more laters we are done!
     if(this.layer_index >= this.effects.layers.length){
         this.finish();
         return;
@@ -35,42 +59,53 @@ SnaprFX.FX.prototype.apply_next_layer = function(){
         filter = new SnaprFX.filters[layer.type](layer, fx),
         blender = new SnaprFX.Blender(layer.blending_mode || 'normal');
 
-    // when the filter is ready
+    // when the filter is ready (may need to load an image etc)
     filter.deferred.done(function(){
 
+        // some filters (eg blur) need the whole canvas - they can't work px by px
         var whole_canvas_result;
         if(filter.whole_canvas){
             // put modified px back on canvas (not needed if this is the first layer)
             if(this.layer_index !== 0){
                 fx.canvas.put_data(fx.pixels);
             }
+
+            // run the filter
             filter.process(fx.canvas);
 
             whole_canvas_result = fx.canvas.get_data();
         }
 
+        // if there's a mask we must adjust each of the new px opacity accordingly
         if(layer.mask_image){
+
             var mask = new SnaprFX.Canvas(fx.asset_prefix+layer.mask_image, fx.canvas.width, fx.canvas.height);
             mask.deferred.done(function(){
 
                 var mask_pixels = mask.get_data();
+
                 for ( var i = 0; i < fx.pixels.length; i += 4 ) {
 
                     var rgb;
                     if(filter.whole_canvas){
+                        // whole canvas has been processed by filter
+                        // get relivent px
                         rgb = [whole_canvas_result[i], whole_canvas_result[i+1], whole_canvas_result[i+2], whole_canvas_result[i+3]];
                     }else{
+                        // process this px now
                         rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
                     }
 
-
+                    // start with opacity for px returned by filter
                     var opacity = rgb[o];
-                    if(opacity >= 0){
+                    if(opacity >= 0){  // >= 0 ensures a number (that's positive too)
                         opacity = opacity / 255;
                     }else{
                         opacity = 1;
                     }
+                    // * opacity of this px from mask
                     opacity = opacity * (mask_pixels[i]/255);
+                    // * opacity of this whole layer
                     opacity = opacity * (layer.opacity/100);
 
                     rgb = blender.process(
@@ -123,9 +158,13 @@ SnaprFX.FX.prototype.apply_next_layer = function(){
     });
 };
 SnaprFX.FX.prototype.finish = function(){
+    // put px back in canvas
+
     console.time('writing data back');
+
     this.canvas.put_data(this.pixels);
     this.deferred.resolve();
+
     console.timeEnd('writing data back');
 
     console.groupEnd(this.effects.name);
@@ -136,7 +175,7 @@ SnaprFX.FX.prototype.finish = function(){
 // ---------
 
 SnaprFX.utils = {
-    // from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
+    // based on http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
     rgbToHsl: function(r, g, b){
         r /= 255, g /= 255, b /= 255;
         var max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -220,6 +259,7 @@ SnaprFX.Canvas = function(url, width, height){
 
 SnaprFX.Canvas.prototype.get_data = function(){
     var image_data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    // if you ever overwrite this it seems you can't write the px back to the canvas
     this.data = this.data || image_data;
     return image_data.data;
 };
@@ -407,10 +447,6 @@ SnaprFX.Blender.prototype.blend_modes = {
             var orig_hsb = SnaprFX.utils.rgbToHsl(orig[0], orig[1], orig[2]),
                 overlay_hsb = SnaprFX.utils.rgbToHsl(overlay[0], overlay[1], overlay[2]);
 
-            if(!window.x){
-                window.x = [orig_hsb, overlay_hsb];
-            }
-
             return SnaprFX.utils.hslToRgb(overlay_hsb[0], overlay_hsb[1], orig_hsb[2]);
         }
     },
@@ -516,8 +552,9 @@ SnaprFX.filters.curves.prototype.process = function(i, rgb){
 
     return rgb;
 };
-// CubicSplines based on http://blog.mackerron.com/2011/01/01/javascript-cubic-splines/
 SnaprFX.filters.curves.prototype.CubicSpline = function() {
+    // CubicSplines based on http://blog.mackerron.com/2011/01/01/javascript-cubic-splines/
+
     function CubicSpline(x, a) {
         var b, c, d, h, i, k, l, n, s, u, y, z, _ref;
         if (!((x !== null) && (a !== null))) {
@@ -612,6 +649,10 @@ SnaprFX.filters.levels = function(layer){
     var levels = layer.adjustment;
     this.interpolate = function(x){
 
+        // map input values to a curve that runs from (0,black) to (255,white)
+        // mid is gamma, it affects the curvatiure - map all values on the line
+        // to the range 0-1 and raise them to the power of the gamma value
+
         var range = levels.white - levels.black,
             slope = range/255,
             gamma = levels.mid,
@@ -633,14 +674,18 @@ SnaprFX.filters.hue = function(layer){
     this.hue = layer.adjustment.amount;
 };
 SnaprFX.filters.hue.prototype.process = function(i, rgb){
+
     var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
     hsl[0] += this.filter.hue/255;
+
+    // keep in range 0 to 1 by wrapping (1.6 => .6)
     if(hsl[0]>1){
         hsl[0] -= 1;
     }
     if(hsl[0]<0){
         hsl[0] += 1;
     }
+
     return SnaprFX.utils.hslToRgb(hsl[0], hsl[1], hsl[2]);
 };
 
