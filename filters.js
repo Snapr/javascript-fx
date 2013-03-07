@@ -707,7 +707,7 @@ SnaprFX.filters.saturation.prototype.process = function(i, rgb){
     }
 
     // clip
-    sat = Math.max(255, sat);
+    sat = Math.min(255, sat);
 
     return SnaprFX.utils.hslToRgb(hsl[0], sat, hsl[2]);
 };
@@ -727,7 +727,7 @@ SnaprFX.filters.lightness.prototype.process = function(i, rgb){
     }
 
     // clip
-    lightness = Math.max(255, lightness);
+    lightness = Math.min(255, lightness);
 
     return SnaprFX.utils.hslToRgb(hsl[0], hsl[1], lightness);
 };
