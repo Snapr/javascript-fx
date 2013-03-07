@@ -538,8 +538,8 @@ SnaprFX.filters.curves = function(layer){
         // to CubicSpline's input format [in1,in2], [out1,out2]
         var inputs = [], outputs = [];
         $.each(filter.curves[channel], function(i, point){
-            inputs.push(point[1]);
-            outputs.push(point[0]);
+            inputs.push(point[0]);
+            outputs.push(point[1]);
         });
 
         // create splines
