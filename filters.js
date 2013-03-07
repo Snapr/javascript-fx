@@ -525,6 +525,15 @@ SnaprFX.filters.curves = function(layer){
             return;
         }
 
+        // make sure it has a beginning and end
+        if(filter.curves[channel][0][0] !== 0 || filter.curves[channel][0][1] !== 0){
+            filter.curves[channel].unshift([0,0]);
+        }
+        var len = filter.curves[channel].length;
+        if(filter.curves[channel][len-1][0] !== 255 || filter.curves[channel][len-1][1] !== 255){
+            filter.curves[channel].push([255,255]);
+        }
+
         // convert from snapr currves spec format [[in1,out1],[in2,out2]]
         // to CubicSpline's input format [in1,in2], [out1,out2]
         var inputs = [], outputs = [];
