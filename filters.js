@@ -630,6 +630,9 @@ SnaprFX.filters.curves.prototype.CubicSpline = function() {
         return s;
     };
     CubicSpline.prototype.interpolate = function(x) {
+        if(x >= this.max_in){ return this.max_out; }
+        if(x <= this.min_in){ return this.min_out; }
+
         var deltaX, i, y, _ref;
         for (i = _ref = this.x.length - 1; (_ref <= 0 ? i <= 0 : i >= 0); (_ref <= 0 ? i += 1 : i -= 1)) {
           if (this.x[i] <= x) {
@@ -637,12 +640,7 @@ SnaprFX.filters.curves.prototype.CubicSpline = function() {
           }
         }
         deltaX = x - this.x[i];
-        y = this.a[i] + this.b[i] * deltaX + this.c[i] * Math.pow(deltaX, 2) + this.d[i] * Math.pow(deltaX, 3);
-        if(isNaN(y)){
-            return x < this.max_in ? this.min_out : this.max_out;
-        }else{
-            return y;
-        }
+        return this.a[i] + this.b[i] * deltaX + this.c[i] * Math.pow(deltaX, 2) + this.d[i] * Math.pow(deltaX, 3);
     };
 
     return CubicSpline;
