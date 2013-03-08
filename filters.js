@@ -525,15 +525,6 @@ SnaprFX.filters.curves = function(layer){
             return;
         }
 
-        // make sure it has a beginning and end
-        if(filter.curves[channel][0][0] !== 0 || filter.curves[channel][0][1] !== 0){
-            filter.curves[channel].unshift([0,0]);
-        }
-        var len = filter.curves[channel].length;
-        if(filter.curves[channel][len-1][0] !== 255 || filter.curves[channel][len-1][1] !== 255){
-            filter.curves[channel].push([255,255]);
-        }
-
         // convert from snapr currves spec format [[in1,out1],[in2,out2]]
         // to CubicSpline's input format [in1,in2], [out1,out2]
         var inputs = [], outputs = [];
@@ -582,12 +573,16 @@ SnaprFX.filters.curves.prototype.CubicSpline = function() {
         s = [];
         this.max_out = a[0];
         this.min_out = a[0];
+        this.max_in = x[0];
+        this.min_in = x[0];
         for (i = 0; (0 <= n ? i < n : i > n); (0 <= n ? i += 1 : i -= 1)) {
           h[i] = x[i + 1] - x[i];
           k[i] = a[i + 1] - a[i];
           s[i] = k[i] / h[i];
           this.max_out = a[i+1] > this.max_out ? a[i+1] : this.max_out ;
           this.min_out = a[i+1] < this.min_out ? a[i+1] : this.min_out ;
+          this.max_in = x[i+1] > this.max_in ? x[i+1] : this.max_in ;
+          this.min_in = x[i+1] < this.min_in ? x[i+1] : this.min_in ;
         }
         for (i = 1; (1 <= n ? i < n : i > n); (1 <= n ? i += 1 : i -= 1)) {
           y[i] = 3 / h[i] * (a[i + 1] - a[i]) - 3 / h[i - 1] * (a[i] - a[i - 1]);
@@ -644,7 +639,7 @@ SnaprFX.filters.curves.prototype.CubicSpline = function() {
         deltaX = x - this.x[i];
         y = this.a[i] + this.b[i] * deltaX + this.c[i] * Math.pow(deltaX, 2) + this.d[i] * Math.pow(deltaX, 3);
         if(isNaN(y)){
-            return x < this.max_out ? this.min_out : this.max_out;
+            return x < this.max_in ? this.min_out : this.max_out;
         }else{
             return y;
         }
