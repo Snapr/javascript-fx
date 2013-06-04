@@ -17,6 +17,7 @@
   $(function(){
     var img = $('.main-image'),
         orig = img.clone().hide().appendTo(document.body);
+        img.snapr_fx(orig, false, false, {crop_aspect:1, size:400});
     window.img = img;
     window.orig = orig;
 
@@ -26,15 +27,14 @@
             $('.fx').append(
                 $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/original-thumb@2x.png">Original </a>')
                 .click(function(){
-                    img.replaceWith(orig.clone().show());
-                    img = $('.main-image').eq(0);
+                    img.snapr_fx(orig, pack.filter_pack.slug, false, {crop_aspect:1, size:400});
                 })
             );
             $.each(pack.filter_pack.filters, function(i, filter){
                 $('.fx').append(
                     $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
                     .click(function(){
-                        img.snapr_fx(orig, pack.filter_pack.slug, filter.slug);
+                        img.snapr_fx(orig, pack.filter_pack.slug, filter.slug, {crop_aspect:1, size:400});
                     })
                 );
             });
@@ -46,7 +46,6 @@
   <style>
   .main-image{
       width: 400px;
-      height: 400px;
   }
   .fx a{
       text-align: center;

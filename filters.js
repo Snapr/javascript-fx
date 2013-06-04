@@ -26,14 +26,15 @@ var SnaprFX = {};
 
 
 // Core object - actually applies the effects to the image
-SnaprFX.FX = function(url, effects, asset_prefix){
-    console.group(effects.name);
+SnaprFX.FX = function(url, effects, asset_prefix, options){
+    options = options || {};
+    console.group(effects.name || 'None');
     var fx = this;
     this.effects = effects;
     this.layer_index = -1;  // so first time we call 'next' layer it's 0
     this.asset_prefix = asset_prefix || '';  // path prefix for masks, images
     this.deferred = $.Deferred();
-    this.canvas = new SnaprFX.Canvas(url);
+    this.canvas = new SnaprFX.Canvas(url, options);
     this.canvas.deferred.done(function(){
         fx.pixels = fx.canvas.get_data();
         fx.apply_next_layer();
@@ -42,6 +43,11 @@ SnaprFX.FX = function(url, effects, asset_prefix){
 SnaprFX.FX.prototype.apply_next_layer = function(){
     // apply_next_layer allows processing to be deffered until something is ready (eg, loading mask image)
     // after this layer is finished apply_next_layer will be called again
+
+    if(this.effects === false){
+        this.finish();
+        return;
+    }
 
     this.layer_index++;
     // if there are no more laters we are done!
@@ -227,7 +233,7 @@ SnaprFX.utils = {
 
 // gets an image file and reads its pixels
 // based on http://matthewruddy.github.com/jQuery-filter.me/
-SnaprFX.Canvas = function(url, width, height){
+SnaprFX.Canvas = function(url, options){
     console.time('get image');
 
     var base = this;
@@ -243,12 +249,47 @@ SnaprFX.Canvas = function(url, width, height){
 
     this.image.onload = function() {
 
-        // scale canvas to image size if none specified
-        base.width = base.canvas.width = width || this.width;
-        base.height = base.canvas.height = height || this.height;
+        this.aspect = this.width/this.height;
+        if(options.size){
+            if(options.crop_aspect){
+                var chop;
+                if(this.aspect > options.crop_aspect){
+                    base.height = base.canvas.height = options.size;
+                    base.width = base.canvas.width = base.height * options.crop_aspect;
+                    chop = this.width - (this.height * options.crop_aspect);
 
-        // Draw the image onto the canvas
-        base.context.drawImage(this, 0, 0, this.width, this.height, 0, 0, base.canvas.width, base.canvas.height);
+                    // Draw the image onto the canvas
+                    base.context.drawImage(this, chop/2, 0, this.width-chop, this.height, 0, 0, base.canvas.width, base.canvas.height);
+                }else{
+                    base.width = base.canvas.width = options.size;
+                    base.height = base.canvas.height = base.width / options.crop_aspect;
+                    chop = (this.height - (this.width / options.crop_aspect));
+
+                    // Draw the image onto the canvas
+                    base.context.drawImage(this, 0, chop/2, this.width, this.height-chop, 0, 0, base.canvas.width, base.canvas.height);
+                }
+            }else{
+                if(this.aspect > 1){
+                    base.width = base.canvas.width = options.size;
+                    base.height = base.canvas.height = base.width / this.aspect;
+                }else{
+                    base.height = base.canvas.height = options.size;
+                    base.width = base.canvas.width = base.height * this.aspect;
+                }
+
+                // Draw the image onto the canvas
+                base.context.drawImage(this, 0, 0, this.width, this.height, 0, 0, base.canvas.width, base.canvas.height);
+            }
+        }else{
+            // scale canvas to image size
+            base.width = base.canvas.width = this.width;
+            base.height = base.canvas.height = this.height;
+
+            // Draw the image onto the canvas
+            base.context.drawImage(this, 0, 0, this.width, this.height, 0, 0, base.canvas.width, base.canvas.height);
+        }
+
+        delete base.image;
 
         // notify that it's ready
         base.deferred.resolve();
@@ -804,18 +845,36 @@ SnaprFX.filters.image.prototype.process = function(i, rgb){
 // jQuery Plugin
 // -------------
 
-$.fn.snapr_fx = function(orig, pack, filter_slug) {
-    var elements = this;
-    $.ajax({
-        url: 'filter-packs/'+pack+'/filters/' + filter_slug + '/filter.json',
-        success: function(data){
-            elements.each(function() {
-                var element = $(this);
-                var x = new SnaprFX.FX(orig.attr('src'), data.filter, 'filter-packs/'+ pack +'/filters/' + filter_slug + '/');
-                x.deferred.done(function(){
-                    element.attr('src', x.canvas.get_data_url());
+$.fn.snapr_fx = function(orig, pack, filter_slug, options) {
+    if(filter_slug){
+        var elements = this;
+        $.ajax({
+            url: 'filter-packs/'+pack+'/filters/' + filter_slug + '/filter.json',
+            success: function(data){
+                elements.each(function() {
+                    var element = $(this);
+                    var x = new SnaprFX.FX(
+                        orig.attr('src'),
+                        data.filter, 'filter-packs/'+ pack +'/filters/' + filter_slug + '/',
+                        options
+                    );
+                    x.deferred.done(function(){
+                        element.attr('src', x.canvas.get_data_url());
+                    });
                 });
+            }
+        });
+    }else{
+        this.each(function() {
+            var element = $(this);
+            var x = new SnaprFX.FX(
+                orig.attr('src'),
+                false, 'filter-packs/'+ pack +'/filters/' + filter_slug + '/',
+                options
+            );
+            x.deferred.done(function(){
+                element.attr('src', x.canvas.get_data_url());
             });
-        }
-    });
+        });
+    }
 };
