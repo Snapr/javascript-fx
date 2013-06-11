@@ -167,8 +167,59 @@ SnaprFX.prototype.init = function(options){  var self = this;
         });
     });
 
+    self.load_fonts();
+
     self.filter_specs = {};
     self.stickers = [];
+};
+
+
+/**
+ * Loads any custom fonts onto page
+ */
+SnaprFX.prototype.load_fonts = function(){  var self = this;
+
+    // get list of filters
+    $.ajax({
+        url: self.options.fx_assets + '../filter-pack.json',
+        success: function(pack){
+            $.each(pack.filter_pack.filters, function(i, filter){
+
+                // get filter details
+                $.ajax({
+                    url: self.options.fx_assets + filter.slug + '/filter.json',
+                    success: function(data){
+
+                        // cache
+                        self.filter_specs[filter.slug] = data.filter;
+
+                        if(data.filter.fonts){
+                            $.each(data.filter.fonts, function(i, font){
+
+                                var css = "@font-face {";
+                                css += "font-family: '"+font['font-family']+"';";
+                                if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
+                                if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
+                                if(font.eot){ css += "src: url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.eot+"');"; }
+                                css += "src:";
+                                if(font.eot){ css += "url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
+                                if(font.woff){ css += "url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.woff+"') format('woff'),"; }
+                                if(font.ttf){ css += "url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.ttf+"') format('truetype'),"; }
+                                if(font.svg){ css += "url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
+                                css += "}";
+
+                                $('<style>'+css+'</style>').appendTo(document.head);
+
+                                // use font on page so it's preloaded
+                                $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
+
+                            });
+                        }
+                    }
+                });
+            });
+        }
+    });
 };
 
 // loads the original image onto this.canvas
