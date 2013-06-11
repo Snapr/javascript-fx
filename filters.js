@@ -1,8 +1,15 @@
 /*jslint bitwise: true */
+/*global define: false, JpegMeta: false */
+
+// ==ClosureCompiler==
+// @compilation_level ADVANCED_OPTIMIZATIONS
+// @output_file_name filters.min.js
+// @code_url http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js
+// ==/ClosureCompiler==
 
 
-// Overview
-// --------
+// FX Overview
+// -----------
 
 // Load image into canvas
 // For each layer in effect
@@ -16,171 +23,69 @@
 //         take into account overall layer opacity, px opacity from filter and opacity from mask
 
 // put the px back on the canvas
-// return data url
+// update img element
 
 
+// used to address vaues in pixel arrays in a more human-readible way. pixel[R] == red value
+var R=0,G=1,B=2,O=3;
 
-var r=0,g=1,b=2,o=3;
-
-var SnaprFX = {};
-
-
-// Core object - actually applies the effects to the image
-SnaprFX.FX = function(url, effects, asset_prefix, options){
-    options = options || {};
-    console.group(effects.name || 'None');
-    var fx = this;
-    this.effects = effects;
-    this.layer_index = -1;  // so first time we call 'next' layer it's 0
-    this.asset_prefix = asset_prefix || '';  // path prefix for masks, images
-    this.deferred = $.Deferred();
-    this.canvas = new SnaprFX.Canvas(url, options);
-    this.canvas.deferred.done(function(){
-        fx.pixels = fx.canvas.get_data();
-        fx.apply_next_layer();
-    });
-};
-SnaprFX.FX.prototype.apply_next_layer = function(){
-    // apply_next_layer allows processing to be deffered until something is ready (eg, loading mask image)
-    // after this layer is finished apply_next_layer will be called again
-
-    if(this.effects === false){
-        this.finish();
-        return;
-    }
-
-    this.layer_index++;
-    // if there are no more laters we are done!
-    if(this.layer_index >= this.effects.layers.length){
-        this.finish();
-        return;
-    }
-
-    console.time("applying " + this.effects.layers[this.layer_index].type + " layer");
-
-    console.log("applying", this.effects.layers[this.layer_index].type, "layer");
-
-    var fx = this,
-        layer = this.effects.layers[this.layer_index],
-        filter = new SnaprFX.filters[layer.type](layer, fx),
-        blender = new SnaprFX.Blender(layer.blending_mode || 'normal');
-
-    // when the filter is ready (may need to load an image etc)
-    filter.deferred.done(function(){
-
-        // some filters (eg blur) need the whole canvas - they can't work px by px
-        var whole_canvas_result;
-        if(filter.whole_canvas){
-            // put modified px back on canvas (not needed if this is the first layer)
-            if(this.layer_index !== 0){
-                fx.canvas.put_data(fx.pixels);
-            }
-
-            // run the filter
-            filter.process(fx.canvas);
-
-            whole_canvas_result = fx.canvas.get_data();
-        }
-
-        // if there's a mask we must adjust each of the new px opacity accordingly
-        if(layer.mask_image){
-
-            var mask = new SnaprFX.Canvas(fx.asset_prefix+layer.mask_image, fx.canvas.width, fx.canvas.height);
-            mask.deferred.done(function(){
-
-                var mask_pixels = mask.get_data();
-
-                for ( var i = 0; i < fx.pixels.length; i += 4 ) {
-
-                    var rgb;
-                    if(filter.whole_canvas){
-                        // whole canvas has been processed by filter
-                        // get relivent px
-                        rgb = [whole_canvas_result[i], whole_canvas_result[i+1], whole_canvas_result[i+2], whole_canvas_result[i+3]];
-                    }else{
-                        // process this px now
-                        rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
-                    }
-
-                    // start with opacity for px returned by filter
-                    var opacity = rgb[o];
-                    if(opacity >= 0){  // >= 0 ensures a number (that's positive too)
-                        opacity = opacity / 255;
-                    }else{
-                        opacity = 1;
-                    }
-                    // * opacity of this px from mask
-                    opacity = opacity * (mask_pixels[i]/255);
-                    // * opacity of this whole layer
-                    opacity = opacity * (layer.opacity/100);
-
-                    rgb = blender.process(
-                        [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]],
-                        [rgb[r], rgb[g], rgb[b]],
-                        opacity
-                    );
-                    fx.pixels[i  ] = rgb[r];
-                    fx.pixels[i+1] = rgb[g];
-                    fx.pixels[i+2] = rgb[b];
-                }
-
-                console.timeEnd("applying " + fx.effects.layers[fx.layer_index].type + " layer");
-                fx.apply_next_layer();
-            });
-        }else{
-
-            if(filter.whole_canvas){
-                // set px to result px one by one, setting fx.pixels = whole_canvas_result fails ??!
-                for ( var px = 0; px < fx.pixels.length; px++ ) {
-                    fx.pixels[px] = whole_canvas_result[px];
-                }
-            }else{
-                for ( var i = 0; i < fx.pixels.length; i += 4 ) {
-
-                    var rgb = filter.process(i, [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]]);
-
-                    var opacity = rgb[o];
-                    if(opacity >= 0){  // >=0 ensures a number, not undefined
-                        opacity = opacity / 255;
-                    }else{
-                        opacity = 1;
-                    }
-                    opacity = opacity * (layer.opacity/100);
-
-                    rgb = blender.process(
-                        [fx.pixels[i], fx.pixels[i+1], fx.pixels[i+2]],
-                        [rgb[r], rgb[g], rgb[b]],
-                        opacity
-                    );
-                    fx.pixels[i  ] = rgb[r];
-                    fx.pixels[i+1] = rgb[g];
-                    fx.pixels[i+2] = rgb[b];
-                }
-            }
-
-            console.timeEnd("applying " + fx.effects.layers[fx.layer_index].type + " layer");
-            fx.apply_next_layer();
-        }
-    });
-};
-SnaprFX.FX.prototype.finish = function(){
-    // put px back in canvas
-
-    console.time('writing data back');
-
-    this.canvas.put_data(this.pixels);
-    this.deferred.resolve();
-
-    console.timeEnd('writing data back');
-
-    console.groupEnd(this.effects.name);
-};
+/**
+ * Main Class
+ * @param {Object} options.
+ * @constructor
+ * @expose
+ */
+var SnaprFX = function(options){ return this.init(options); };
 
 
 // Utilities
 // ---------
 
 SnaprFX.utils = {
+    // Reads EXIF from a file identified by 'url'
+    // Returns Deferred which resolves with selected EXIF properties
+    read_exif: function(url){
+
+        var deferred = $.Deferred();
+
+        // use XHR to turn url (may be blob/file) into arraybuffer
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'arraybuffer';
+
+        /**
+         * Reads data
+         * @this {Object}
+         */
+        xhr.onload = function(e) {
+
+            // read file as binary for exif extraction
+            var exif_reader = new FileReader();
+
+            /**
+             * Extracts EXIF
+             * @this {Object}
+             */
+            exif_reader.onloadend = function(){
+                var exif = new JpegMeta.JpegFile(this.result, 'test.jpg');
+                // exif reader no longer needed - GC can eat it
+                exif_reader = null;
+                xhr = null;
+                deferred.resolve({
+                    latitude: exif.gps && exif.gps.latitude && exif.gps.latitude.value,
+                    longitude: exif.gps && exif.gps.longitude && exif.gps.longitude.value,
+                    date: exif.exif && exif.exif.DateTimeOriginal && exif.exif.DateTimeOriginal.value,
+                    orientation: exif.tiff && exif.tiff.Orientation && exif.tiff.Orientation.value
+                });
+            };
+            var blob = new Blob([this.response]);
+            exif_reader.readAsBinaryString(blob);
+        };
+        xhr.send();
+
+        return deferred;
+    },
+
     // based on http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
     rgbToHsl: function(r, g, b){
         r /= 255, g /= 255, b /= 255;
@@ -228,12 +133,539 @@ SnaprFX.utils = {
 };
 
 
+// SnaprFX
+// -------
+
+/** @expose */
+SnaprFX.prototype.deferred = null;
+
+
+// options: {
+//     url: original image url (may be blob/file),
+//     width/height: absolute dimentions - stretch to fit
+//     size/aspect: max width or height / crop image to force this aspect (w/h)
+// }
+SnaprFX.prototype.init = function(options){  var self = this;
+
+    self.options = options;
+
+    // read EXIF first, it may have orientation
+    // info needed for rendering the canvas
+    SnaprFX.utils.read_exif(self.options.url).done(function(exif){
+
+        self.exif = exif;
+
+        self.load_original(true).done(function(){
+
+            self.update_element();
+
+            // timeout needed to ensure width/height
+            // avaiable for sticker layer creation
+            setTimeout(function(){
+                self.create_sticker_layer();
+            }, 1);
+        });
+    });
+
+    self.filter_specs = {};
+    self.stickers = [];
+};
+
+// loads the original image onto this.canvas
+// includes any stickers unless 'stickers' === false
+SnaprFX.prototype.load_original = function(stickers){  var self = this;
+
+    var deferred = $.Deferred();
+
+    // TODO: do we need to create a new canvas each time?
+    self.canvas = new SnaprFX.Canvas({
+        url: self.options.url,
+        size: self.options.size,
+        aspect: self.options.aspect,
+        width: self.options.width,
+        height: self.options.height,
+        orientation: self.exif && self.exif.orientation
+    });
+
+    // stop here if we aren't rendering the Stickers
+    // defaults to true
+    if(stickers === false){
+        self.canvas.deferred.done(function(){
+            deferred.resolve();
+        });
+        return deferred;
+    }
+
+    // function to check if all other stickers
+    // are placed after each on is done
+    function check_stickers_resolved(){
+        var done = true;
+        $.each(self.stickers, function(i, sticker){
+            if(sticker.deferred.state() == 'pending'){
+                done = false;
+                return false; // break each
+            }
+        });
+        if(done){
+            deferred.resolve();
+        }
+    }
+
+    // when canvas is ready, place stickers
+    self.canvas.deferred.done(function(){
+
+        // resolve if there are no stickers
+        if(!self.stickers.length){
+            deferred.resolve();
+        }
+
+        // place each sticker
+        $.each(self.stickers, function(i){
+            self.stickers[i].render(self.canvas).done(check_stickers_resolved);
+        });
+    });
+    return deferred;
+};
+
+// sets the html element's src to our canvas data
+// TODO: canvas itself on page?
+SnaprFX.prototype.update_element = function(){  var self = this;
+    self.options.element.attr('src', self.canvas.get_data_url());
+};
+
+// remove all filters. Also removes stickers if 'stickers' === false
+/** @expose */
+SnaprFX.prototype.revert = function(stickers){  var self = this;
+    self.load_original(stickers).done(function(){
+        self.update_element();
+    });
+};
+
+/**
+ * apply filter specified by 'filter' or reapply last filter
+ * TODO: what iof last filter was none?
+ * apply stickers unless stickers: false
+ * @param {Object} options.
+ * @expose
+ */
+SnaprFX.prototype.apply_filter = function(options){  var self = this;
+
+    // defaults
+    options = $.extend({
+        // not specifying filter will re-render current one (pops in any stickers)
+        filter: self.current_filter,
+        stickers: true
+    }, options);
+
+    self.deferred = $.Deferred();
+
+    // if there is no filter revert to unfiltered
+    if(!options.filter){
+        self.revert(options.stickers);
+        self.deferred.resolve();
+        return;
+    }
+
+    console.group(options.filter);
+
+    self.current_filter = options.filter;
+
+    // the function that actually does the work
+    function apply(){
+
+        var filter_spec = self.filter_specs[self.current_filter];
+        filter_spec.layer_index = -1;  // so first time we call 'next' layer it's 0
+
+        // grab the pixels and apply the first filter when ready
+        self.load_original(options.stickers).done(function(){
+            self.pixels = self.canvas.get_data();
+            self.apply_next_layer();
+        });
+
+        // update element when done
+        self.deferred.done(function(){
+            self.update_element();
+        });
+    }
+
+    // run the above function, getting the spec first if not in cache
+    if(options.filter in self.filter_specs){
+        apply();
+    }else{
+        $.ajax({
+            url: self.options.fx_assets + options.filter + '/filter.json',
+            success: function(data){
+                console.log('loaded', options.filter);
+                self.filter_specs[options.filter] = data.filter;
+                apply();
+            }
+        });
+    }
+
+};
+
+// "main" function - runs filter on px and puts them back
+// on canvas with mask image and blend mode applied
+SnaprFX.prototype.apply_next_layer = function(){  var self = this;
+    // apply_next_layer allows processing to be deffered until something is ready (eg, loading mask image)
+    // after this layer is finished apply_next_layer will be called again
+
+    var filter_spec = self.filter_specs[self.current_filter];
+
+    // move pointer to next layer
+    filter_spec.layer_index++;
+
+    // if there are no more layers we are done!
+    if(filter_spec.layer_index >= filter_spec.layers.length){
+        self.finish();
+        return;
+    }
+
+    console.time("applying " + filter_spec.layers[filter_spec.layer_index].type + " layer");
+
+    console.log("applying", filter_spec.layers[filter_spec.layer_index].type, "layer");
+
+        // this layers spec
+    var layer = filter_spec.layers[filter_spec.layer_index],
+        // filter processes the px
+        filter = new SnaprFX.filters[layer.type](layer, self),
+        // blender mixes this layer with underlying
+        blender = new SnaprFX.Blender(layer.blending_mode || 'normal');
+
+    // when the filter is ready (may need to load an image etc)
+    filter.deferred.done(function(){
+
+        // some filters (eg blur) need the whole canvas - they can't work px by px
+        // we store the result and blend it in px by px using blender/mask image
+        var whole_canvas_result;
+        if(filter.whole_canvas){
+            // put results of any underlying filters back on canvas
+            // (not needed if this is the first layer - they are already there)
+            if(filter_spec.layer_index !== 0){
+                self.canvas.put_data(self.pixels);
+            }
+
+            // run the filter
+            filter.process(self.canvas);
+
+            whole_canvas_result = self.canvas.get_data();
+        }
+
+        // if there's a mask we must adjust each of the new px opacity accordingly
+        if(layer.mask_image){
+
+            // load mask image
+            var mask = new SnaprFX.Canvas({
+                url: self.options.fx_assets+filter_spec.slug+'/'+layer.mask_image, width:
+                self.canvas.width, height:
+                self.canvas.height
+            });
+            mask.deferred.done(function(){
+
+                var mask_pixels = mask.get_data();
+
+                for ( var i = 0; i < self.pixels.length; i += 4 ) {
+
+                    var rgb;
+                    if(filter.whole_canvas){
+                        // whole canvas has been processed by filter
+                        // get relivent px
+                        rgb = [whole_canvas_result[i], whole_canvas_result[i+1], whole_canvas_result[i+2], whole_canvas_result[i+3]];
+                    }else{
+                        // process this px now
+                        rgb = filter.process(i, [self.pixels[i], self.pixels[i+1], self.pixels[i+2]]);
+                    }
+
+                    // start with opacity for px returned by filter
+                    var opacity = rgb[O];
+                    if(opacity >= 0){  // >= 0 ensures a number (that's positive too)
+                        opacity = opacity / 255;
+                    }else{
+                        opacity = 1;
+                    }
+                    // * opacity of this px from mask
+                    opacity = opacity * (mask_pixels[i]/255);
+                    // * opacity of this whole layer
+                    opacity = opacity * (layer.opacity/100);
+
+                    // blend this layer with underlying
+                    rgb = blender.process(
+                        [self.pixels[i], self.pixels[i+1], self.pixels[i+2]],
+                        [rgb[R], rgb[G], rgb[B]],
+                        opacity
+                    );
+                    self.pixels[i  ] = rgb[R];
+                    self.pixels[i+1] = rgb[G];
+                    self.pixels[i+2] = rgb[B];
+                }
+
+                console.timeEnd("applying " + filter_spec.layers[filter_spec.layer_index].type + " layer");
+                self.apply_next_layer();
+            });
+        }else{
+
+            // TODO: won't this fail to use the blend mode if it's a whole-canvas filter and there is no mask?
+            if(filter.whole_canvas){
+                // set px to result px one by one, setting self.pixels = whole_canvas_result fails ??!
+                for ( var px = 0; px < self.pixels.length; px++ ) {
+                    self.pixels[px] = whole_canvas_result[px];
+                }
+            }else{
+                for ( var i = 0; i < self.pixels.length; i += 4 ) {
+
+                    var rgb = filter.process(i, [self.pixels[i], self.pixels[i+1], self.pixels[i+2]]);
+
+                    var opacity = rgb[O];
+                    if(opacity >= 0){  // >=0 ensures a number, not undefined
+                        opacity = opacity / 255;
+                    }else{
+                        opacity = 1;
+                    }
+                    opacity = opacity * (layer.opacity/100);
+
+                    // blend this layer with underlying
+                    rgb = blender.process(
+                        [self.pixels[i], self.pixels[i+1], self.pixels[i+2]],
+                        [rgb[R], rgb[G], rgb[B]],
+                        opacity
+                    );
+                    self.pixels[i  ] = rgb[R];
+                    self.pixels[i+1] = rgb[G];
+                    self.pixels[i+2] = rgb[B];
+                }
+            }
+
+            console.timeEnd("applying " + filter_spec.layers[filter_spec.layer_index].type + " layer");
+            self.apply_next_layer();
+        }
+    });
+};
+
+// once all layers are processed this puts the data back on the
+// canvas, updates the element and resolves self.deffered
+SnaprFX.prototype.finish = function(){  var self = this;
+    // put px back in canvas
+
+    console.time('writing data back');
+
+    self.canvas.put_data(self.pixels);
+    self.update_element();
+    self.deferred.resolve();
+
+    console.timeEnd('writing data back');
+
+    console.groupEnd(self.current_filter);
+};
+
+// removes stickers from render and displays their html overaly elements
+SnaprFX.prototype.unrender_stickers = function(){  var self = this;
+
+    // revert to orig with no stickers
+    self.apply_filter({stickers: false});
+
+    $.each(self.stickers, function(i, sticker){
+        sticker.unrender();
+    });
+};
+
+
+// Stickers
+// --------
+
+// initialise sticker overlay layer
+SnaprFX.prototype.create_sticker_layer = function(){  var self = this;
+    // store actual image, sticker div and a wrapper for both
+    self.elements = {image: self.options.element};
+    self.elements.stickers = $('<div class="fx-stickers">').css({
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: '100%',
+        'z-index': (self.elements.image.css('z-index') || 0) + 1
+    });
+    self.elements.wrapper = $('<div class="fx-wrapper">').css({
+        position: 'relative',
+        height: self.elements.image.height(),
+        width: self.elements.image.width()
+    });
+
+    // put wrapper on page
+    self.elements.wrapper.insertAfter(self.elements.image);
+
+    // put elements in wrapper
+    self.elements.image.appendTo(self.elements.wrapper);
+    self.elements.stickers.appendTo(self.elements.wrapper);
+};
+
+// create a new sticker
+/** @expose */
+SnaprFX.prototype.add_sticker = function(slug){  var self = this;
+
+    var sticker = new SnaprFX.sticker(slug, self);
+    self.stickers.push(sticker);
+    self.elements.stickers.append(sticker.el).trigger('create');
+
+};
+
+// Sticker class
+/**
+ * Sticker class
+ * @param {string} slug. The sticker slug.
+ * @param {Object} parent. An instance of SnaprFX.
+ * @constructor
+ */
+SnaprFX.sticker = function(slug, parent){  var self = this;
+    self.slug = slug;
+    self.parent = parent;
+
+    // Build element
+    // -------------
+
+    var html = '<div class="fx-sticker fx-sticker-unrendered">';
+        html += '<a class="fx-remove-sticker fx-sticker-handle" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="e">x</a>';
+        html += '<a class="fx-render-sticker fx-sticker-handle" data-role="button" data-icon="tick" data-iconpos="notext" data-theme="e">y</a>';
+        html += '<a class="fx-scale-sticker fx-sticker-handle" data-role="button" data-icon="rotate" data-iconpos="notext" data-theme="e">r</a>';
+
+        html += '<img class="fx-sticker-image" src="'+self.parent.options.sticker_assets+slug+'.png">';
+    html += '</div>';
+
+    self.el = $(html).css({
+        position: 'absolute',
+        left: '20%',
+        top: '30%',
+        '-webkit-user-select': 'none'
+    });
+
+    // events
+    // ------
+
+    // render button
+    self.el.find('.fx-render-sticker').on('click', function(){ parent.apply_filter(); });
+
+    // delete button
+    self.el.find('.fx-remove-sticker').on('click', function(){ self.remove(); });
+
+    // click to unrender
+    self.el.on('click', function(){
+        if(self.rendered){
+            parent.unrender_stickers();
+        }
+    });
+
+    // dragging
+    // --------
+
+    // move
+    self.mousemove = function(event){
+        if(!self.rendered){
+            self.el.css({
+                left: event.pageX - self.drag_from.left,
+                top: event.pageY - self.drag_from.top
+            });
+        }
+    };
+
+    // finish drag
+    self.mouseup = function(){
+        parent.elements.wrapper.off('mousemove', self.mousemove);
+    };
+    parent.elements.wrapper.on('mouseup', self.mouseup);
+
+    // start drag
+    self.el.on('mousedown', function(event) {
+        if(!self.rendered){
+            self.drag_from = {
+                left: event.pageX - self.el.position().left,
+                top: event.pageY - self.el.position().top
+            };
+            parent.elements.wrapper.on('mousemove', self.mousemove);
+        }
+    });
+
+    // prevent default drag (like drag image to desktop)
+    self.el.on('dragstart', function(event) { event.preventDefault(); });  // stop normal dragging of image
+};
+
+// render sticker into actual image
+SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
+
+    self.deferred = $.Deferred();
+
+    // get image
+    self.image = new Image();
+    self.image.src = self.parent.options.sticker_assets+self.slug+'.png';
+
+    var sticker = self.el.find('.fx-sticker-image'),
+        offset = sticker.offset(),
+        layer = self.el.parent(),
+        layer_offset = layer.offset(),
+
+        x = (offset.left - layer_offset.left) / layer.width(),
+        y = (offset.top - layer_offset.top) / layer.height(),
+        width = sticker.width() / layer.width(),
+        height = sticker.height() / layer.height();
+
+    self.image.onload = function() {
+        var image  = this;
+        // place sticker
+        canvas.context.drawImage(image, 0,0, image.width, image.height ,x * canvas.width ,y * canvas.height ,width * canvas.width ,height * canvas.height);
+        // done with this large obj, GC can have it
+        delete self.image;
+        // notify that it's ready
+        self.deferred.resolve();
+    };
+
+    // track if it's rendered in image or html overlay
+    self.rendered = true;
+
+    // hide html overlay visuals
+    self.el.removeClass('fx-sticker-unrendered');
+    self.el.find('.fx-sticker-handle').hide();
+    self.el.find('.fx-sticker-image').css('opacity', 0);
+
+    return self.deferred;
+};
+
+// remove sticker from image, show html overlay
+SnaprFX.sticker.prototype.unrender = function(){  var self = this;
+
+    // track if it's rendered in image or html overlay
+    self.rendered = false;
+
+    // show html overlay visuals
+    self.el.addClass('fx-sticker-unrendered');
+    self.el.find('.fx-sticker-handle').show();
+    self.el.find('.fx-sticker-image').css('opacity', 1);
+};
+
+SnaprFX.sticker.prototype.remove = function(){  var self = this;
+
+    // remove html overlay
+    self.el.remove();
+
+    // remove events
+    self.parent.elements.wrapper.off('mousemove', self.mousemove).off('mouseup', self.mouseup);
+
+    // remove from SnaprFX's list
+    $.each(self.parent.stickers, function(i, sticker){
+        if(sticker == self){
+            self.parent.stickers.splice(i, 1);
+        }
+    });
+};
+
+
 // Canvas
 // ------
 
-// gets an image file and reads its pixels
-// based on http://matthewruddy.github.com/jQuery-filter.me/
-SnaprFX.Canvas = function(url, options){
+/**
+ * gets an image file and reads its pixels
+ * based on http://matthewruddy.github.com/jQuery-filter.me/
+ * @param {Object} options.
+ * @constructor
+ */
+SnaprFX.Canvas = function(options){
     console.time('get image');
 
     var base = this;
@@ -243,30 +675,50 @@ SnaprFX.Canvas = function(url, options){
     this.canvas = document.createElement('canvas');
     this.context = this.canvas.getContext('2d');
 
+    // correct orientation
+    var rotation;
+    switch (options.orientation){
+        case 3:
+            rotation = Math.PI;
+            break;
+        case 6:
+            rotation = Math.PI * 0.5;
+            break;
+        case 8:
+            rotation = Math.PI * 1.5;
+            break;
+        default:
+            rotation = 0;
+    }
+
     // get image
     this.image = new Image();
-    this.image.src = url;
+    this.image.src = options.url;
 
     this.image.onload = function() {
 
         this.aspect = this.width/this.height;
+        var x1 = 0,
+            y1 = 0,
+            x2 = this.width,
+            y2 = this.height;
         if(options.size){
-            if(options.crop_aspect){
+            if(options.aspect){
                 var chop;
-                if(this.aspect > options.crop_aspect){
+                if(this.aspect > options.aspect){
                     base.height = base.canvas.height = options.size;
-                    base.width = base.canvas.width = base.height * options.crop_aspect;
-                    chop = this.width - (this.height * options.crop_aspect);
+                    base.width = base.canvas.width = base.height * options.aspect;
+                    chop = this.width - (this.height * options.aspect);
 
-                    // Draw the image onto the canvas
-                    base.context.drawImage(this, chop/2, 0, this.width-chop, this.height, 0, 0, base.canvas.width, base.canvas.height);
+                    x1 = chop/2;
+                    x2 = this.width-chop;
                 }else{
                     base.width = base.canvas.width = options.size;
-                    base.height = base.canvas.height = base.width / options.crop_aspect;
-                    chop = (this.height - (this.width / options.crop_aspect));
+                    base.height = base.canvas.height = base.width / options.aspect;
+                    chop = (this.height - (this.width / options.aspect));
 
-                    // Draw the image onto the canvas
-                    base.context.drawImage(this, 0, chop/2, this.width, this.height-chop, 0, 0, base.canvas.width, base.canvas.height);
+                    y1 = chop/2;
+                    y2 = this.height-chop;
                 }
             }else{
                 if(this.aspect > 1){
@@ -276,18 +728,19 @@ SnaprFX.Canvas = function(url, options){
                     base.height = base.canvas.height = options.size;
                     base.width = base.canvas.width = base.height * this.aspect;
                 }
-
-                // Draw the image onto the canvas
-                base.context.drawImage(this, 0, 0, this.width, this.height, 0, 0, base.canvas.width, base.canvas.height);
             }
         }else{
             // scale canvas to image size
-            base.width = base.canvas.width = this.width;
-            base.height = base.canvas.height = this.height;
-
-            // Draw the image onto the canvas
-            base.context.drawImage(this, 0, 0, this.width, this.height, 0, 0, base.canvas.width, base.canvas.height);
+            base.width = base.canvas.width = options.width || this.width;
+            base.height = base.canvas.height = options.height || this.height;
         }
+
+        // Draw the image onto the canvas
+        base.context.translate(base.canvas.width/2, base.canvas.height/2);
+        base.context.rotate(rotation);
+        base.context.drawImage(this, x1, y1, x2, y2, base.canvas.width/-2, base.canvas.height/-2, base.canvas.width, base.canvas.height);
+        base.context.rotate(-rotation);
+        base.context.translate(base.canvas.width/-2, base.canvas.height/-2);
 
         delete base.image;
 
@@ -319,7 +772,11 @@ SnaprFX.Canvas.prototype.get_data_url = function() {
 // Blender
 // -------
 
-// Blends two layers together
+/**
+ * Blends two layers together
+ * @param {String} mode.
+ * @constructor
+ */
 SnaprFX.Blender = function(mode){
     console.log(' - Blend:', mode);
 
@@ -334,7 +791,7 @@ SnaprFX.Blender = function(mode){
 
             // apply it to the underlying layer with opacity
             var mix = [];
-            for (var channel = r; channel <= b; channel++) {
+            for (var channel = R; channel <= B; channel++) {
                 mix[channel] = overlay[channel] * opacity + orig[channel] * (1 - opacity);
             }
             return mix;
@@ -343,7 +800,7 @@ SnaprFX.Blender = function(mode){
     }else{
         this.process = function(orig, overlay, opacity){
             var mix = [];
-            for (var channel = r; channel <= b; channel++) {
+            for (var channel = R; channel <= B; channel++) {
                 mix[channel] = this.mode.process(orig[channel], overlay[channel]);
                 mix[channel] = mix[channel] * opacity + orig[channel] * (1 - opacity);
             }
@@ -542,6 +999,11 @@ SnaprFX.Blender.prototype.blend_modes = {
 
 SnaprFX.filters = {};
 
+/**
+ * Adjustment layer - identifies adjustment type and deferrs processing to that type
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
 SnaprFX.filters.adjustment = function(layer){
     // adjustment layer is just a wrapper for real adjustment type
     console.log(" - Adjustment:", layer.adjustment.type);
@@ -552,6 +1014,11 @@ SnaprFX.filters.adjustment = function(layer){
     this.deferred = $.Deferred().resolve();
 };
 
+/**
+ * Curves adjustment layer
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
 SnaprFX.filters.curves = function(layer){
     this.curves = layer.adjustment;
     this.splines = {};
@@ -687,7 +1154,11 @@ SnaprFX.filters.curves.prototype.CubicSpline = function() {
     return CubicSpline;
 }();
 
-
+/**
+ * Levels adjustment layer
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
 SnaprFX.filters.levels = function(layer){
     var levels = layer.adjustment;
     this.interpolate = function(x){
@@ -706,19 +1177,24 @@ SnaprFX.filters.levels = function(layer){
 };
 SnaprFX.filters.levels.prototype.process = function(i, rgb){
 
-    rgb[r] = this.filter.interpolate(rgb[r]);
-    rgb[g] = this.filter.interpolate(rgb[g]);
-    rgb[b] = this.filter.interpolate(rgb[b]);
+    rgb[R] = this.filter.interpolate(rgb[R]);
+    rgb[G] = this.filter.interpolate(rgb[G]);
+    rgb[B] = this.filter.interpolate(rgb[B]);
 
     return rgb;
 };
 
+/**
+ * Hue adjustment layer
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
 SnaprFX.filters.hue = function(layer){
     this.hue = layer.adjustment.amount;
 };
 SnaprFX.filters.hue.prototype.process = function(i, rgb){
 
-    var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
+    var hsl = SnaprFX.utils.rgbToHsl(rgb[R], rgb[G], rgb[B]);
     hsl[0] += this.filter.hue/255;
 
     // keep in range 0 to 1 by wrapping (1.6 => .6)
@@ -732,6 +1208,11 @@ SnaprFX.filters.hue.prototype.process = function(i, rgb){
     return SnaprFX.utils.hslToRgb(hsl[0], hsl[1], hsl[2]);
 };
 
+/**
+ * Saturation adjustment layer
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
 SnaprFX.filters.saturation = function(layer){
     this.saturation = layer.adjustment.amount / 100;
 };
@@ -740,7 +1221,7 @@ SnaprFX.filters.saturation.prototype.process = function(i, rgb){
     // claims to match photoshop but photoshop seems to ramp up exponentinally with
     // increasing saturation and this does not. Photoshop +100 sat != 100% saturation
 
-    var hsl = SnaprFX.utils.rgbToHsl(rgb[r], rgb[g], rgb[b]);
+    var hsl = SnaprFX.utils.rgbToHsl(rgb[R], rgb[G], rgb[B]);
     var sat;  // sat valur for this px
 
     if (this.filter.saturation < 0) {
@@ -755,6 +1236,11 @@ SnaprFX.filters.saturation.prototype.process = function(i, rgb){
     return SnaprFX.utils.hslToRgb(hsl[0], sat, hsl[2]);
 };
 
+/**
+ * Lightness adjustment layer
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
 SnaprFX.filters.lightness = function(layer){
     this.lightness = layer.adjustment.amount / 100;
 };
@@ -765,23 +1251,26 @@ SnaprFX.filters.lightness.prototype.process = function(i, rgb){
         increase = lightness < 0 ? 0 : lightness * 255;
 
     return [
-        Math.min(rgb[r] * multiplier + increase, 255),
-        Math.min(rgb[g] * multiplier + increase, 255),
-        Math.min(rgb[b] * multiplier + increase, 255)
+        Math.min(rgb[R] * multiplier + increase, 255),
+        Math.min(rgb[G] * multiplier + increase, 255),
+        Math.min(rgb[B] * multiplier + increase, 255)
     ];
 };
 
+/**
+ * Blur filter
+ * Blurs image by scaling it down and back up a few times
+ * based on http://www.pixastic.com/lib/git/pixastic/actions/blurfast.js
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
 SnaprFX.filters.blur = function(layer){
     // this filter needs the whole canvas, it can't work px by px
     this.whole_canvas = true;
     // amount must be 0-5
     this.amount = Math.max(0, Math.min(5, layer.adjustment.amount));
-
 };
 SnaprFX.filters.blur.prototype.process = function(canvas){
-
-    // blur image by scaling it down and back up a few times
-    // based on http://www.pixastic.com/lib/git/pixastic/actions/blurfast.js
 
     var scale = 2;
     var smallWidth = Math.round(canvas.width / scale);
@@ -815,7 +1304,11 @@ SnaprFX.filters.blur.prototype.process = function(canvas){
 
 };
 
-// flat color layer
+/**
+ * Flat color layer
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
 SnaprFX.filters.color = function(layer){
     // TODO: if mask == false we can use canvas.context.fillRect to do this more efficiently
     this.color = layer.color.rgb;
@@ -823,13 +1316,19 @@ SnaprFX.filters.color = function(layer){
 };
 SnaprFX.filters.color.prototype.process = function(i, rgb){ return this.color; };
 
-// overlay an image form url
+/**
+ * Flat color layer
+ * overlay an image form url
+ * @constructor
+ * @param {Object} layer. Layer options.
+ * @param {Object} fx. An instance of SnaprFX.
+ */
 SnaprFX.filters.image = function(layer, fx){
     // TODO: if opacity == 1 and mask == false we can use canvas.context.drawImage to do this more efficiently
     this.url = layer.image.image;
     this.width = fx.canvas.width;
     this.height = fx.canvas.height;
-    this.canvas = new SnaprFX.Canvas(fx.asset_prefix+this.url, this.width, this.height);
+    this.canvas = new SnaprFX.Canvas({url: fx.options.fx_assets+fx.current_filter+'/'+this.url, width: this.width, height: this.height});
     this.deferred = $.Deferred();
     var image_filter = this;
     this.canvas.deferred.done(function(){
@@ -841,40 +1340,119 @@ SnaprFX.filters.image.prototype.process = function(i, rgb){
     return [this.pixels[i], this.pixels[i+1], this.pixels[i+2], this.pixels[i+3]];
 };
 
+// Text
+// ----
 
-// jQuery Plugin
-// -------------
 
-$.fn.snapr_fx = function(orig, pack, filter_slug, options) {
-    if(filter_slug){
-        var elements = this;
-        $.ajax({
-            url: 'filter-packs/'+pack+'/filters/' + filter_slug + '/filter.json',
-            success: function(data){
-                elements.each(function() {
-                    var element = $(this);
-                    var x = new SnaprFX.FX(
-                        orig.attr('src'),
-                        data.filter, 'filter-packs/'+ pack +'/filters/' + filter_slug + '/',
-                        options
-                    );
-                    x.deferred.done(function(){
-                        element.attr('src', x.canvas.get_data_url());
-                    });
-                });
-            }
-        });
-    }else{
-        this.each(function() {
-            var element = $(this);
-            var x = new SnaprFX.FX(
-                orig.attr('src'),
-                false, 'filter-packs/'+ pack +'/filters/' + filter_slug + '/',
-                options
-            );
-            x.deferred.done(function(){
-                element.attr('src', x.canvas.get_data_url());
-            });
-        });
-    }
+/**
+ * Text layer
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
+SnaprFX.filters.text = function(layer){  var self = this;
+
+    // this filter needs the whole canvas, it can't work px by px
+    self.whole_canvas = true;
+
+    // font-style font-variant font-weight font-size/line-height font-family
+    self.text = layer.text;
+    self.position = layer.position;
+    self.font_element = $('<span />').css('font', self.text.style.font);
+    self.text.style.lineHeight = parseInt(self.font_element.css('lineHeight'), 10);
+
+    // "text": {
+    //     "default_value": "Book Title, a Very Long One",
+    //     "style":{
+    //         "font": "50px/80px 'CrimsonRoman', Arial, sans-serif",
+    //         "textAlign": "center",
+    //         "fillStyle": "#056499",
+    //         "textBaseline": "middle"
+    //     }
+    // },
+    // "position":{
+    //     "top": 530,
+    //     "left":10,
+    //     "bottom":612,
+    //     "right":540
+    // }
+
+    this.deferred = $.Deferred().resolve();
 };
+SnaprFX.filters.text.prototype.process = function(canvas){  var self = this;
+
+    // canvas.context.strokeRect(
+    //     self.position.left,
+    //     self.position.top,
+    //     self.position.right - self.position.left,
+    //     self.position.bottom - self.position.top
+    // );
+
+    canvas.context.font = self.text.style.font;
+    canvas.context.textAlign = self.text.style.textAlign;
+    canvas.context.fillStyle = self.text.style.fillStyle;
+
+    var max_width = self.position.right - self.position.left,
+        max_height = self.position.bottom - self.position.top;
+
+    function word_wrap(text, max_width){
+        var words = text.split(' '),
+            lines = [],
+            line_index = 0;
+
+        lines[line_index] = words[0];
+
+        for(var i=1; i < words.length; i++){
+            var next_line_length = canvas.context.measureText(lines[line_index] + ' ' + words[i]).width;
+            // if adding the next word would be too long then put the text in as it is
+            if(next_line_length > max_width){
+                line_index++;
+                lines[line_index] = words[i];
+            }else{
+                lines[line_index] = lines[line_index]  + ' ' + words[i];
+            }
+        }
+
+        return lines;
+    }
+
+    var lines = word_wrap(self.text.default_value, max_width);
+    while(!lines || lines.length * self.text.style.lineHeight > max_height){
+        self.font_element.css('font-size', parseInt(self.font_element.css('font-size'), 10)*0.9);
+        self.text.style.lineHeight = parseInt(self.font_element.css('line-height'), 10)*0.9;
+        self.font_element.css('line-height', self.text.style.lineHeight);
+        canvas.context.font = self.font_element.css('font');
+        console.log('too big', lines.length * self.text.style.lineHeight, '>', max_height, self.font_element.css('font'));
+        lines = word_wrap(self.text.default_value, max_width);
+    }
+
+    var x,  // set below
+        y = self.position.top + self.text.style.lineHeight;
+
+    // set x position for text based on alignment
+    switch(self.text.style.textAlign){
+        case 'right':
+            x = self.position.right;
+            break;
+        case 'center':
+            x = max_width / 2 + self.position.left;
+            break;
+        default:  // left
+            x = self.position.left;
+
+    }
+
+    for(var i=0; i < lines.length; i++){
+        canvas.context.fillText(lines[i], x, y+i*self.text.style.lineHeight, max_width);
+    }
+
+
+};
+
+
+
+// require.js module
+// -----------------
+
+if ( typeof define === "function" && define.amd ) {
+    define(function(){return SnaprFX;});
+}
