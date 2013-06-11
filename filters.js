@@ -175,6 +175,27 @@ SnaprFX.prototype.init = function(options){  var self = this;
 
 
 /**
+ * Change the base image
+ */
+SnaprFX.prototype.set_url = function(url, callback){  var self = this;
+    this.options.url = url;
+
+    // read EXIF first, it may have orientation
+    // info needed for rendering the canvas
+    SnaprFX.utils.read_exif(self.options.url).done(function(exif){
+
+        self.exif = exif;
+
+        self.load_original(true).done(function(){
+
+            self.apply_filter();
+
+        });
+    });
+};
+
+
+/**
  * Loads any custom fonts onto page
  */
 SnaprFX.prototype.load_fonts = function(){  var self = this;
