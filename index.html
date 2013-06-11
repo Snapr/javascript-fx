@@ -21,7 +21,7 @@
         image = new SnaprFX({
                 url: orig.attr('src'),
                 element: img,
-                size: 750,
+                size: 560,
                 aspect: 560/750,
                 fx: pack,
                 fx_assets: 'filter-packs/'+pack+'/filters/'
@@ -48,6 +48,10 @@
             });
         }
     });
+
+    $('.kitten').click(function(){
+      image.set_url($(this).attr('src'));
+    });
   });
   </script>
 
@@ -70,8 +74,11 @@
 </head>
 <body>
     <div class="image">
-        <img class="main-image" src="image.jpg">
+        <img class="main-image" src="images/a.jpg">
     </div>
+    <img class="kitten" src="images/a.jpg" style="width:56px;height:75px">
+    <img class="kitten" src="images/b.jpg" style="width:56px;height:75px">
+    <img class="kitten" src="images/c.jpg" style="width:56px;height:75px">
     <div class="fx"></div>
     </body>
 </html>
