@@ -2,93 +2,94 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <title>FX Demo</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>FX Demo</title>
 
-  <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
-  <script type='text/javascript' src='jpegmeta.js'></script>
-  <script type='text/javascript' src='filters.js'></script>
+    <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
+    <script type='text/javascript' src='jpegmeta.js'></script>
+    <script type='text/javascript' src='filters.js'></script>
 
-  <script>
-
-
-  var pack = 'booktrack-demo';
+    <script>
 
 
-  $(function(){
-    var img = $('.fx-preview-image'),
+    var pack = 'booktrack-demo';
+
+
+    $(function(){
+        var img = $('.fx-preview-image'),
         orig = img.clone().hide().appendTo(document.body);
         image = new SnaprFX({
-                url: orig.attr('src'),
-                element: img,
-                size: 560,
-                aspect: 560/750,
-                fx: pack,
-                fx_assets: 'filter-packs/'+pack+'/filters/'
-            });
-    window.img = img;
-    window.orig = orig;
+            url: orig.attr('src'),
+            element: img,
+            size: 560,
+            aspect: 560/750,
+            fx: pack,
+            fx_assets: 'filter-packs/'+pack+'/filters/'
+        });
+        window.img = img;
+        window.orig = orig;
 
-    $.ajax({
-        url: 'filter-packs/'+pack+'/filter-pack.json',
-        success: function(pack){
-            $('.fx-effects').append(
-                $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/original-thumb@2x.png">Original </a>')
-                .click(function(){
-                    image.revert();
-                })
-            );
-            $.each(pack.filter_pack.filters, function(i, filter){
+        $.ajax({
+            url: 'filter-packs/'+pack+'/filter-pack.json',
+            success: function(pack){
                 $('.fx-effects').append(
-                    $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
+                    $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/original-thumb@2x.png">Original </a>')
                     .click(function(){
-                        image.apply_filter({filter: filter.slug});
+                        image.revert();
                     })
                 );
-            });
-        }
-    });
+                $.each(pack.filter_pack.filters, function(i, filter){
+                    $('.fx-effects').append(
+                        $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
+                        .click(function(){
+                            image.apply_filter({filter: filter.slug});
+                        })
+                    );
+                });
+            }
+        });
 
-    $('.kitten').click(function(){
-      image.set_url($(this).attr('src'));
+        $('.kitten').click(function(){
+            image.set_url($(this).attr('src'));
+        });
     });
-  });
-  </script>
+    </script>
 
-  <style>
-  .fx-demo-area{
-      white-space: nowrap;
-      vertical-align: top;
-  }
-  
-  .fx-demo-area .fx-preview,
-  .fx-demo-area .fx-settings,
-  .fx-demo-area .fx-output{
-      display: inline-block;
-      width: 400px;
-      overflow: hidden;
-      vertical-align: top;
-  }
-  
-  .fx-preview-image{
-      width: 400px;
-  }
-  .fx-effects a{
-      text-align: center;
-      font-family: 'Helvetica', Arial, sans-serif;
-      color: black;
-      display: inline-block;
-  }
-  .fx-effects a img{
-       display: block;
-   }
-  </style>
+    <style>
+    .fx-demo-area{
+        white-space: nowrap;
+        vertical-align: top;
+    }
+
+    .fx-demo-area .fx-preview,
+    .fx-demo-area .fx-settings,
+    .fx-demo-area .fx-output{
+        display: inline-block;
+        width: 400px;
+        overflow: hidden;
+        vertical-align: top;
+        white-space: normal;
+    }
+
+    .fx-preview-image{
+        width: 400px;
+    }
+    .fx-effects a{
+        text-align: center;
+        font-family: 'Helvetica', Arial, sans-serif;
+        color: black;
+        display: inline-block;
+    }
+    .fx-effects a img{
+        display: block;
+    }
+    </style>
 
 
 </head>
 <body>
-    
-     
+
+
     <div class="fx-demo-area ">
         <div class="fx-preview">
             <h1>Preview:</h1>
@@ -99,48 +100,107 @@
                 <img class="fx-preview-image" src="image.jpg">
             </div>
         </div>
-        
+
         <div class="fx-settings">
             <h1>Settings:</h1>
             <ul>
                 <li>
                     <h2>Source:</h2>
-                      <div class="fx-source">
-                          <img class="kitten" src="images/a.jpg" style="width:56px;height:75px">
-                             <img class="kitten" src="images/b.jpg" style="width:56px;height:75px">
-                             <img class="kitten" src="images/c.jpg" style="width:56px;height:75px">
-                      </div>
+                    <div class="fx-source">
+                        <img class="kitten" src="images/a.jpg" style="width:56px;height:75px">
+                        <img class="kitten" src="images/b.jpg" style="width:56px;height:75px">
+                        <img class="kitten" src="images/c.jpg" style="width:56px;height:75px">
+                    </div>
                 </li>
-                
+
                 <li>
                     <h2>Effects:</h2>
-                      <div class="fx-effects">
-                      </div>
+                    <div class="fx-effects">
+                    </div>
                 </li>
-                
+
                 <li>
                     <h2>Text:</h2>
-                      <div class="fx-text">
-                      </div>
-                </li>
-                
-            </ul>
-            
-            <h2>
-            
-          
-    
-        </div>
-        
-        <div class="fx-output">
-            <h1>Output:</h1>
-            
-        
-        </div>
-    
-    
-    
-    
-    </body>
-</html>
+
+                    <div class="fx-text">
+                        <h3>Selected: <span class="fx-text-active-layer-name"></span>
+                            <form>
+                                <fieldset>
+                                    <label>Font:</label>
+                                    <select>
+                                        <option value="Verdana">Verdana</option>
+                                        <option value="Helvetica">Helvetica</option>
+                                        <option value="CrimsonBold">Crimson Bold</option>
+                                    </select>
+
+                                    <label>Size:</label>
+                                    <select>
+                                        <option value="9">9</option>
+                                        <option value="10">10</option>
+                                        <option value="12">12</option>
+                                    </select>
+                                </fieldset>
+                                <fieldset>
+
+
+                                    <label>Align:</label>
+                                    <input type="radio" id="fx-align-left" value="left" name="fx-text-align"/>
+                                    <label for="fx-align-left">left</label>
+
+                                    <input type="radio" id="fx-align-center" value="center" name="fx-text-align"/>
+                                    <label for="fx-align-left">center</label>
+
+                                    <input type="radio" id="fx-align-right" value="right" name="fx-text-align"/>
+                                    <label for="fx-align-left">right</label>
+
+                                </fieldset>
+
+                                <fieldset>
+                                    <label>Color:</label>
+                                    <input type="radio" id="fx-align-left" value="#ff0000" name="fx-text-align"/>
+                                    <label for="fx-align-left">Red</label>
+
+                                    <input type="radio" id="fx-align-center" value="#ffff00" name="fx-text-align"/>
+                                    <label for="fx-align-left">Yellow</label>
+
+                                    <input type="radio" id="fx-align-right" value="#000000" name="fx-text-align"/>
+                                    <label for="fx-align-left">Black</label>
+
+                                </fieldset>
+                                <fieldset>
+                                    <button id="fx-add-textfield">Add a textfield</button>
+                                </fieldset>
+                            </form>
+
+                        </div>
+                    </li>
+
+                    <li>
+                        <h2>Render:</h2>
+
+                        <div class="fx-render">
+                            <button class="fx-render-full">Render Full Size</button>
+                        </div>
+                    </li>
+
+                </ul>
+
+
+
+
+
+
+            </div>
+
+            <div class="fx-output">
+                <h1>Output:</h1>
+                <div class="fx-output-area">
+                </div>
+            </div>
+
+
+
+
+        </body>
+        </html>
 
