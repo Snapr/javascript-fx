@@ -1411,26 +1411,11 @@ SnaprFX.filters.text = function(layer){  var self = this;
     self.font_element = $('<span />').css('font', self.text.style.font);
     self.text.style.lineHeight = parseInt(self.font_element.css('lineHeight'), 10);
 
-    // "text": {
-    //     "default_value": "Book Title, a Very Long One",
-    //     "style":{
-    //         "font": "50px/80px 'CrimsonRoman', Arial, sans-serif",
-    //         "textAlign": "center",
-    //         "fillStyle": "#056499",
-    //         "textBaseline": "middle"
-    //     }
-    // },
-    // "position":{
-    //     "top": 530,
-    //     "left":10,
-    //     "bottom":612,
-    //     "right":540
-    // }
-
     this.deferred = $.Deferred().resolve();
 };
 SnaprFX.filters.text.prototype.process = function(canvas){  var self = this;
 
+    // draws bounding box
     // canvas.context.strokeRect(
     //     self.position.left,
     //     self.position.top,
@@ -1439,7 +1424,8 @@ SnaprFX.filters.text.prototype.process = function(canvas){  var self = this;
     // );
 
     canvas.context.font = self.text.style.font;
-    canvas.context.textAlign = self.text.style.textAlign;
+    canvas.context.textAlign = self.text.style.textAlign || 'left';
+    canvas.context.textBaseline = self.text.style.textBaseline || 'top';
     canvas.context.fillStyle = self.text.style.fillStyle;
 
     var max_width = self.position.right - self.position.left,
@@ -1468,27 +1454,46 @@ SnaprFX.filters.text.prototype.process = function(canvas){  var self = this;
 
     var lines = word_wrap(self.text.default_value, max_width);
     while(!lines || lines.length * self.text.style.lineHeight > max_height){
-        self.font_element.css('font-size', parseInt(self.font_element.css('font-size'), 10)*0.9);
-        self.text.style.lineHeight = parseInt(self.font_element.css('line-height'), 10)*0.9;
+        self.font_element.css('font-size', parseInt(self.font_element.css('font-size'), 10)*0.8);
+        self.text.style.lineHeight = parseInt(self.font_element.css('line-height'), 10)*0.8;
         self.font_element.css('line-height', self.text.style.lineHeight);
         canvas.context.font = self.font_element.css('font');
         console.log('too big', lines.length * self.text.style.lineHeight, '>', max_height, self.font_element.css('font'));
         lines = word_wrap(self.text.default_value, max_width);
     }
 
-    var x,  // set below
-        y = self.position.top + self.text.style.lineHeight;
+    var x,
+        y;
 
     // set x position for text based on alignment
     switch(self.text.style.textAlign){
+        case 'end':
         case 'right':
             x = self.position.right;
             break;
         case 'center':
             x = max_width / 2 + self.position.left;
             break;
-        default:  // left
+        default:  // left, start
             x = self.position.left;
+
+    }
+
+    // set y position for text based on alignment
+    switch(self.text.style.textBaseline){
+        case 'hanging':
+        case 'alphabetic':
+        case 'ideographic':
+        case 'bottom':
+            // start No. of extra lines up from bottom
+            y = self.position.bottom - (self.text.style.lineHeight * (lines.length - 1));
+            break;
+        case 'middle':
+            y = (max_height / 2 + self.position.top) - ((self.text.style.lineHeight * (lines.length - 1)) / 2);
+            break;
+        default:  // top
+            // start at top
+            y = self.position.top;
 
     }
 
