@@ -35,6 +35,8 @@
                 $('.fx-effects').append(
                     $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/original-thumb@2x.png">Original </a>')
                     .click(function(){
+                        $('.fx-current-filter').removeClass('fx-current-filter');
+                        $(this).addClass('fx-current-filter');
                         image.revert();
                     })
                 );
@@ -42,10 +44,12 @@
                     $('.fx-effects').append(
                         $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
                         .click(function(){
-                          $(document.body).addClass('fx-processing');
+                            $(document.body).addClass('fx-processing');
                             image.apply_filter({filter: filter.slug});
+                            $('.fx-current-filter').removeClass('fx-current-filter');
+                            $(this).addClass('fx-current-filter');
                             image.deferred.done(function(){
-                              $(document.body).removeClass('fx-processing');
+                                $(document.body).removeClass('fx-processing');
                             });
                         })
                     );
@@ -56,11 +60,14 @@
         $('.kitten').click(function(){
             $(document.body).addClass('fx-processing');
             image.set_url($(this).attr('src')).done(function(){
-              image.deferred.done(function(){
-                $(document.body).removeClass('fx-processing');
-              });
+                image.deferred.done(function(){
+                    $(document.body).removeClass('fx-processing');
+                });
             });
+            $('.fx-current-image').removeClass('fx-current-image');
+            $(this).addClass('fx-current-image');
         });
+
     });
     </script>
 
