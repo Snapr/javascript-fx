@@ -1448,8 +1448,8 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     };
 
     self.font_element = $('<span />').css('font', self.text.style.font);
-    self.font_element.css('line-height', self.font_element.css('line-height') * self.y_scale_factor);
-    self.font_element.css('font-size', self.font_element.css('font-size') * self.y_scale_factor);
+    self.font_element.css('line-height', parseInt(self.font_element.css('line-height'), 10) * self.y_scale_factor);
+    self.font_element.css('font-size', parseInt(self.font_element.css('font-size'), 10) * self.y_scale_factor);
     self.text.style.lineHeight = parseInt(self.font_element.css('line-height'), 10);
 
     this.deferred = $.Deferred().resolve();
