@@ -17,17 +17,16 @@
 
     $(function(){
         var img = $('.fx-preview-image'),
-        orig = img.clone().hide().appendTo(document.body);
-        image = new SnaprFX({
-            url: orig.attr('src'),
-            element: img,
-            width: 400,
-            height: (40 / 56) * 750,
-            fx: pack,
-            fx_assets: 'filter-packs/'+pack+'/filters/'
-        });
-        window.img = img;
-        window.orig = orig;
+            orig = img.clone().hide().appendTo(document.body);
+            src = orig.attr('src'),
+            image = new SnaprFX({
+                url: src,
+                element: img,
+                width: 400,
+                height: (40 / 56) * 750,
+                fx: pack,
+                fx_assets: 'filter-packs/'+pack+'/filters/'
+            });
 
         $.ajax({
             url: 'filter-packs/'+pack+'/filter-pack.json',
@@ -57,9 +56,24 @@
             }
         });
 
+        $('.fx-render-full').click(function(){
+            var output = new SnaprFX({
+                url: src,
+                element: $('.fx-output-area img'),
+                width: 800,
+                height: (80 / 56) * 750,
+                fx: pack,
+                fx_assets: 'filter-packs/'+pack+'/filters/'
+            });
+            output.deferred.done(function(){
+                output.apply_filter({filter: image.current_filter});
+            });
+        });
+
         $('.kitten').click(function(){
             $(document.body).addClass('fx-processing');
-            image.set_url($(this).attr('src')).done(function(){
+            src = $(this).attr('src');
+            image.set_url(src).done(function(){
                 image.deferred.done(function(){
                     $(document.body).removeClass('fx-processing');
                 });
@@ -86,6 +100,7 @@
         vertical-align: top;
         white-space: normal;
     }
+    .fx-demo-area .fx-output{ width:800px; }
 
     .fx-processing .fx-preview-image{
         opacity: .6;
@@ -117,7 +132,7 @@
                 <div class="fx-activity-indicator">
                     <div class="fx-spinner"></div>
                 </div>
-                <img class="fx-preview-image" src="image.jpg">
+                <img class="fx-preview-image" src="images/a.jpg">
             </div>
         </div>
 
@@ -162,7 +177,6 @@
                                 </fieldset>
                                 <fieldset>
 
-
                                     <label>Align:</label>
                                     <input type="radio" id="fx-align-left" value="left" name="fx-text-align"/>
                                     <label for="fx-align-left">left</label>
@@ -176,6 +190,7 @@
                                 </fieldset>
 
                                 <fieldset>
+
                                     <label>Color:</label>
                                     <input type="radio" id="fx-align-left" value="#ff0000" name="fx-text-align"/>
                                     <label for="fx-align-left">Red</label>
@@ -205,21 +220,14 @@
 
                 </ul>
 
-
-
-
-
-
             </div>
 
             <div class="fx-output">
                 <h1>Output:</h1>
                 <div class="fx-output-area">
+                    <img>
                 </div>
             </div>
-
-
-
 
         </body>
         </html>

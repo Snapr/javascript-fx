@@ -147,6 +147,8 @@ SnaprFX.prototype.deferred = null;
 // }
 SnaprFX.prototype.init = function(options){  var self = this;
 
+    self.deferred = $.Deferred();
+
     self.options = options;
 
     // read EXIF first, it may have orientation
@@ -163,6 +165,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
             // avaiable for sticker layer creation
             setTimeout(function(){
                 self.create_sticker_layer();
+                self.deferred.resolve();
             }, 1);
         });
     });
