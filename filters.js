@@ -172,6 +172,13 @@ SnaprFX.prototype.init = function(options){  var self = this;
 
     self.load_fonts();
 
+    var css = ".fx-text-active{";
+            css += "border: 1px solid #933;";
+            css += "outline: 1px solid #f99;";
+        css += "}";
+
+    $('<style>'+css+'</style>').appendTo(document.head);
+
     self.filter_specs = {};
     self.stickers = [];
 };
