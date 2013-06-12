@@ -757,15 +757,23 @@ SnaprFX.sticker.prototype.remove = function(){  var self = this;
  * @param {Object} options.
  * @constructor
  */
-SnaprFX.Canvas = function(options){
-    console.time('get image');
+SnaprFX.Canvas = function(options){  var self = this;
 
-    var base = this;
-    this.deferred = $.Deferred();  // to notify when read to read
+    self.deferred = $.Deferred();  // to notify when read to read
 
     // create canvas
-    this.canvas = document.createElement('canvas');
-    this.context = this.canvas.getContext('2d');
+    self.canvas = document.createElement('canvas');
+    self.context = self.canvas.getContext('2d');
+
+    // no image url, stop here
+    if(!options.url){
+        self.width = self.canvas.width = options.width;
+        self.height = self.canvas.height = options.height;
+        self.deferred.resolve();
+        return;
+    }
+
+    console.time('get image');
 
     // correct orientation
     var rotation;
@@ -784,10 +792,10 @@ SnaprFX.Canvas = function(options){
     }
 
     // get image
-    this.image = new Image();
-    this.image.src = options.url;
+    self.image = new Image();
+    self.image.src = options.url;
 
-    this.image.onload = function() {
+    self.image.onload = function() {
 
         this.aspect = this.width/this.height;
         var x1 = 0,
@@ -798,15 +806,15 @@ SnaprFX.Canvas = function(options){
             if(options.aspect){
                 var chop;
                 if(this.aspect > options.aspect){
-                    base.height = base.canvas.height = options.size;
-                    base.width = base.canvas.width = base.height * options.aspect;
+                    self.height = self.canvas.height = options.size;
+                    self.width = self.canvas.width = self.height * options.aspect;
                     chop = this.width - (this.height * options.aspect);
 
                     x1 = chop/2;
                     x2 = this.width-chop;
                 }else{
-                    base.width = base.canvas.width = options.size;
-                    base.height = base.canvas.height = base.width / options.aspect;
+                    self.width = self.canvas.width = options.size;
+                    self.height = self.canvas.height = self.width / options.aspect;
                     chop = (this.height - (this.width / options.aspect));
 
                     y1 = chop/2;
@@ -814,30 +822,30 @@ SnaprFX.Canvas = function(options){
                 }
             }else{
                 if(this.aspect > 1){
-                    base.width = base.canvas.width = options.size;
-                    base.height = base.canvas.height = base.width / this.aspect;
+                    self.width = self.canvas.width = options.size;
+                    self.height = self.canvas.height = self.width / this.aspect;
                 }else{
-                    base.height = base.canvas.height = options.size;
-                    base.width = base.canvas.width = base.height * this.aspect;
+                    self.height = self.canvas.height = options.size;
+                    self.width = self.canvas.width = self.height * this.aspect;
                 }
             }
         }else{
             // scale canvas to image size
-            base.width = base.canvas.width = options.width || this.width;
-            base.height = base.canvas.height = options.height || this.height;
+            self.width = self.canvas.width = options.width || this.width;
+            self.height = self.canvas.height = options.height || this.height;
         }
 
         // Draw the image onto the canvas
-        base.context.translate(base.canvas.width/2, base.canvas.height/2);
-        base.context.rotate(rotation);
-        base.context.drawImage(this, x1, y1, x2, y2, base.canvas.width/-2, base.canvas.height/-2, base.canvas.width, base.canvas.height);
-        base.context.rotate(-rotation);
-        base.context.translate(base.canvas.width/-2, base.canvas.height/-2);
+        self.context.translate(self.canvas.width/2, self.canvas.height/2);
+        self.context.rotate(rotation);
+        self.context.drawImage(this, x1, y1, x2, y2, self.canvas.width/-2, self.canvas.height/-2, self.canvas.width, self.canvas.height);
+        self.context.rotate(-rotation);
+        self.context.translate(self.canvas.width/-2, self.canvas.height/-2);
 
-        delete base.image;
+        delete self.image;
 
         // notify that it's ready
-        base.deferred.resolve();
+        self.deferred.resolve();
 
         console.timeEnd('get image');
     };
@@ -1443,13 +1451,11 @@ SnaprFX.filters.image.prototype.process = function(i, rgb){
  */
 SnaprFX.filters.text = function(layer, fx){  var self = this;
 
-    // this filter needs the whole canvas, it can't work px by px
-    self.whole_canvas = true;
+    self.canvas = new SnaprFX.Canvas({width: fx.canvas.width, height: fx.canvas.height});
+    self.deferred = $.Deferred();
 
-    self.overlay = fx.elements.text;
-
-    self.x_scale_factor = fx.canvas.width / fx.filter_specs[fx.current_filter].width;
-    self.y_scale_factor = fx.canvas.height / fx.filter_specs[fx.current_filter].height;
+    self.x_scale_factor = self.canvas.width / fx.filter_specs[fx.current_filter].width;
+    self.y_scale_factor = self.canvas.height / fx.filter_specs[fx.current_filter].height;
 
     self.slug = layer.slug;
     self.text = layer.text;
@@ -1461,11 +1467,20 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         right: layer.position.right * self.x_scale_factor
     };
 
+
+    // font setup
+    // ----------
+
+    // create an element to hold the font styles then we can access font
+    // properties individually like self.font_element.css('font-size')
     self.font_element = $('<span />').css('font', self.text.style.font);
 
+    // apply scale factor to font size
     self.text.style.fontSize = parseInt(self.font_element.css('font-size'), 10) * self.y_scale_factor;
     self.font_element.css('font-size', self.text.style.fontSize);
 
+    // apply scale factor to line height
+    // if line hight is % then convert it to px now
     self.text.style.lineHeight = self.font_element.css('line-height');
     if(self.text.style.lineHeight.substr(-1) == '%'){
         self.text.style.lineHeight = (parseInt(self.text.style.lineHeight, 10) / 100) * self.text.style.fontSize;
@@ -1474,17 +1489,30 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     }
     self.font_element.css('line-height', self.text.style.lineHeight);
 
-    this.deferred = $.Deferred().resolve();
-};
-SnaprFX.filters.text.prototype.process = function(canvas, fx){  var self = this;
+    // set font properties on canvas
+    self.canvas.context.font = self.font_element.css('font');
+    self.canvas.context.textAlign = self.text.style.textAlign || 'left';
+    self.canvas.context.textBaseline = self.text.style.textBaseline || 'top';
+    self.canvas.context.fillStyle = self.text.style.fillStyle;
 
+
+    // debug
+    // -----
     // draws bounding box
+
     // canvas.context.strokeRect(
     //     self.position.left,
     //     self.position.top,
     //     self.position.right - self.position.left,
     //     self.position.bottom - self.position.top
     // );
+
+
+    // overlay element
+    // ---------------
+    // to make text clickable
+
+    self.overlay = fx.elements.text;
 
     self.element  = $('<div class="fx-text" data-layer="'+self.slug+'">').css({
         position: 'absolute',
@@ -1500,10 +1528,9 @@ SnaprFX.filters.text.prototype.process = function(canvas, fx){  var self = this;
 
     self.overlay.append(self.element);
 
-    canvas.context.font = self.font_element.css('font');
-    canvas.context.textAlign = self.text.style.textAlign || 'left';
-    canvas.context.textBaseline = self.text.style.textBaseline || 'top';
-    canvas.context.fillStyle = self.text.style.fillStyle;
+
+    // wrapping
+    // --------
 
     var max_width = self.position.right - self.position.left,
         max_height = self.position.bottom - self.position.top;
@@ -1518,7 +1545,7 @@ SnaprFX.filters.text.prototype.process = function(canvas, fx){  var self = this;
             lines[line_index] = words[0];
 
             for(var w=1; w < words.length; w++){
-                var next_line_length = canvas.context.measureText(lines[line_index] + ' ' + words[w]).width;
+                var next_line_length = self.canvas.context.measureText(lines[line_index] + ' ' + words[w]).width;
                 // if adding the next word would be too long then put the text in as it is
                 if(next_line_length > max_width){
                     line_index++;
@@ -1538,13 +1565,17 @@ SnaprFX.filters.text.prototype.process = function(canvas, fx){  var self = this;
 
         self.text.style.fontSize = self.text.style.fontSize * 0.8;
         self.font_element.css('font-size', self.text.style.fontSize);
-        canvas.context.font = self.font_element.css('font');
+        self.canvas.context.font = self.font_element.css('font');
 
         self.text.style.lineHeight = self.text.style.lineHeight * 0.8;
 
         lines = word_wrap(self.text.default_value, max_width);
 
     }
+
+
+    // positioning
+    // -----------
 
     var x,
         y;
@@ -1581,20 +1612,29 @@ SnaprFX.filters.text.prototype.process = function(canvas, fx){  var self = this;
 
     }
 
-    for(var i=0; i < lines.length; i++){
-        canvas.context.fillText(lines[i], x, y+i*self.text.style.lineHeight, max_width);
+
+    // draw text
+    // ---------
+
+    for(var l=0; l < lines.length; l++){
+        self.canvas.context.fillText(lines[l], x, y+l*self.text.style.lineHeight, max_width);
 
         // draws bounding box
         // canvas.context.strokeRect(
         //     self.position.left,
-        //     y+i*self.text.style.lineHeight,
+        //     y+l*self.text.style.lineHeight,
         //     max_width,
         //     self.text.style.lineHeight
         // );
 
     }
 
+    self.pixels = self.canvas.get_data();
+    self.deferred.resolve();
 
+};
+SnaprFX.filters.text.prototype.process = function(i, rgb){  var self = this;
+    return [self.pixels[i], self.pixels[i+1], self.pixels[i+2], self.pixels[i+3]];
 };
 
 
