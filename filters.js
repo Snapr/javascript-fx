@@ -317,6 +317,8 @@ SnaprFX.prototype.update_element = function(){  var self = this;
 // remove all filters. Also removes stickers if 'stickers' === false
 /** @expose */
 SnaprFX.prototype.revert = function(stickers){  var self = this;
+    self.current_filter = null;
+
     self.load_original(stickers).done(function(){
         self.update_element();
     });

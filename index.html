@@ -43,6 +43,9 @@
                     $('.fx-effects').append(
                         $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
                         .click(function(){
+                            if(image.current_filter == filter.slug){
+                                return;
+                            }
                             $(document.body).addClass('fx-processing');
                             image.apply_filter({filter: filter.slug});
                             $('.fx-current-filter').removeClass('fx-current-filter');
