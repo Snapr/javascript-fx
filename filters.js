@@ -1448,9 +1448,17 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     };
 
     self.font_element = $('<span />').css('font', self.text.style.font);
-    self.font_element.css('line-height', parseInt(self.font_element.css('line-height'), 10) * self.y_scale_factor);
-    self.font_element.css('font-size', parseInt(self.font_element.css('font-size'), 10) * self.y_scale_factor);
-    self.text.style.lineHeight = parseInt(self.font_element.css('line-height'), 10);
+
+    self.text.style.fontSize = parseInt(self.font_element.css('font-size'), 10) * self.y_scale_factor;
+    self.font_element.css('font-size', self.text.style.fontSize);
+
+    self.text.style.lineHeight = self.font_element.css('line-height');
+    if(self.text.style.lineHeight.substr(-1) == '%'){
+        self.text.style.lineHeight = (parseInt(self.text.style.lineHeight, 10) / 100) * self.text.style.fontSize;
+    }else{
+        self.text.style.lineHeight = parseInt(self.text.style.lineHeight, 10) * self.y_scale_factor;
+    }
+    self.font_element.css('line-height', self.text.style.lineHeight);
 
     this.deferred = $.Deferred().resolve();
 };
@@ -1496,7 +1504,7 @@ SnaprFX.filters.text.prototype.process = function(canvas){  var self = this;
     var lines = word_wrap(self.text.default_value, max_width);
     while(!lines || lines.length * self.text.style.lineHeight > max_height){
 
-        self.font_element.css('font-size', parseInt(self.font_element.css('font-size'), 10) * 0.8);
+        self.font_element.css('font-size', self.text.style.fontSize * 0.8);
         canvas.context.font = self.font_element.css('font');
 
         self.text.style.lineHeight = self.text.style.lineHeight * 0.8;
