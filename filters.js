@@ -164,7 +164,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
             // timeout needed to ensure width/height
             // avaiable for sticker layer creation
             setTimeout(function(){
-                self.create_sticker_layer();
+                self.create_overlay_elements();
                 self.deferred.resolve();
             }, 1);
         });
@@ -339,6 +339,9 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
     }, options);
 
     self.deferred = $.Deferred();
+
+    // remove text frames from prev filter
+    self.elements.text.empty();
 
     // if there is no filter revert to unfiltered
     if(!options.filter){
@@ -549,22 +552,23 @@ SnaprFX.prototype.unrender_stickers = function(){  var self = this;
     });
 };
 
-
-// Stickers
-// --------
-
-// initialise sticker overlay layer
-SnaprFX.prototype.create_sticker_layer = function(){  var self = this;
+// initialise sticker and text overlay layers
+SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
     // store actual image, sticker div and a wrapper for both
     self.elements = {image: self.options.element};
-    self.elements.stickers = $('<div class="fx-stickers">').css({
+    var full_size = {
         position: 'absolute',
         top: 0,
         left: 0,
         height: '100%',
-        width: '100%',
-        'z-index': (self.elements.image.css('z-index') || 0) + 1
-    });
+        width: '100%'
+    };
+    self.elements.stickers = $('<div class="fx-stickers">')
+        .css(full_size)
+        .css('z-index', (self.elements.image.css('z-index') || 0) + 2);
+    self.elements.text = $('<div class="fx-text">')
+        .css(full_size)
+        .css('z-index', (self.elements.image.css('z-index') || 0) + 1);
     self.elements.wrapper = $('<div class="fx-wrapper">').css({
         position: 'relative',
         height: self.elements.image.height(),
@@ -577,7 +581,12 @@ SnaprFX.prototype.create_sticker_layer = function(){  var self = this;
     // put elements in wrapper
     self.elements.image.appendTo(self.elements.wrapper);
     self.elements.stickers.appendTo(self.elements.wrapper);
+    self.elements.text.appendTo(self.elements.wrapper);
 };
+
+
+// Stickers
+// --------
 
 // create a new sticker
 /** @expose */
@@ -1435,9 +1444,12 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     // this filter needs the whole canvas, it can't work px by px
     self.whole_canvas = true;
 
+    self.overlay = fx.elements.text;
+
     self.x_scale_factor = fx.canvas.width / fx.filter_specs[fx.current_filter].width;
     self.y_scale_factor = fx.canvas.height / fx.filter_specs[fx.current_filter].height;
 
+    self.slug = layer.slug;
     self.text = layer.text;
 
     self.position = {
@@ -1462,7 +1474,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     this.deferred = $.Deferred().resolve();
 };
-SnaprFX.filters.text.prototype.process = function(canvas){  var self = this;
+SnaprFX.filters.text.prototype.process = function(canvas, fx){  var self = this;
 
     // draws bounding box
     // canvas.context.strokeRect(
@@ -1471,6 +1483,20 @@ SnaprFX.filters.text.prototype.process = function(canvas){  var self = this;
     //     self.position.right - self.position.left,
     //     self.position.bottom - self.position.top
     // );
+
+    self.element  = $('<div class="fx-text" data-layer="'+self.slug+'">').css({
+        position: 'absolute',
+        left: self.position.left + "px",
+        top: self.position.top + "px",
+        width: self.position.right - self.position.left + "px",
+        height: self.position.bottom - self.position.top + "px"
+    }).click(function(){
+        var was_active = $(this).hasClass('fx-text-active');
+        self.overlay.find('.fx-text-active').removeClass('fx-text-active');
+        $(this).toggleClass('fx-text-active', !was_active);
+    });
+
+    self.overlay.append(self.element);
 
     canvas.context.font = self.font_element.css('font');
     canvas.context.textAlign = self.text.style.textAlign || 'left';
