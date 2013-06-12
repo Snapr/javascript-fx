@@ -326,7 +326,7 @@ SnaprFX.prototype.revert = function(stickers){  var self = this;
 
 /**
  * apply filter specified by 'filter' or reapply last filter
- * TODO: what iof last filter was none?
+ * TODO: what if last filter was none?
  * apply stickers unless stickers: false
  * @param {Object} options.
  * @expose
