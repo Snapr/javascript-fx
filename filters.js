@@ -326,7 +326,6 @@ SnaprFX.prototype.revert = function(stickers){  var self = this;
 
 /**
  * apply filter specified by 'filter' or reapply last filter
- * TODO: what if last filter was none?
  * apply stickers unless stickers: false
  * @param {Object} options.
  * @expose
@@ -1514,10 +1513,12 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     self.overlay = fx.elements.text;
 
+    var padding = 10;
     self.element  = $('<div class="fx-text" data-layer="'+self.slug+'">').css({
+        padding: padding,
         position: 'absolute',
-        left: self.position.left + "px",
-        top: self.position.top + "px",
+        left: self.position.left - padding + "px",
+        top: self.position.top - padding + "px",
         width: self.position.right - self.position.left + "px",
         height: self.position.bottom - self.position.top + "px"
     }).click(function(){
