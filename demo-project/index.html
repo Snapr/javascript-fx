@@ -5,6 +5,8 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>FX Demo</title>
 
+    <link rel="stylesheet" href="styles/fx-ui-base.css" type="text/css" charset="utf-8">
+
     <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
     <script type='text/javascript' src='../libs/jpegmeta.js'></script>
     <script type='text/javascript' src='../filters.js'></script>
@@ -88,45 +90,6 @@
     });
     </script>
 
-    <style>
-    .fx-demo-area{
-        white-space: nowrap;
-        vertical-align: top;
-    }
-
-    .fx-demo-area .fx-preview,
-    .fx-demo-area .fx-settings,
-    .fx-demo-area .fx-output{
-        display: inline-block;
-        width: 400px;
-        overflow: hidden;
-        vertical-align: top;
-        white-space: normal;
-    }
-    .fx-demo-area .fx-output{ width:560px; }
-
-    .fx-processing .fx-preview-image{
-        opacity: .6;
-    }
-
-    .fx-preview-image{
-        width: 400px;
-    }
-    .fx-effects a{
-        text-align: center;
-        font-family: 'Helvetica', Arial, sans-serif;
-        color: black;
-        display: inline-block;
-    }
-    .fx-effects a img{
-        display: block;
-    }
-
-    .fx-text-active{
-        border: 1px dashed #900;
-    }
-    </style>
-
 
 </head>
 <body>
@@ -138,6 +101,7 @@
             <div class="fx-preview-image-area">
                 <div class="fx-activity-indicator">
                     <div class="fx-spinner"></div>
+                    Rendering..
                 </div>
                 <img class="fx-preview-image" src="images/a.jpg">
             </div>

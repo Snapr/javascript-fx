@@ -1,0 +1,91 @@
+body {
+  font-family: Helvetica, Arial, Sans-serif;
+  font-size: 60%;
+  color: #a0a0a0;
+  background-color: #262626;
+  padding: 1em;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: normal;
+}
+ul {
+  margin: 1em 0;
+  padding: 0;
+}
+ul li {
+  list-style: none;
+  margin: 1em 0 2em;
+}
+fieldset {
+  border: solid #000 1px ;
+  margin: .5em 0;
+  padding: .5em;
+}
+.fx-demo-area {
+  white-space: nowrap;
+  vertical-align: top;
+}
+.fx-demo-area .fx-preview,
+.fx-demo-area .fx-settings,
+.fx-demo-area .fx-output {
+  display: inline-block;
+  width: 400px;
+  overflow: hidden;
+  vertical-align: top;
+  white-space: normal;
+  padding: 1em;
+}
+.fx-demo-area .fx-preview .fx-preview-image {
+  width: 400px;
+}
+.fx-demo-area .fx-preview .fx-text-active {
+  border: 1px dashed #900;
+}
+.fx-demo-area .fx-settings .fx-source a,
+.fx-demo-area .fx-settings .fx-effects a {
+  text-align: center;
+  display: inline-block;
+}
+.fx-demo-area .fx-settings .fx-source a img,
+.fx-demo-area .fx-settings .fx-effects a img {
+  display: block;
+  margin: 0 .25em 0 0;
+  border: solid #000 1px;
+}
+.fx-demo-area .fx-settings .fx-source a img.fx-current-image,
+.fx-demo-area .fx-settings .fx-effects a img.fx-current-image {
+  border: solid #ffff00 1px;
+}
+.fx-demo-area .fx-settings .fx-source a.fx-current-filter img,
+.fx-demo-area .fx-settings .fx-effects a.fx-current-filter img {
+  border: solid #ffff00 1px;
+}
+.fx-demo-area .fx-output {
+  width: 560px;
+}
+.fx-activity-indicator {
+  display: none;
+}
+.fx-processing .fx-preview-image-area {
+  position: relative;
+}
+.fx-processing .fx-preview-image-area .fx-preview-image {
+  opacity: .6;
+}
+.fx-processing .fx-preview-image-area .fx-activity-indicator {
+  display: block;
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 20;
+  width: 60px;
+  margin-left: -40px;
+  padding: 10px;
+  border-radius: 5px;
+}
