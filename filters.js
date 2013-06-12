@@ -1421,16 +1421,27 @@ SnaprFX.filters.image.prototype.process = function(i, rgb){
  * @constructor
  * @param {Object} layer. Layer options.
  */
-SnaprFX.filters.text = function(layer){  var self = this;
+SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     // this filter needs the whole canvas, it can't work px by px
     self.whole_canvas = true;
 
-    // font-style font-variant font-weight font-size/line-height font-family
+    self.x_scale_factor = fx.canvas.width / fx.filter_specs[fx.current_filter].width;
+    self.y_scale_factor = fx.canvas.height / fx.filter_specs[fx.current_filter].height;
+
     self.text = layer.text;
-    self.position = layer.position;
+
+    self.position = {
+        top: layer.position.top * self.y_scale_factor,
+        bottom: layer.position.bottom * self.y_scale_factor,
+        left: layer.position.left * self.x_scale_factor,
+        right: layer.position.right * self.x_scale_factor
+    };
+
     self.font_element = $('<span />').css('font', self.text.style.font);
-    self.text.style.lineHeight = parseInt(self.font_element.css('lineHeight'), 10);
+    self.font_element.css('line-height', self.font_element.css('line-height') * self.y_scale_factor);
+    self.font_element.css('font-size', self.font_element.css('font-size') * self.y_scale_factor);
+    self.text.style.lineHeight = parseInt(self.font_element.css('line-height'), 10);
 
     this.deferred = $.Deferred().resolve();
 };
@@ -1444,7 +1455,7 @@ SnaprFX.filters.text.prototype.process = function(canvas){  var self = this;
     //     self.position.bottom - self.position.top
     // );
 
-    canvas.context.font = self.text.style.font;
+    canvas.context.font = self.font_element.css('font');
     canvas.context.textAlign = self.text.style.textAlign || 'left';
     canvas.context.textBaseline = self.text.style.textBaseline || 'top';
     canvas.context.fillStyle = self.text.style.fillStyle;
@@ -1475,11 +1486,12 @@ SnaprFX.filters.text.prototype.process = function(canvas){  var self = this;
 
     var lines = word_wrap(self.text.default_value, max_width);
     while(!lines || lines.length * self.text.style.lineHeight > max_height){
-        self.font_element.css('font-size', parseInt(self.font_element.css('font-size'), 10)*0.8);
-        self.text.style.lineHeight = parseInt(self.font_element.css('line-height'), 10)*0.8;
-        self.font_element.css('line-height', self.text.style.lineHeight);
+
+        self.font_element.css('font-size', parseInt(self.font_element.css('font-size'), 10) * 0.8);
         canvas.context.font = self.font_element.css('font');
-        console.log('too big', lines.length * self.text.style.lineHeight, '>', max_height, self.font_element.css('font'));
+
+        self.text.style.lineHeight = self.text.style.lineHeight * 0.8;
+
         lines = word_wrap(self.text.default_value, max_width);
     }
 
