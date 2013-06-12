@@ -1509,21 +1509,25 @@ SnaprFX.filters.text.prototype.process = function(canvas, fx){  var self = this;
         max_height = self.position.bottom - self.position.top;
 
     function word_wrap(text, max_width){
-        var words = text.split(' '),
+        var orig_lines = text.split('\n'),
             lines = [],
             line_index = 0;
 
-        lines[line_index] = words[0];
+        for(var l=0; l < orig_lines.length; l++){
+            var words = orig_lines[l].split(' ');
+            lines[line_index] = words[0];
 
-        for(var i=1; i < words.length; i++){
-            var next_line_length = canvas.context.measureText(lines[line_index] + ' ' + words[i]).width;
-            // if adding the next word would be too long then put the text in as it is
-            if(next_line_length > max_width){
-                line_index++;
-                lines[line_index] = words[i];
-            }else{
-                lines[line_index] = lines[line_index]  + ' ' + words[i];
+            for(var w=1; w < words.length; w++){
+                var next_line_length = canvas.context.measureText(lines[line_index] + ' ' + words[w]).width;
+                // if adding the next word would be too long then put the text in as it is
+                if(next_line_length > max_width){
+                    line_index++;
+                    lines[line_index] = words[w];
+                }else{
+                    lines[line_index] = lines[line_index]  + ' ' + words[w];
+                }
             }
+            line_index++;
         }
 
         return lines;
@@ -1532,12 +1536,14 @@ SnaprFX.filters.text.prototype.process = function(canvas, fx){  var self = this;
     var lines = word_wrap(self.text.default_value, max_width);
     while(!lines || lines.length * self.text.style.lineHeight > max_height){
 
-        self.font_element.css('font-size', self.text.style.fontSize * 0.8);
+        self.text.style.fontSize = self.text.style.fontSize * 0.8;
+        self.font_element.css('font-size', self.text.style.fontSize);
         canvas.context.font = self.font_element.css('font');
 
         self.text.style.lineHeight = self.text.style.lineHeight * 0.8;
 
         lines = word_wrap(self.text.default_value, max_width);
+
     }
 
     var x,
@@ -1577,6 +1583,15 @@ SnaprFX.filters.text.prototype.process = function(canvas, fx){  var self = this;
 
     for(var i=0; i < lines.length; i++){
         canvas.context.fillText(lines[i], x, y+i*self.text.style.lineHeight, max_width);
+
+        // draws bounding box
+        // canvas.context.strokeRect(
+        //     self.position.left,
+        //     y+i*self.text.style.lineHeight,
+        //     max_width,
+        //     self.text.style.lineHeight
+        // );
+
     }
 
 
