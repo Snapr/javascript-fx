@@ -178,7 +178,10 @@ SnaprFX.prototype.init = function(options){  var self = this;
  * Change the base image
  */
 SnaprFX.prototype.set_url = function(url, callback){  var self = this;
+
     this.options.url = url;
+
+    var deferred = $.Deferred();
 
     // read EXIF first, it may have orientation
     // info needed for rendering the canvas
@@ -189,9 +192,12 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
         self.load_original(true).done(function(){
 
             self.apply_filter();
+            deferred.resolve();
 
         });
     });
+
+    return deferred;
 };
 
 

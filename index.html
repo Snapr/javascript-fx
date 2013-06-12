@@ -42,7 +42,11 @@
                     $('.fx-effects').append(
                         $('<a> <img src="filter-packs/'+pack.filter_pack.slug+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
                         .click(function(){
+                          $(document.body).addClass('fx-processing');
                             image.apply_filter({filter: filter.slug});
+                            image.deferred.done(function(){
+                              $(document.body).removeClass('fx-processing');
+                            });
                         })
                     );
                 });
@@ -50,7 +54,12 @@
         });
 
         $('.kitten').click(function(){
-            image.set_url($(this).attr('src'));
+            $(document.body).addClass('fx-processing');
+            image.set_url($(this).attr('src')).done(function(){
+              image.deferred.done(function(){
+                $(document.body).removeClass('fx-processing');
+              });
+            });
         });
     });
     </script>
@@ -69,6 +78,10 @@
         overflow: hidden;
         vertical-align: top;
         white-space: normal;
+    }
+
+    .fx-processing .fx-preview-image{
+        opacity: .6;
     }
 
     .fx-preview-image{
