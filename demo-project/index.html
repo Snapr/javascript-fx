@@ -105,7 +105,12 @@
 
             $('.font-size').val(Math.round(data.text.style.fontSize));
             $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
-            $('[name=x-text-color][value='+data.text.style.fillStyle+']').attr('checked', true);
+
+            $('.other-color').val(data.text.style.fillStyle);
+            var checked = $('[name=x-text-color][value='+data.text.style.fillStyle+']').attr('checked', true);
+            if(!checked.length){
+                $('[name=x-text-color][value=other]').attr('checked', true);
+            }
 
         });
         $('.fx-text').live('deactivate', function(e, data){
@@ -131,9 +136,13 @@
             overlay.css({
                 'font-family': $('.font').val(),
                 'font-size': $('.font-size').val()+'px',
-                'color': $('[name=x-text-color]:checked').val(),
+                'color': $('.other-color').val(),
                 'text-align': $('[name=x-text-align]:checked').val()
             });
+        });
+
+        $('.x-change-color').on('change', function(){
+            $('.other-color').val($('[name=x-text-color]:checked').val()).trigger('change');
         });
 
         $('.go').click(function(event){
@@ -232,14 +241,19 @@
                                 <fieldset>
 
                                     <label>Color:</label>
-                                    <input type="radio" id="x-color-red" value="#d63e27" name="x-text-color" class="x-change-font"/>
+                                    <input type="radio" id="x-color-red" value="#d63e27" name="x-text-color" class="x-change-color"/>
                                     <label for="x-color-red">Red</label>
 
-                                    <input type="radio" id="x-color-yellow" value="#f6f442" name="x-text-color" class="x-change-font"/>
+                                    <input type="radio" id="x-color-yellow" value="#f6f442" name="x-text-color" class="x-change-color"/>
                                     <label for="x-color-yellow">Yellow</label>
 
-                                    <input type="radio" id="x-color-black" value="#000" name="x-text-color" class="x-change-font"/>
+                                    <input type="radio" id="x-color-black" value="#000" name="x-text-color" class="x-change-color"/>
                                     <label for="x-color-black">Black</label>
+
+                                    <input type="radio" id="x-color-other" value="other" name="x-text-color"/>
+                                    <label for="x-color-other">Other</label>
+
+                                    <input class="other-color x-change-font">
 
                                 </fieldset>
                                 <fieldset>
