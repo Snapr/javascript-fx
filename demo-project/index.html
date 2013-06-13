@@ -27,7 +27,11 @@
                 width: 400,
                 height: (40 / 56) * 750,
                 fx: pack,
-                fx_assets: '../filter-packs/'+pack+'/filters/'
+                fx_assets: '../filter-packs/'+pack+'/filters/',
+                text: {
+                    book_title: 'An Inquiry into the Nature and Causes of the Wealth of Nations',
+                    author_name: 'Adam Smith'
+                }
             });
 
         $.ajax({
@@ -116,6 +120,7 @@
 
         });
         $('.fx-text').live('deactivate', function(e, data){
+            console.log('de');
 
             $(this).attr('contenteditable', false);
 
@@ -155,13 +160,13 @@
 
             var overlay = $('.fx-text-active');
 
+            image.options.text[active_slug] = overlay.text();
+
             var data = {
                 font: overlay.css('font'),
                 textAlign: $('[name=x-text-align]:checked').val(),
-                fillStyle: $('.other-color').val(),
-                text: overlay.text()
+                fillStyle: $('.other-color').val()
             };
-            console.log(data);
 
             $(document.body).addClass('x-processing');
             image.set_text_style(active_slug, data).done(function(){
