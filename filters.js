@@ -172,6 +172,13 @@ SnaprFX.prototype.init = function(options){  var self = this;
 
     self.load_fonts();
 
+    var css = ".fx-text-active{";
+            css += "border: 1px solid #933;";
+            css += "outline: 1px solid #f99;";
+        css += "}";
+
+    $('<style>'+css+'</style>').appendTo(document.head);
+
     self.filter_specs = {};
     self.stickers = [];
 };
@@ -326,7 +333,6 @@ SnaprFX.prototype.revert = function(stickers){  var self = this;
 
 /**
  * apply filter specified by 'filter' or reapply last filter
- * TODO: what iof last filter was none?
  * apply stickers unless stickers: false
  * @param {Object} options.
  * @expose
@@ -568,7 +574,7 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
     self.elements.stickers = $('<div class="fx-stickers">')
         .css(full_size)
         .css('z-index', (self.elements.image.css('z-index') || 0) + 2);
-    self.elements.text = $('<div class="fx-text">')
+    self.elements.text = $('<div class="fx-text-layer">')
         .css(full_size)
         .css('z-index', (self.elements.image.css('z-index') || 0) + 1);
     self.elements.wrapper = $('<div class="fx-wrapper">').css({
@@ -1444,6 +1450,20 @@ SnaprFX.filters.image.prototype.process = function(i, rgb){
 // ----
 
 
+SnaprFX.prototype.set_text_style = function(slug, data){  var self = this;
+
+    console.log(slug, data, self.filter_specs[self.current_filter]);
+
+    $.each(self.filter_specs[self.current_filter].layers, function(i, layer){
+        if(layer.type == 'text' && layer.slug == slug){
+            $.extend(layer.text.style, data);
+        }
+    });
+
+    self.apply_filter();
+    return $.Deferred().resolve();
+};
+
 /**
  * Text layer
  * @constructor
@@ -1514,16 +1534,20 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     self.overlay = fx.elements.text;
 
+    var padding = 10;
     self.element  = $('<div class="fx-text" data-layer="'+self.slug+'">').css({
+        padding: padding,
         position: 'absolute',
-        left: self.position.left + "px",
-        top: self.position.top + "px",
+        left: self.position.left - padding + "px",
+        top: self.position.top - padding + "px",
         width: self.position.right - self.position.left + "px",
         height: self.position.bottom - self.position.top + "px"
     }).click(function(){
         var was_active = $(this).hasClass('fx-text-active');
-        self.overlay.find('.fx-text-active').removeClass('fx-text-active');
-        $(this).toggleClass('fx-text-active', !was_active);
+        self.overlay.find('.fx-text-active').removeClass('fx-text-active').trigger('deactivate', layer);
+        if(!was_active){
+            $(this).addClass('fx-text-active').trigger('activate', layer);
+        }
     });
 
     self.overlay.append(self.element);

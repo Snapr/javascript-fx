@@ -43,9 +43,6 @@ fieldset {
 .fx-demo-area .fx-preview .fx-preview-image {
   width: 400px;
 }
-.fx-demo-area .fx-preview .fx-text-active {
-  border: 1px dashed #900;
-}
 .fx-demo-area .fx-settings .fx-source a,
 .fx-demo-area .fx-settings .fx-effects a {
   text-align: center;
