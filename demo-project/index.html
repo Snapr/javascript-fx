@@ -93,7 +93,16 @@
             active_slug = data.slug;
 
             $('.fx-text-active-layer-name').text(data.name);
-            $('.font').val($(this).css('font-family').split(', ')[0]);
+
+            var font = $(this).css('font-family').split(', ')[0];
+            var $font = $('.font');
+            $font.val(font);
+            // if the select hasn't change to the right font then we need to add it
+            if($font.val() != font){
+                $font.append($('<option value="'+font+'">'+font+'</option>'));
+                $font.val(font);
+            }
+
             $('.font-size').val(Math.round(data.text.style.fontSize));
             $('[name=fx-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
             $('[name=fx-text-color][value='+data.text.style.fillStyle+']').attr('checked', true);
