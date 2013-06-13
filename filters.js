@@ -1497,7 +1497,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     var padding = 10;
     self.element  = $('<div class="fx-text" data-layer="'+self.slug+'">')
     .css({
-        padding: padding,
+        padding: padding-1,
         position: 'absolute',
         left: self.position.left - padding + "px",
         top: self.position.top - padding + "px",
@@ -1630,6 +1630,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     }
 
     // set y position for text based on alignment
+    var padding_offset;
     switch(self.text.style.textBaseline){
         case 'hanging':
         case 'alphabetic':
@@ -1637,15 +1638,24 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         case 'bottom':
             // start No. of extra lines up from bottom
             y = self.position.bottom - (self.text.style.lineHeight * (lines.length - 1));
+            padding_offset = - self.text.style.lineHeight;
             break;
         case 'middle':
             y = (max_height / 2 + self.position.top) - ((self.text.style.lineHeight * (lines.length - 1)) / 2);
+            padding_offset = - self.text.style.lineHeight/2;
             break;
         default:  // top
             // start at top
             y = self.position.top;
+            padding_offset = 0;
 
     }
+
+    // update overlay with new y value
+    self.element.css({
+        'padding-top': padding-1 + y-self.position.top + padding_offset + 'px',
+        'height': self.position.bottom - y - padding_offset + "px"
+    });
 
 
     // draw text
@@ -1655,7 +1665,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         self.canvas.context.fillText(lines[l], x, y+l*self.text.style.lineHeight, max_width);
 
         // draws bounding box
-        // canvas.context.strokeRect(
+        // self.canvas.context.strokeRect(
         //     self.position.left,
         //     y+l*self.text.style.lineHeight,
         //     max_width,
