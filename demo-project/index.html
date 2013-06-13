@@ -87,6 +87,46 @@
             $(this).addClass('fx-current-image');
         });
 
+        var font_el = $('<span/>');
+        var active_slug;
+        $('.fx-text').live('activate', function(e, data){
+            active_slug = data.slug;
+
+            font_el.css('font', data.text.style.font);
+
+            $('.fx-text-active-layer-name').text(data.name);
+            $('.font').val(font_el.css('font-family').split(', ')[0]);
+            $('.font-size').val(Math.round(data.text.style.fontSize));
+            $('[name=fx-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
+            $('[name=fx-text-color][value='+data.text.style.fillStyle+']').attr('checked', true);
+
+        });
+        $('.fx-text').live('deactivate', function(e, data){
+            active_slug = null;
+            $('.fx-text-active-layer-name').text('No layer selected');
+        });
+
+        $('.go').click(function(){
+
+            font_el.css('font-family', $('.font').val());
+            font_el.css('font-size', $('.font-size').val()+'px');
+
+            var data = {
+                font: font_el.css('font'),
+                textAlign: $('[name=fx-text-align]:checked').val(),
+                fillStyle: $('[name=fx-text-color]:checked').val()
+            };
+            console.log(data);
+
+            $(document.body).addClass('fx-processing');
+            image.set_text_style(active_slug, data).done(function(){
+                image.deferred.done(function(){
+                    $(document.body).removeClass('fx-processing');
+                });
+            });
+
+        });
+
     });
     </script>
 
@@ -133,14 +173,14 @@
                             <form>
                                 <fieldset>
                                     <label>Font:</label>
-                                    <select>
+                                    <select class="font">
                                         <option value="Verdana">Verdana</option>
                                         <option value="Helvetica">Helvetica</option>
                                         <option value="CrimsonBold">Crimson Bold</option>
                                     </select>
 
                                     <label>Size:</label>
-                                    <select>
+                                    <select class="font-size">
                                         <option value="9">9</option>
                                         <option value="10">10</option>
                                         <option value="12">12</option>
@@ -153,25 +193,28 @@
                                     <label for="fx-align-left">left</label>
 
                                     <input type="radio" id="fx-align-center" value="center" name="fx-text-align"/>
-                                    <label for="fx-align-left">center</label>
+                                    <label for="fx-align-center">center</label>
 
                                     <input type="radio" id="fx-align-right" value="right" name="fx-text-align"/>
-                                    <label for="fx-align-left">right</label>
+                                    <label for="fx-align-right">right</label>
 
                                 </fieldset>
 
                                 <fieldset>
 
                                     <label>Color:</label>
-                                    <input type="radio" id="fx-align-left" value="#ff0000" name="fx-text-align"/>
-                                    <label for="fx-align-left">Red</label>
+                                    <input type="radio" id="fx-color-red" value="#d63e27" name="fx-text-color"/>
+                                    <label for="fx-color-red">Red</label>
 
-                                    <input type="radio" id="fx-align-center" value="#ffff00" name="fx-text-align"/>
-                                    <label for="fx-align-left">Yellow</label>
+                                    <input type="radio" id="fx-color-yellow" value="#f6f442" name="fx-text-color"/>
+                                    <label for="fx-color-yellow">Yellow</label>
 
-                                    <input type="radio" id="fx-align-right" value="#000000" name="fx-text-align"/>
-                                    <label for="fx-align-left">Black</label>
+                                    <input type="radio" id="fx-color-black" value="#000" name="fx-text-color"/>
+                                    <label for="fx-color-black">Black</label>
 
+                                </fieldset>
+                                <fieldset>
+                                    <a class="go">GO!</a>
                                 </fieldset>
                                 <fieldset>
                                     <button id="fx-add-textfield">Add a textfield</button>

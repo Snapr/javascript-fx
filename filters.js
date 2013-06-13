@@ -574,7 +574,7 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
     self.elements.stickers = $('<div class="fx-stickers">')
         .css(full_size)
         .css('z-index', (self.elements.image.css('z-index') || 0) + 2);
-    self.elements.text = $('<div class="fx-text">')
+    self.elements.text = $('<div class="fx-text-layer">')
         .css(full_size)
         .css('z-index', (self.elements.image.css('z-index') || 0) + 1);
     self.elements.wrapper = $('<div class="fx-wrapper">').css({
@@ -1450,6 +1450,20 @@ SnaprFX.filters.image.prototype.process = function(i, rgb){
 // ----
 
 
+SnaprFX.prototype.set_text_style = function(slug, data){  var self = this;
+
+    console.log(slug, data, self.filter_specs[self.current_filter]);
+
+    $.each(self.filter_specs[self.current_filter].layers, function(i, layer){
+        if(layer.type == 'text' && layer.slug == slug){
+            $.extend(layer.text.style, data);
+        }
+    });
+
+    self.apply_filter();
+    return $.Deferred().resolve();
+};
+
 /**
  * Text layer
  * @constructor
@@ -1530,8 +1544,10 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         height: self.position.bottom - self.position.top + "px"
     }).click(function(){
         var was_active = $(this).hasClass('fx-text-active');
-        self.overlay.find('.fx-text-active').removeClass('fx-text-active');
-        $(this).toggleClass('fx-text-active', !was_active);
+        self.overlay.find('.fx-text-active').removeClass('fx-text-active').trigger('deactivate', layer);
+        if(!was_active){
+            $(this).addClass('fx-text-active').trigger('activate', layer);
+        }
     });
 
     self.overlay.append(self.element);
