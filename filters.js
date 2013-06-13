@@ -1457,6 +1457,9 @@ SnaprFX.prototype.set_text_style = function(slug, data){  var self = this;
     $.each(self.filter_specs[self.current_filter].layers, function(i, layer){
         if(layer.type == 'text' && layer.slug == slug){
             $.extend(layer.text.style, data);
+            if(data.text){
+                layer.text.default_value = data.text;
+            }
         }
     });
 
@@ -1510,12 +1513,13 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     })
     .text(self.text.default_value)
     .click(function(){
-        var was_active = $(this).hasClass('fx-text-active');
+        var active = $(this).hasClass('fx-text-active');
         self.overlay.find('.fx-text-active')
+            .not(this)
             .removeClass('fx-text-active')
             .css({opacity: 0})
             .trigger('deactivate', layer);
-        if(!was_active){
+        if(!active){
             $(this)
                 .addClass('fx-text-active')
                 .css({opacity: 1})

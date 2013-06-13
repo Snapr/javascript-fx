@@ -90,6 +90,8 @@
         var active_slug;
         $('.fx-text').live('activate', function(e, data){
 
+            $(this).attr('contenteditable', true);
+
             active_slug = data.slug;
 
             $('.x-text-active-layer-name').text(data.name);
@@ -114,6 +116,9 @@
 
         });
         $('.fx-text').live('deactivate', function(e, data){
+
+            $(this).attr('contenteditable', false);
+
             active_slug = null;
             $('.x-text-active-layer-name').text('No layer selected');
         });
@@ -153,7 +158,8 @@
             var data = {
                 font: overlay.css('font'),
                 textAlign: $('[name=x-text-align]:checked').val(),
-                fillStyle: $('[name=x-text-color]:checked').val()
+                fillStyle: $('.other-color').val(),
+                text: overlay.text()
             };
             console.log(data);
 
