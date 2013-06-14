@@ -1452,11 +1452,12 @@ SnaprFX.filters.image.prototype.process = function(i, rgb){
 
 SnaprFX.prototype.set_text_style = function(slug, data){  var self = this;
 
-    console.log(slug, data, self.filter_specs[self.current_filter]);
-
     $.each(self.filter_specs[self.current_filter].layers, function(i, layer){
         if(layer.type == 'text' && layer.slug == slug){
             $.extend(layer.text.style, data);
+            if(data.text){
+                layer.text.default_value = data.text;
+            }
         }
     });
 
@@ -1478,7 +1479,8 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     self.y_scale_factor = self.canvas.height / fx.filter_specs[fx.current_filter].height;
 
     self.slug = layer.slug;
-    self.text = layer.text;
+    self.text_style = layer.text.style;
+    self.text = fx.options.text && fx.options.text[layer.slug] || layer.text.default_value;
 
     self.position = {
         top: layer.position.top * self.y_scale_factor,
@@ -1503,19 +1505,20 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         top: self.position.top - padding + "px",
         width: self.position.right - self.position.left + "px",
         height: self.position.bottom - self.position.top + "px",
-        font: self.text.style.font,
-        color: self.text.style.fillStyle,
-        'text-align': self.text.style.textAlign,
+        font: self.text_style.font,
+        color: self.text_style.fillStyle,
+        'text-align': self.text_style.textAlign,
         opacity: 0
     })
-    .text(self.text.default_value)
+    .text(self.text)
     .click(function(){
-        var was_active = $(this).hasClass('fx-text-active');
+        var active = $(this).hasClass('fx-text-active');
         self.overlay.find('.fx-text-active')
+            .not(this)
             .removeClass('fx-text-active')
             .css({opacity: 0})
             .trigger('deactivate', layer);
-        if(!was_active){
+        if(!active){
             $(this)
                 .addClass('fx-text-active')
                 .css({opacity: 1})
@@ -1530,24 +1533,24 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     // ----------
 
     // apply scale factor to font size
-    self.text.style.fontSize = parseInt(self.element.css('font-size'), 10) * self.y_scale_factor;
-    self.element.css('font-size', self.text.style.fontSize);
+    self.text_style.fontSize = parseInt(self.element.css('font-size'), 10) * self.y_scale_factor;
+    self.element.css('font-size', self.text_style.fontSize);
 
     // apply scale factor to line height
     // if line hight is % then convert it to px now
-    self.text.style.lineHeight = self.element.css('line-height');
-    if(self.text.style.lineHeight.substr(-1) == '%'){
-        self.text.style.lineHeight = (parseInt(self.text.style.lineHeight, 10) / 100) * self.text.style.fontSize;
+    self.text_style.lineHeight = self.element.css('line-height');
+    if(self.text_style.lineHeight.substr(-1) == '%'){
+        self.text_style.lineHeight = (parseInt(self.text_style.lineHeight, 10) / 100) * self.text_style.fontSize;
     }else{
-        self.text.style.lineHeight = parseInt(self.text.style.lineHeight, 10) * self.y_scale_factor;
+        self.text_style.lineHeight = parseInt(self.text_style.lineHeight, 10) * self.y_scale_factor;
     }
-    self.element.css('line-height', self.text.style.lineHeight + 'px');
+    self.element.css('line-height', self.text_style.lineHeight + 'px');
 
     // set font properties on canvas
     self.canvas.context.font = self.element.css('font');
-    self.canvas.context.textAlign = self.text.style.textAlign || 'left';
-    self.canvas.context.textBaseline = self.text.style.textBaseline || 'top';
-    self.canvas.context.fillStyle = self.text.style.fillStyle;
+    self.canvas.context.textAlign = self.text_style.textAlign || 'left';
+    self.canvas.context.textBaseline = self.text_style.textBaseline || 'top';
+    self.canvas.context.fillStyle = self.text_style.fillStyle;
 
 
     // debug
@@ -1593,18 +1596,18 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         return lines;
     }
 
-    var lines = word_wrap(self.text.default_value, max_width);
-    while(!lines || lines.length * self.text.style.lineHeight > max_height){
+    var lines = word_wrap(self.text, max_width);
+    while(!lines || lines.length * self.text_style.lineHeight > max_height){
 
-        self.text.style.fontSize = self.text.style.fontSize * 0.8;
-        self.element.css('font-size', self.text.style.fontSize);
+        self.text_style.fontSize = self.text_style.fontSize * 0.8;
+        self.element.css('font-size', self.text_style.fontSize);
 
-        self.text.style.lineHeight = self.text.style.lineHeight * 0.8;
-        self.element.css('line-height', self.text.style.lineHeight+ 'px');
+        self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
+        self.element.css('line-height', self.text_style.lineHeight+ 'px');
 
         self.canvas.context.font = self.element.css('font');
 
-        lines = word_wrap(self.text.default_value, max_width);
+        lines = word_wrap(self.text, max_width);
 
     }
 
@@ -1616,7 +1619,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         y;
 
     // set x position for text based on alignment
-    switch(self.text.style.textAlign){
+    switch(self.text_style.textAlign){
         case 'end':
         case 'right':
             x = self.position.right;
@@ -1631,18 +1634,18 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     // set y position for text based on alignment
     var padding_offset;
-    switch(self.text.style.textBaseline){
+    switch(self.text_style.textBaseline){
         case 'hanging':
         case 'alphabetic':
         case 'ideographic':
         case 'bottom':
             // start No. of extra lines up from bottom
-            y = self.position.bottom - (self.text.style.lineHeight * (lines.length - 1));
-            padding_offset = - self.text.style.lineHeight;
+            y = self.position.bottom - (self.text_style.lineHeight * (lines.length - 1));
+            padding_offset = - self.text_style.lineHeight;
             break;
         case 'middle':
-            y = (max_height / 2 + self.position.top) - ((self.text.style.lineHeight * (lines.length - 1)) / 2);
-            padding_offset = - self.text.style.lineHeight/2;
+            y = (max_height / 2 + self.position.top) - ((self.text_style.lineHeight * (lines.length - 1)) / 2);
+            padding_offset = - self.text_style.lineHeight/2;
             break;
         default:  // top
             // start at top
@@ -1662,14 +1665,14 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     // ---------
 
     for(var l=0; l < lines.length; l++){
-        self.canvas.context.fillText(lines[l], x, y+l*self.text.style.lineHeight, max_width);
+        self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight, max_width);
 
         // draws bounding box
         // self.canvas.context.strokeRect(
         //     self.position.left,
-        //     y+l*self.text.style.lineHeight,
+        //     y+l*self.text_style.lineHeight,
         //     max_width,
-        //     self.text.style.lineHeight
+        //     self.text_style.lineHeight
         // );
 
     }

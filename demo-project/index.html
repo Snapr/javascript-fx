@@ -18,7 +18,7 @@
 
 
     $(function(){
-        var img = $('.fx-preview-image'),
+        var img = $('.x-preview-image'),
             orig = img.clone().hide().appendTo(document.body);
             src = orig.attr('src'),
             image = new SnaprFX({
@@ -27,33 +27,37 @@
                 width: 400,
                 height: (40 / 56) * 750,
                 fx: pack,
-                fx_assets: '../filter-packs/'+pack+'/filters/'
+                fx_assets: '../filter-packs/'+pack+'/filters/',
+                text: {
+                    book_title: 'An Inquiry into the Nature and Causes of the Wealth of Nations',
+                    author_name: 'Adam Smith'
+                }
             });
 
         $.ajax({
             url: '../filter-packs/'+pack+'/filter-pack.json',
             success: function(pack){
-                $('.fx-effects').append(
+                $('.x-effects').append(
                     $('<a> <img src="../filter-packs/'+pack.filter_pack.slug+'/original-thumb@2x.png">Original </a>')
                     .click(function(){
-                        $('.fx-current-filter').removeClass('fx-current-filter');
-                        $(this).addClass('fx-current-filter');
+                        $('.x-current-filter').removeClass('x-current-filter');
+                        $(this).addClass('x-current-filter');
                         image.revert();
                     })
                 );
                 $.each(pack.filter_pack.filters, function(i, filter){
-                    $('.fx-effects').append(
+                    $('.x-effects').append(
                         $('<a> <img src="../filter-packs/'+pack.filter_pack.slug+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
                         .click(function(){
                             if(image.current_filter == filter.slug){
                                 return;
                             }
-                            $(document.body).addClass('fx-processing');
+                            $(document.body).addClass('x-processing');
                             image.apply_filter({filter: filter.slug});
-                            $('.fx-current-filter').removeClass('fx-current-filter');
-                            $(this).addClass('fx-current-filter');
+                            $('.x-current-filter').removeClass('x-current-filter');
+                            $(this).addClass('x-current-filter');
                             image.deferred.done(function(){
-                                $(document.body).removeClass('fx-processing');
+                                $(document.body).removeClass('x-processing');
                             });
                         })
                     );
@@ -61,10 +65,10 @@
             }
         });
 
-        $('.fx-render-full').click(function(){
+        $('.x-render-full').click(function(){
             var output = new SnaprFX({
                 url: src,
-                element: $('.fx-output-area img'),
+                element: $('.x-output-area img'),
                 width: 560,
                 height: 750,
                 fx: pack,
@@ -76,32 +80,52 @@
         });
 
         $('.kitten').click(function(){
-            $(document.body).addClass('fx-processing');
+            $(document.body).addClass('x-processing');
             src = $(this).attr('src');
             image.set_url(src).done(function(){
                 image.deferred.done(function(){
-                    $(document.body).removeClass('fx-processing');
+                    $(document.body).removeClass('x-processing');
                 });
             });
-            $('.fx-current-image').removeClass('fx-current-image');
-            $(this).addClass('fx-current-image');
+            $('.x-current-image').removeClass('x-current-image');
+            $(this).addClass('x-current-image');
         });
 
         var active_slug;
         $('.fx-text').live('activate', function(e, data){
 
+            $(this).attr('contenteditable', true);
+
             active_slug = data.slug;
 
-            $('.fx-text-active-layer-name').text(data.name);
-            $('.font').val($(this).css('font-family').split(', ')[0]);
+            $('.x-text-active-layer-name').text(data.name);
+
+            var font = $(this).css('font-family').split(', ')[0];
+            var $font = $('.font');
+            $font.val(font);
+            // if the select hasn't change to the right font then we need to add it
+            if($font.val() != font){
+                $font.append($('<option value="'+font+'">'+font+'</option>'));
+                $font.val(font);
+            }
+
             $('.font-size').val(Math.round(data.text.style.fontSize));
-            $('[name=fx-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
-            $('[name=fx-text-color][value='+data.text.style.fillStyle+']').attr('checked', true);
+            $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
+
+            $('.other-color').val(data.text.style.fillStyle);
+            var checked = $('[name=x-text-color][value='+data.text.style.fillStyle+']').attr('checked', true);
+            if(!checked.length){
+                $('[name=x-text-color][value=other]').attr('checked', true);
+            }
 
         });
         $('.fx-text').live('deactivate', function(e, data){
+            console.log('de');
+
+            $(this).attr('contenteditable', false);
+
             active_slug = null;
-            $('.fx-text-active-layer-name').text('No layer selected');
+            $('.x-text-active-layer-name').text('No layer selected');
         });
 
         $('.x-increase-text-size').click(function(event){
@@ -122,9 +146,13 @@
             overlay.css({
                 'font-family': $('.font').val(),
                 'font-size': $('.font-size').val()+'px',
-                'color': $('[name=fx-text-color]:checked').val(),
-                'text-align': $('[name=fx-text-align]:checked').val()
+                'color': $('.other-color').val(),
+                'text-align': $('[name=x-text-align]:checked').val()
             });
+        });
+
+        $('.x-change-color').on('change', function(){
+            $('.other-color').val($('[name=x-text-color]:checked').val()).trigger('change');
         });
 
         $('.go').click(function(event){
@@ -132,17 +160,18 @@
 
             var overlay = $('.fx-text-active');
 
+            image.options.text[active_slug] = overlay.text();
+
             var data = {
                 font: overlay.css('font'),
-                textAlign: $('[name=fx-text-align]:checked').val(),
-                fillStyle: $('[name=fx-text-color]:checked').val()
+                textAlign: $('[name=x-text-align]:checked').val(),
+                fillStyle: $('.other-color').val()
             };
-            console.log(data);
 
-            $(document.body).addClass('fx-processing');
+            $(document.body).addClass('x-processing');
             image.set_text_style(active_slug, data).done(function(){
                 image.deferred.done(function(){
-                    $(document.body).removeClass('fx-processing');
+                    $(document.body).removeClass('x-processing');
                 });
             });
 
@@ -156,24 +185,24 @@
 <body>
 
 
-    <div class="fx-demo-area ">
-        <div class="fx-preview">
+    <div class="x-demo-area ">
+        <div class="x-preview">
             <h1>Preview:</h1>
-            <div class="fx-preview-image-area">
-                <div class="fx-activity-indicator">
-                    <div class="fx-spinner"></div>
+            <div class="x-preview-image-area">
+                <div class="x-activity-indicator">
+                    <div class="x-spinner"></div>
                     Rendering..
                 </div>
-                <img class="fx-preview-image" src="images/a.jpg">
+                <img class="x-preview-image" src="images/a.jpg">
             </div>
         </div>
 
-        <div class="fx-settings">
+        <div class="x-settings">
             <h1>Settings:</h1>
             <ul>
                 <li>
                     <h2>Source:</h2>
-                    <div class="fx-source">
+                    <div class="x-source">
                         <img class="kitten" src="images/a.jpg" style="width:56px;height:75px">
                         <img class="kitten" src="images/b.jpg" style="width:56px;height:75px">
                         <img class="kitten" src="images/c.jpg" style="width:56px;height:75px">
@@ -182,15 +211,15 @@
 
                 <li>
                     <h2>Effects:</h2>
-                    <div class="fx-effects">
+                    <div class="x-effects">
                     </div>
                 </li>
 
                 <li>
                     <h2>Text:</h2>
 
-                    <div class="fx-text">
-                        <h3>Selected: <span class="fx-text-active-layer-name"></span>
+                    <div class="x-text">
+                        <h3>Selected: <span class="x-text-active-layer-name"></span>
                             <form>
                                 <fieldset>
                                     <label>Font:</label>
@@ -209,35 +238,40 @@
                                 <fieldset>
 
                                     <label>Align:</label>
-                                    <input type="radio" id="fx-align-left" value="left" name="fx-text-align" class="x-change-font"/>
-                                    <label for="fx-align-left">left</label>
+                                    <input type="radio" id="x-align-left" value="left" name="x-text-align" class="x-change-font"/>
+                                    <label for="x-align-left">left</label>
 
-                                    <input type="radio" id="fx-align-center" value="center" name="fx-text-align" class="x-change-font"/>
-                                    <label for="fx-align-center">center</label>
+                                    <input type="radio" id="x-align-center" value="center" name="x-text-align" class="x-change-font"/>
+                                    <label for="x-align-center">center</label>
 
-                                    <input type="radio" id="fx-align-right" value="right" name="fx-text-align" class="x-change-font"/>
-                                    <label for="fx-align-right">right</label>
+                                    <input type="radio" id="x-align-right" value="right" name="x-text-align" class="x-change-font"/>
+                                    <label for="x-align-right">right</label>
 
                                 </fieldset>
 
                                 <fieldset>
 
                                     <label>Color:</label>
-                                    <input type="radio" id="fx-color-red" value="#d63e27" name="fx-text-color" class="x-change-font"/>
-                                    <label for="fx-color-red">Red</label>
+                                    <input type="radio" id="x-color-red" value="#d63e27" name="x-text-color" class="x-change-color"/>
+                                    <label for="x-color-red">Red</label>
 
-                                    <input type="radio" id="fx-color-yellow" value="#f6f442" name="fx-text-color" class="x-change-font"/>
-                                    <label for="fx-color-yellow">Yellow</label>
+                                    <input type="radio" id="x-color-yellow" value="#f6f442" name="x-text-color" class="x-change-color"/>
+                                    <label for="x-color-yellow">Yellow</label>
 
-                                    <input type="radio" id="fx-color-black" value="#000" name="fx-text-color" class="x-change-font"/>
-                                    <label for="fx-color-black">Black</label>
+                                    <input type="radio" id="x-color-black" value="#000" name="x-text-color" class="x-change-color"/>
+                                    <label for="x-color-black">Black</label>
+
+                                    <input type="radio" id="x-color-other" value="other" name="x-text-color"/>
+                                    <label for="x-color-other">Other</label>
+
+                                    <input class="other-color x-change-font">
 
                                 </fieldset>
                                 <fieldset>
                                     <button class="go">GO!</button>
                                 </fieldset>
                                 <fieldset>
-                                    <button id="fx-add-textfield">Add a textfield</button>
+                                    <button id="x-add-textfield">Add a textfield</button>
                                 </fieldset>
                             </form>
 
@@ -247,8 +281,8 @@
                     <li>
                         <h2>Render:</h2>
 
-                        <div class="fx-render">
-                            <button class="fx-render-full">Render Full Size</button>
+                        <div class="x-render">
+                            <button class="x-render-full">Render Full Size</button>
                         </div>
                     </li>
 
@@ -256,9 +290,9 @@
 
             </div>
 
-            <div class="fx-output">
+            <div class="x-output">
                 <h1>Output:</h1>
-                <div class="fx-output-area">
+                <div class="x-output-area">
                     <img>
                 </div>
             </div>

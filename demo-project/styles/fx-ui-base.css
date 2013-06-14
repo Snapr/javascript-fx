@@ -26,13 +26,13 @@ fieldset {
   margin: .5em 0;
   padding: .5em;
 }
-.fx-demo-area {
+.x-demo-area {
   white-space: nowrap;
   vertical-align: top;
 }
-.fx-demo-area .fx-preview,
-.fx-demo-area .fx-settings,
-.fx-demo-area .fx-output {
+.x-demo-area .x-preview,
+.x-demo-area .x-settings,
+.x-demo-area .x-output {
   display: inline-block;
   width: 400px;
   overflow: hidden;
@@ -40,41 +40,41 @@ fieldset {
   white-space: normal;
   padding: 1em;
 }
-.fx-demo-area .fx-preview .fx-preview-image {
+.x-demo-area .x-preview .x-preview-image {
   width: 400px;
 }
-.fx-demo-area .fx-settings .fx-source a,
-.fx-demo-area .fx-settings .fx-effects a {
+.x-demo-area .x-settings .x-source a,
+.x-demo-area .x-settings .x-effects a {
   text-align: center;
   display: inline-block;
 }
-.fx-demo-area .fx-settings .fx-source a img,
-.fx-demo-area .fx-settings .fx-effects a img {
+.x-demo-area .x-settings .x-source a img,
+.x-demo-area .x-settings .x-effects a img {
   display: block;
   margin: 0 .25em 0 0;
   border: solid #000 1px;
 }
-.fx-demo-area .fx-settings .fx-source a img.fx-current-image,
-.fx-demo-area .fx-settings .fx-effects a img.fx-current-image {
+.x-demo-area .x-settings .x-source a img.x-current-image,
+.x-demo-area .x-settings .x-effects a img.x-current-image {
   border: solid #ffff00 1px;
 }
-.fx-demo-area .fx-settings .fx-source a.fx-current-filter img,
-.fx-demo-area .fx-settings .fx-effects a.fx-current-filter img {
+.x-demo-area .x-settings .x-source a.x-current-filter img,
+.x-demo-area .x-settings .x-effects a.x-current-filter img {
   border: solid #ffff00 1px;
 }
-.fx-demo-area .fx-output {
+.x-demo-area .x-output {
   width: 560px;
 }
-.fx-activity-indicator {
+.x-activity-indicator {
   display: none;
 }
-.fx-processing .fx-preview-image-area {
+.x-processing .x-preview-image-area {
   position: relative;
 }
-.fx-processing .fx-preview-image-area .fx-preview-image {
+.x-processing .x-preview-image-area .x-preview-image {
   opacity: .6;
 }
-.fx-processing .fx-preview-image-area .fx-activity-indicator {
+.x-processing .x-preview-image-area .x-activity-indicator {
   display: block;
   position: absolute;
   top: 5%;
