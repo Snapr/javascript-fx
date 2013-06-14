@@ -1454,7 +1454,7 @@ SnaprFX.prototype.set_text_style = function(slug, data){  var self = this;
 
     $.each(self.filter_specs[self.current_filter].layers, function(i, layer){
         if(layer.type == 'text' && layer.slug == slug){
-            $.extend(layer.text.style, data);
+            $.extend(layer.text.style, data, {scale: false});
             if(data.text){
                 layer.text.default_value = data.text;
             }
@@ -1531,6 +1531,11 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     // font setup
     // ----------
+
+    if(self.text_style.scale === false){
+        self.x_scale_factor = 1;
+        self.y_scale_factor = 1;
+    }
 
     // apply scale factor to font size
     self.text_style.fontSize = parseInt(self.element.css('font-size'), 10) * self.y_scale_factor;
