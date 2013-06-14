@@ -346,6 +346,8 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         stickers: true
     }, options);
 
+    self.render_options = options;
+
     self.deferred = $.Deferred();
 
     // remove text frames from prev filter
@@ -1517,14 +1519,26 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
             .not(this)
             .removeClass('fx-text-active')
             .css({opacity: 0})
-            .trigger('deactivate', layer);
+            .trigger('deactivate', layer)
+            .attr('contenteditable', false);
         if(!active){
             $(this)
                 .addClass('fx-text-active')
                 .css({opacity: 1})
-                .trigger('activate', layer);
+                .trigger('activate', layer)
+                .attr('contenteditable', true);
+
+            //render without this text
+            fx.apply_filter({active_text: self.slug});
         }
     });
+    if(self.slug == fx.render_options.active_text){
+        self.element
+            .addClass('fx-text-active')
+            .css({opacity: 1})
+            .trigger('activate', layer)
+            .attr('contenteditable', true);
+    }
 
     self.overlay.append(self.element);
 
@@ -1665,20 +1679,24 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         'height': self.position.bottom - y - padding_offset + "px"
     });
 
-
     // draw text
     // ---------
 
-    for(var l=0; l < lines.length; l++){
-        self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight, max_width);
+    console.log('draw?', self.slug, fx.render_options.active_text);
+    if(self.slug !== fx.render_options.active_text){
 
-        // draws bounding box
-        // self.canvas.context.strokeRect(
-        //     self.position.left,
-        //     y+l*self.text_style.lineHeight,
-        //     max_width,
-        //     self.text_style.lineHeight
-        // );
+        for(var l=0; l < lines.length; l++){
+            self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight, max_width);
+
+            // draws bounding box
+            // self.canvas.context.strokeRect(
+            //     self.position.left,
+            //     y+l*self.text_style.lineHeight,
+            //     max_width,
+            //     self.text_style.lineHeight
+            // );
+
+        }
 
     }
 

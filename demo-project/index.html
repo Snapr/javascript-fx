@@ -94,8 +94,6 @@
         var active_slug;
         $('.fx-text').live('activate', function(e, data){
 
-            $(this).attr('contenteditable', true);
-
             active_slug = data.slug;
 
             $('.x-text-active-layer-name').text(data.name);
@@ -121,8 +119,6 @@
         });
         $('.fx-text').live('deactivate', function(e, data){
             console.log('de');
-
-            $(this).attr('contenteditable', false);
 
             active_slug = null;
             $('.x-text-active-layer-name').text('No layer selected');
