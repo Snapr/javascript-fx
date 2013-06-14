@@ -62,6 +62,9 @@ fieldset {
 .x-demo-area .x-settings .x-effects a.x-current-filter img {
   border: solid #ffff00 1px;
 }
+.x-demo-area .x-settings .font-size {
+  width: 3em;
+}
 .x-demo-area .x-output {
   width: 560px;
 }
