@@ -1499,7 +1499,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     self.overlay = fx.elements.text;
 
     var padding = 10;
-    self.element  = $('<div class="fx-text" data-layer="'+self.slug+'">')
+    self.element  = $('<div class="fx-text">')
     .css({
         padding: padding-1,
         position: 'absolute',
@@ -1507,24 +1507,30 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         top: self.position.top - padding + "px",
         width: self.position.right - self.position.left + "px",
         height: self.position.bottom - self.position.top + "px",
+        opacity: 0
+    });
+
+    self.text_element  = $('<div class="fx-text-inner" data-layer="'+self.slug+'">')
+    .css({
+        height: self.position.bottom - self.position.top + "px",
         font: self.text_style.font,
         color: self.text_style.fillStyle,
-        'text-align': self.text_style.textAlign,
-        opacity: 0
+        'text-align': self.text_style.textAlign
     })
     .text(self.text)
     .click(function(){
-        var active = $(this).hasClass('fx-text-active');
+        var wrapper = $(this).parent();
+        var active = wrapper.hasClass('fx-text-active');
         self.overlay.find('.fx-text-active')
-            .not(this)
+            .not(wrapper)
             .removeClass('fx-text-active')
-            .css({opacity: 0})
+            .css({opacity: 0, 'z-index': false})
             .trigger('deactivate', layer)
             .attr('contenteditable', false);
         if(!active){
-            $(this)
+            wrapper
                 .addClass('fx-text-active')
-                .css({opacity: 1})
+                .css({opacity: 1, 'z-index': 1})
                 .trigger('activate', layer)
                 .attr('contenteditable', true);
 
@@ -1532,10 +1538,35 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
             fx.apply_filter({active_text: self.slug});
         }
     });
+    self.element.append(self.text_element);
+
+    self.element.append(
+        $('<a class="fx-delete-layer">✗</a>')
+            .css({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                color: '#000',
+                'font-size': '16px',
+                'line-height': '16px'
+            }).click(function(){self.element.hide();})
+    );
+    self.element.append(
+        $('<a class="fx-render-layer">✔</a>')
+            .css({
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                color: '#000',
+                'font-size': '16px',
+                'line-height': '16px'
+            })
+    );
+
     if(self.slug == fx.render_options.active_text){
         self.element
             .addClass('fx-text-active')
-            .css({opacity: 1})
+            .css({opacity: 1, 'z-index': 1})
             .trigger('activate', layer)
             .attr('contenteditable', true);
     }
@@ -1552,21 +1583,21 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     }
 
     // apply scale factor to font size
-    self.text_style.fontSize = parseInt(self.element.css('font-size'), 10) * self.y_scale_factor;
-    self.element.css('font-size', self.text_style.fontSize);
+    self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10) * self.y_scale_factor;
+    self.text_element.css('font-size', self.text_style.fontSize);
 
     // apply scale factor to line height
     // if line hight is % then convert it to px now
-    self.text_style.lineHeight = self.element.css('line-height');
+    self.text_style.lineHeight = self.text_element.css('line-height');
     if(self.text_style.lineHeight.substr(-1) == '%'){
         self.text_style.lineHeight = (parseInt(self.text_style.lineHeight, 10) / 100) * self.text_style.fontSize;
     }else{
         self.text_style.lineHeight = parseInt(self.text_style.lineHeight, 10) * self.y_scale_factor;
     }
-    self.element.css('line-height', self.text_style.lineHeight + 'px');
+    self.text_element.css('line-height', self.text_style.lineHeight + 'px');
 
     // set font properties on canvas
-    self.canvas.context.font = self.element.css('font');
+    self.canvas.context.font = self.text_element.css('font');
     self.canvas.context.textAlign = self.text_style.textAlign || 'left';
     self.canvas.context.textBaseline = self.text_style.textBaseline || 'top';
     self.canvas.context.fillStyle = self.text_style.fillStyle;
@@ -1619,12 +1650,12 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     while(!lines || lines.length * self.text_style.lineHeight > max_height){
 
         self.text_style.fontSize = self.text_style.fontSize * 0.8;
-        self.element.css('font-size', self.text_style.fontSize);
+        self.text_element.css('font-size', self.text_style.fontSize);
 
         self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
-        self.element.css('line-height', self.text_style.lineHeight+ 'px');
+        self.text_element.css('line-height', self.text_style.lineHeight+ 'px');
 
-        self.canvas.context.font = self.element.css('font');
+        self.canvas.context.font = self.text_element.css('font');
 
         lines = word_wrap(self.text, max_width);
 

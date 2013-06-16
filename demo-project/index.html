@@ -151,15 +151,15 @@
             $('.other-color').val($('[name=x-text-color]:checked').val()).trigger('change');
         });
 
-        $('.go').click(function(event){
+        $('.fx-render-layer').live('click', function(event){
             event.preventDefault();
 
-            var overlay = $('.fx-text-active');
+            var text = $('.fx-text-active .fx-text-inner');
 
-            image.options.text[active_slug] = overlay.text();
+            image.options.text[active_slug] = text.text();
 
             var data = {
-                font: overlay.css('font'),
+                font: text.css('font'),
                 textAlign: $('[name=x-text-align]:checked').val(),
                 fillStyle: $('.other-color').val()
             };
@@ -262,9 +262,6 @@
 
                                     <input class="other-color x-change-font">
 
-                                </fieldset>
-                                <fieldset>
-                                    <button class="go">GO!</button>
                                 </fieldset>
                                 <fieldset>
                                     <button id="x-add-textfield">Add a textfield</button>
