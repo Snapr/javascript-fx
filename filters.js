@@ -1510,14 +1510,23 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         opacity: 0
     });
 
-    self.text_element  = $('<div class="fx-text-inner" data-layer="'+self.slug+'">')
+    self.text_element  = $('<textarea class="fx-text-inner" data-layer="'+self.slug+'">')
     .css({
-        height: self.position.bottom - self.position.top + "px",
         font: self.text_style.font,
         color: self.text_style.fillStyle,
-        'text-align': self.text_style.textAlign
+        'text-align': self.text_style.textAlign,
+
+        height: self.position.bottom - self.position.top + "px",
+        width: '100%',
+        background: 'none',
+        border: 'none',
+        outline: 'none',
+        display: 'block',
+        margin: 0,
+        padding: 0,
+        resize: 'none'
     })
-    .text(self.text)
+    .val(self.text)
     .click(function(){
         var wrapper = $(this).parent();
         var active = wrapper.hasClass('fx-text-active');
