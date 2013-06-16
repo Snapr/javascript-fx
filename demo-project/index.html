@@ -98,7 +98,7 @@
 
             $('.x-text-active-layer-name').text(data.name);
 
-            var font = $(this).css('font-family').split(', ')[0];
+            var font = $(this).find('textarea').css('font-family').split(', ')[0];
             var $font = $('.font');
             $font.val(font);
             // if the select hasn't change to the right font then we need to add it
