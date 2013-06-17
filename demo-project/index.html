@@ -179,6 +179,20 @@
 
         });
 
+        $('.fx-delete-layer').live('click', function(event){
+            $(document.body).addClass('x-processing');
+
+            $('.fx-text-active')
+                .removeClass('fx-text-active')
+                .css({opacity: 0, 'z-index': false});
+
+            image.remove_text(active_slug).done(function(){
+                image.deferred.done(function(){
+                    $(document.body).removeClass('x-processing');
+                });
+            });
+        });
+
     });
     </script>
 

@@ -1475,6 +1475,18 @@ SnaprFX.prototype.set_text_style = function(slug, data){  var self = this;
     return $.Deferred().resolve();
 };
 
+SnaprFX.prototype.remove_text = function(slug){  var self = this;
+
+    $.each(self.filter_specs[self.current_filter].layers, function(i, layer){
+        if(layer.type == 'text' && layer.slug == slug){
+            layer.removed = true;
+        }
+    });
+
+    self.apply_filter();
+    return $.Deferred().resolve();
+};
+
 /**
  * Text layer
  * @constructor
@@ -1647,8 +1659,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     // draw text
     // ---------
 
-    console.log('draw?', self.slug, fx.render_options.active_text);
-    if(self.slug !== fx.render_options.active_text){
+    if(self.slug !== fx.render_options.active_text && !layer.removed){
 
         for(var l=0; l < lines.length; l++){
             self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight, max_width);
