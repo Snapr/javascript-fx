@@ -159,6 +159,13 @@ SnaprFX.prototype.init = function(options){  var self = this;
 
         self.load_original(true).done(function(){
 
+            self.canvas = new SnaprFX.Canvas({
+                width: self.original.width,
+                height: self.original.height
+            });
+
+            self.canvas.context.drawImage(self.original.canvas, 0, 0);
+
             self.update_element();
 
             // timeout needed to ensure width/height
@@ -266,7 +273,7 @@ SnaprFX.prototype.load_original = function(stickers){  var self = this;
     var deferred = $.Deferred();
 
     // TODO: do we need to create a new canvas each time?
-    self.canvas = new SnaprFX.Canvas({
+    self.original = new SnaprFX.Canvas({
         url: self.options.url,
         size: self.options.size,
         aspect: self.options.aspect,
@@ -278,7 +285,7 @@ SnaprFX.prototype.load_original = function(stickers){  var self = this;
     // stop here if we aren't rendering the Stickers
     // defaults to true
     if(stickers === false){
-        self.canvas.deferred.done(function(){
+        self.original.deferred.done(function(){
             deferred.resolve();
         });
         return deferred;
@@ -300,7 +307,7 @@ SnaprFX.prototype.load_original = function(stickers){  var self = this;
     }
 
     // when canvas is ready, place stickers
-    self.canvas.deferred.done(function(){
+    self.original.deferred.done(function(){
 
         // resolve if there are no stickers
         if(!self.stickers.length){
@@ -309,7 +316,7 @@ SnaprFX.prototype.load_original = function(stickers){  var self = this;
 
         // place each sticker
         $.each(self.stickers, function(i){
-            self.stickers[i].render(self.canvas).done(check_stickers_resolved);
+            self.stickers[i].render(self.original).done(check_stickers_resolved);
         });
     });
     return deferred;
@@ -326,9 +333,9 @@ SnaprFX.prototype.update_element = function(){  var self = this;
 SnaprFX.prototype.revert = function(stickers){  var self = this;
     self.current_filter = null;
 
-    self.load_original(stickers).done(function(){
-        self.update_element();
-    });
+    self.canvas.context.drawImage(self.original.canvas, 0, 0);
+    self.update_element();
+
 };
 
 /**
@@ -351,7 +358,9 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
     self.deferred = $.Deferred();
 
     // remove text frames from prev filter
-    self.elements.text.empty();
+    if(options.filter != self.current_filter){
+        self.elements.text.empty();
+    }
 
     // if there is no filter revert to unfiltered
     if(!options.filter){
@@ -370,11 +379,21 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         var filter_spec = self.filter_specs[self.current_filter];
         filter_spec.layer_index = -1;  // so first time we call 'next' layer it's 0
 
-        // grab the pixels and apply the first filter when ready
-        self.load_original(options.stickers).done(function(){
-            self.pixels = self.canvas.get_data();
-            self.apply_next_layer();
-        });
+        if(self.render_options.region){
+            console.log('region', self.render_options.region);
+            var r = self.render_options.region;
+            self.canvas.context.drawImage(
+                self.original.canvas,
+                r.left, r.top, r.width, r.height,
+                r.left, r.top, r.width, r.height
+            );
+        }else{
+            self.canvas.context.drawImage(self.original.canvas, 0, 0);
+        }
+
+        self.pixels = self.canvas.get_data();
+        self.apply_next_layer();
+
 
         // update element when done
         self.deferred.done(function(){
@@ -429,6 +448,7 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
     // when the filter is ready (may need to load an image etc)
     filter.deferred.done(function(){
 
+
         // some filters (eg blur) need the whole canvas - they can't work px by px
         // we store the result and blend it in px by px using blender/mask image
         var whole_canvas_result;
@@ -445,20 +465,24 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
             whole_canvas_result = self.canvas.get_data();
         }
 
-        // if there's a mask we must adjust each of the new px opacity accordingly
-        if(layer.mask_image){
+        var mask_pixels;
 
-            // load mask image
-            var mask = new SnaprFX.Canvas({
-                url: self.options.fx_assets+filter_spec.slug+'/'+layer.mask_image, width:
-                self.canvas.width, height:
-                self.canvas.height
-            });
-            mask.deferred.done(function(){
+        // function that gets result pixels and blends into existing ones
+        function blend(){
 
-                var mask_pixels = mask.get_data();
+            var region = self.render_options.region || {
+                left: 0,
+                top: 0,
+                width: self.canvas.width,
+                height: self.canvas.height
+            };
+            var i;
 
-                for ( var i = 0; i < self.pixels.length; i += 4 ) {
+            console.log(region);
+            for ( var y = region.top; y < region.top+region.height; y += 1 ) {
+                for ( var x = region.left; x < region.left+region.width; x += 1 ) {
+
+                    i = (y * self.canvas.width + x) * 4;
 
                     var rgb;
                     if(filter.whole_canvas){
@@ -478,43 +502,10 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
                         opacity = 1;
                     }
                     // * opacity of this px from mask
-                    opacity = opacity * (mask_pixels[i]/255);
-                    // * opacity of this whole layer
-                    opacity = opacity * (layer.opacity/100);
-
-                    // blend this layer with underlying
-                    rgb = blender.process(
-                        [self.pixels[i], self.pixels[i+1], self.pixels[i+2]],
-                        [rgb[R], rgb[G], rgb[B]],
-                        opacity
-                    );
-                    self.pixels[i  ] = rgb[R];
-                    self.pixels[i+1] = rgb[G];
-                    self.pixels[i+2] = rgb[B];
-                }
-
-                console.timeEnd("applying " + filter_spec.layers[filter_spec.layer_index].type + " layer");
-                self.apply_next_layer();
-            });
-        }else{
-
-            // TODO: won't this fail to use the blend mode if it's a whole-canvas filter and there is no mask?
-            if(filter.whole_canvas){
-                // set px to result px one by one, setting self.pixels = whole_canvas_result fails ??!
-                for ( var px = 0; px < self.pixels.length; px++ ) {
-                    self.pixels[px] = whole_canvas_result[px];
-                }
-            }else{
-                for ( var i = 0; i < self.pixels.length; i += 4 ) {
-
-                    var rgb = filter.process(i, [self.pixels[i], self.pixels[i+1], self.pixels[i+2]]);
-
-                    var opacity = rgb[O];
-                    if(opacity >= 0){  // >=0 ensures a number, not undefined
-                        opacity = opacity / 255;
-                    }else{
-                        opacity = 1;
+                    if(layer.mask_image){
+                        opacity = opacity * (mask_pixels[i]/255);
                     }
+                    // * opacity of this whole layer
                     opacity = opacity * (layer.opacity/100);
 
                     // blend this layer with underlying
@@ -531,6 +522,23 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
 
             console.timeEnd("applying " + filter_spec.layers[filter_spec.layer_index].type + " layer");
             self.apply_next_layer();
+        }
+
+        // if there's a mask we must adjust each of the new px opacity accordingly
+        if(layer.mask_image){
+
+            // load mask image
+            var mask = new SnaprFX.Canvas({
+                url: self.options.fx_assets+filter_spec.slug+'/'+layer.mask_image, width:
+                self.canvas.width, height:
+                self.canvas.height
+            });
+            mask.deferred.done(function(){
+                mask_pixels = mask.get_data();
+                blend();
+            });
+        }else{
+            blend();
         }
     });
 };
@@ -862,7 +870,7 @@ SnaprFX.Canvas = function(options){  var self = this;
 SnaprFX.Canvas.prototype.get_data = function(){
     var image_data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
     // if you ever overwrite this it seems you can't write the px back to the canvas
-    this.data = this.data || image_data;
+    this.data = image_data;
     return image_data.data;
 };
 
@@ -1495,92 +1503,8 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     // overlay element
     // ---------------
     // to make text clickable
-
-    self.overlay = fx.elements.text;
-
-    var padding = 10;
-    self.element  = $('<div class="fx-text">')
-    .css({
-        padding: padding-1,
-        position: 'absolute',
-        left: self.position.left - padding + "px",
-        top: self.position.top - padding + "px",
-        width: self.position.right - self.position.left + "px",
-        height: self.position.bottom - self.position.top + "px",
-        opacity: 0
-    });
-
-    self.text_element  = $('<textarea class="fx-text-inner" data-layer="'+self.slug+'">')
-    .css({
-        font: self.text_style.font,
-        color: self.text_style.fillStyle,
-        'text-align': self.text_style.textAlign,
-
-        height: self.position.bottom - self.position.top + "px",
-        width: '100%',
-        background: 'none',
-        border: 'none',
-        outline: 'none',
-        display: 'block',
-        margin: 0,
-        padding: 0,
-        resize: 'none'
-    })
-    .val(self.text)
-    .click(function(){
-        var wrapper = $(this).parent();
-        var active = wrapper.hasClass('fx-text-active');
-        self.overlay.find('.fx-text-active')
-            .not(wrapper)
-            .removeClass('fx-text-active')
-            .css({opacity: 0, 'z-index': false})
-            .trigger('deactivate', layer)
-            .attr('contenteditable', false);
-        if(!active){
-            wrapper
-                .addClass('fx-text-active')
-                .css({opacity: 1, 'z-index': 1})
-                .trigger('activate', layer)
-                .attr('contenteditable', true);
-
-            //render without this text
-            fx.apply_filter({active_text: self.slug});
-        }
-    });
-    self.element.append(self.text_element);
-
-    self.element.append(
-        $('<a class="fx-delete-layer">✗</a>')
-            .css({
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                color: '#000',
-                'font-size': '16px',
-                'line-height': '16px'
-            }).click(function(){self.element.hide();})
-    );
-    self.element.append(
-        $('<a class="fx-render-layer">✔</a>')
-            .css({
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                color: '#000',
-                'font-size': '16px',
-                'line-height': '16px'
-            })
-    );
-
-    if(self.slug == fx.render_options.active_text){
-        self.element
-            .addClass('fx-text-active')
-            .css({opacity: 1, 'z-index': 1})
-            .trigger('activate', layer)
-            .attr('contenteditable', true);
-    }
-
-    self.overlay.append(self.element);
+    // if a partial render, don't
+    self.create_overlay(layer, fx);
 
 
     // font setup
@@ -1616,7 +1540,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     // -----
     // draws bounding box
 
-    // canvas.context.strokeRect(
+    // self.canvas.context.strokeRect(
     //     self.position.left,
     //     self.position.top,
     //     self.position.right - self.position.left,
@@ -1656,7 +1580,8 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     }
 
     var lines = word_wrap(self.text, max_width);
-    while(!lines || lines.length * self.text_style.lineHeight > max_height){
+    while(!lines || (lines.length - 1) * self.text_style.lineHeight + self.text_style.fontSize > max_height){
+
 
         self.text_style.fontSize = self.text_style.fontSize * 0.8;
         self.text_element.css('font-size', self.text_style.fontSize);
@@ -1715,7 +1640,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     // update overlay with new y value
     self.element.css({
-        'padding-top': padding-1 + y-self.position.top + padding_offset + 'px',
+        'padding-top': 9 + y-self.position.top + padding_offset + 'px',
         'height': self.position.bottom - y - padding_offset + "px"
     });
 
@@ -1743,6 +1668,95 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     self.pixels = self.canvas.get_data();
     self.deferred.resolve();
 
+};
+
+SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self = this;
+
+    self.overlay = fx.elements.text;
+
+    self.element  = $('<div class="fx-text">')
+    .css({
+        padding: 9,
+        position: 'absolute',
+        left: self.position.left - 10 + "px",
+        top: self.position.top - 10 + "px",
+        width: self.position.right - self.position.left + "px",
+        height: self.position.bottom - self.position.top + "px",
+        opacity: 0
+    });
+
+    self.text_element  = $('<textarea class="fx-text-inner" data-layer="'+self.slug+'">')
+    .css({
+        font: self.text_style.font,
+        color: self.text_style.fillStyle,
+        'text-align': self.text_style.textAlign,
+
+        height: self.position.bottom - self.position.top + "px",
+        width: '100%',
+        background: 'none',
+        border: 'none',
+        outline: 'none',
+        display: 'block',
+        margin: 0,
+        padding: 0,
+        resize: 'none'
+    })
+    .val(self.text)
+    .click(function(){
+        var wrapper = $(this).parent();
+        if(self.overlay.find('.fx-text-active').length){
+            return;
+        }
+        var active = wrapper.hasClass('fx-text-active');
+        self.overlay.find('.fx-text-active')
+            .not(wrapper)
+            .removeClass('fx-text-active')
+            .css({opacity: 0, 'z-index': false})
+            .trigger('deactivate', layer);
+        if(!active){
+            wrapper
+                .addClass('fx-text-active')
+                .css({opacity: 1, 'z-index': 1})
+                .trigger('activate', layer);
+
+            //render without this text
+            fx.apply_filter({
+                active_text: self.slug,
+                region: {
+                    left: Math.floor(self.position.left),
+                    top: Math.floor(self.position.top),
+                    width: Math.ceil(self.position.right - self.position.left),
+                    height: Math.ceil(self.position.bottom - self.position.top)
+                }
+            });
+        }
+    });
+    self.element.append(self.text_element);
+
+    self.element.append(
+        $('<a class="fx-delete-layer">✗</a>')
+            .css({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                color: '#000',
+                'font-size': '16px',
+                'line-height': '16px'
+            }).click(function(){self.element.hide();})
+    );
+    self.element.append(
+        $('<a class="fx-render-layer">✔</a>')
+            .css({
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                color: '#000',
+                'font-size': '16px',
+                'line-height': '16px'
+            })
+    );
+
+    self.overlay.append(self.element);
 };
 SnaprFX.filters.text.prototype.process = function(i, rgb){  var self = this;
     return [self.pixels[i], self.pixels[i+1], self.pixels[i+2], self.pixels[i+3]];

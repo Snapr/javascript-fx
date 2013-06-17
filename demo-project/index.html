@@ -25,7 +25,7 @@
                 url: src,
                 element: img,
                 width: 400,
-                height: (40 / 56) * 750,
+                height: Math.floor((40 / 56) * 750),
                 fx: pack,
                 fx_assets: '../filter-packs/'+pack+'/filters/',
                 text: {
@@ -118,7 +118,12 @@
 
         });
         $('.fx-text').live('deactivate', function(e, data){
-            console.log('de');
+            $(document.body).addClass('x-processing');
+            image.set_text_style(active_slug, {}).done(function(){
+                image.deferred.done(function(){
+                    $(document.body).removeClass('x-processing');
+                });
+            });
 
             active_slug = null;
             $('.x-text-active-layer-name').text('No layer selected');
@@ -167,6 +172,9 @@
             $(document.body).addClass('x-processing');
             image.set_text_style(active_slug, data).done(function(){
                 image.deferred.done(function(){
+                    $('.fx-text-active')
+                        .removeClass('fx-text-active')
+                        .css({opacity: 0, 'z-index': false});
                     $(document.body).removeClass('x-processing');
                 });
             });
