@@ -105,6 +105,9 @@
                 $font.val(font);
             }
 
+            $('#x-text-bold').attr('checked', $(this).find('textarea').css('font-weight') == 'bold');
+            $('#x-text-italic').attr('checked', $(this).find('textarea').css('font-style') == 'italic');
+
             $('.font-size').val(Math.round(data.text.style.fontSize));
             $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
 
@@ -145,6 +148,8 @@
             overlay.css({
                 'font-family': $('.font').val(),
                 'font-size': $('.font-size').val()+'px',
+                'font-weight': $('#x-text-bold').attr('checked') ? 'bold' : 'normal',
+                'font-style': $('#x-text-italic').attr('checked') ? 'italic' : 'normal',
                 'color': $('.other-color').val(),
                 'text-align': $('[name=x-text-align]:checked').val()
             });
@@ -259,7 +264,7 @@
                                         <input type="checkbox" id="x-text-italic" value="italic" name="x-text-italic" class="x-change-font"/>
                                         <label for="x-text-italic">Italic</label>
                                     </fieldset>
-                                
+
                                 <fieldset>
 
                                     <label>Align:</label>
