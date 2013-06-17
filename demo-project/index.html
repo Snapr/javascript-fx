@@ -96,7 +96,7 @@
 
             $('.x-text-active-layer-name').text(data.name);
 
-            var font = $(this).find('textarea').css('font-family').split(', ')[0];
+            var font = $(this).find('.fx-text-inner').css('font-family').split(', ')[0];
             var $font = $('.font');
             $font.val(font);
             // if the select hasn't change to the right font then we need to add it
@@ -105,8 +105,8 @@
                 $font.val(font);
             }
 
-            $('#x-text-bold').attr('checked', $(this).find('textarea').css('font-weight') == 'bold');
-            $('#x-text-italic').attr('checked', $(this).find('textarea').css('font-style') == 'italic');
+            $('#x-text-bold').attr('checked', $(this).find('.fx-text-inner').css('font-weight') == 'bold');
+            $('#x-text-italic').attr('checked', $(this).find('.fx-text-inner').css('font-style') == 'italic');
 
             $('.font-size').val(Math.round(data.text.style.fontSize));
             $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
@@ -143,7 +143,7 @@
 
 
         $('.x-change-font').on('change', function(){
-            var overlay = $('.fx-text-active textarea');
+            var overlay = $('.fx-text-active .fx-text-inner');
 
             overlay.css({
                 'font-family': $('.font').val(),
@@ -164,7 +164,12 @@
 
             var text = $('.fx-text-active .fx-text-inner');
 
-            image.options.text[active_slug] = text.val();
+            image.options.text[active_slug] = text.html()
+                .replace(/<br\/?>/g, '\n')  // <br> to newline
+                .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
+                .replace(/<.*?>/g, '');  // strip html tags
+
+            text.html(image.options.text[active_slug].replace(/\n/g, '<br>'));
 
             var data = {
                 font: text.css('font'),

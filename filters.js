@@ -1696,23 +1696,18 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         opacity: 0
     });
 
-    self.text_element  = $('<textarea class="fx-text-inner" data-layer="'+self.slug+'">')
+    self.text_element  = $('<div class="fx-text-inner" data-layer="'+self.slug+'">')
     .css({
         font: self.text_style.font,
         color: self.text_style.fillStyle,
         'text-align': self.text_style.textAlign,
-
-        height: self.position.bottom - self.position.top + "px",
-        width: '100%',
-        background: 'none',
-        border: 'none',
+        border: '1px solid #900',
         outline: 'none',
-        display: 'block',
+        display: 'inline-block',
         margin: 0,
-        padding: 0,
-        resize: 'none'
+        padding: 0
     })
-    .val(self.text)
+    .text(self.text)
     .click(function(){
         var wrapper = $(this).parent();
         if(self.overlay.find('.fx-text-active').length){
@@ -1723,12 +1718,16 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             .not(wrapper)
             .removeClass('fx-text-active')
             .css({opacity: 0, 'z-index': false})
-            .trigger('deactivate', layer);
+            .trigger('deactivate', layer)
+            .find('.fx-text-inner')
+                .attr('contenteditable', false);
         if(!active){
             wrapper
                 .addClass('fx-text-active')
                 .css({opacity: 1, 'z-index': 1})
-                .trigger('activate', layer);
+                .trigger('activate', layer)
+                .find('.fx-text-inner')
+                    .attr('contenteditable', true);
 
             //render without this text
             fx.apply_filter({
