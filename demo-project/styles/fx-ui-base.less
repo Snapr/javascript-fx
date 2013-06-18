@@ -17,7 +17,7 @@ ul{
     padding: 0;
     li{
         list-style: none;
-        margin: 1em 0 2em;
+        margin: 1em 0;
     }
 }
 
@@ -48,12 +48,14 @@ fieldset{
     }
     .x-settings{
         .x-source,
-        .x-effects{
+        .x-effects,
+        .x-stickers{
+            white-space: nowrap;
+            overflow-x: scroll;
+            padding-bottom: 20px;
             a{
                 text-align: center;
                 display: inline-block;
-            }
-            a{
                 img{
                     display: block;
                     margin: 0 .25em 0 0;
@@ -62,10 +64,22 @@ fieldset{
                         border: solid #ffff00 1px;
                     }
                 }
+                &:hover,
                 &.x-current-filter{
                     img{
                         border: solid #ffff00 1px;
                     }
+                }
+            }
+        }
+        .x-stickers{
+            a{
+                width: 60px;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                img{
+                    width: 56px;
+                    height: 56px;
                 }
             }
         }
@@ -80,6 +94,35 @@ fieldset{
 }
 
 
+// Layer Controls
+.fx-delete-layer,
+.fx-render-layer{
+    background-color: yellow;
+    padding: 4px;
+    display: block;
+    min-width: 12px;
+    min-height: 12px;
+    border-radius: 20px;
+    border: white solid 2px;
+    font-size: 12px;
+    line-height: 12px;
+    text-align: center;
+    color: white;
+    margin: -12px;
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+    
+}
+.fx-delete-layer{
+    background-color: black;
+    color: white;
+}
+.fx-text-inner{
+    border:solid rgba(240,240,240,.8) 2px!important;
+    border-radius: 4px;
+    box-sizing: border-box;
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
+
 
 
 .x-activity-indicator{
@@ -89,11 +132,6 @@ fieldset{
 .x-processing{
     .x-preview-image-area{
         position: relative;
-        .x-preview-image{
-            opacity: .6;
-
-        }
-
         .x-activity-indicator{
             display: block;
             position: absolute;

@@ -1767,9 +1767,6 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                color: '#000',
-                'font-size': '16px',
-                'line-height': '16px'
             }).click(function(){self.element.hide();})
     );
     self.element.append(
@@ -1777,10 +1774,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             .css({
                 position: 'absolute',
                 bottom: 0,
-                right: 0,
-                color: '#000',
-                'font-size': '16px',
-                'line-height': '16px'
+                right: 0
             })
     );
 

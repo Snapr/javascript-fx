@@ -85,7 +85,7 @@
             });
         });
 
-        $('.kitten').click(function(){
+        $('.x-source-image img').click(function(){
             $(document.body).addClass('x-processing');
             src = $(this).attr('src');
             image.set_url(src).done(function(){
@@ -237,21 +237,15 @@
                 <li>
                     <h2>Source:</h2>
                     <div class="x-source">
-                        <img class="kitten" src="images/a.jpg" style="width:56px;height:75px">
-                        <img class="kitten" src="images/b.jpg" style="width:56px;height:75px">
-                        <img class="kitten" src="images/c.jpg" style="width:56px;height:75px">
+                        <a class="x-source-image"><img class="kitten" src="images/a.jpg" style="width:56px;height:75px"></a>
+                         <a class="x-source-image"><img class="kitten" src="images/b.jpg" style="width:56px;height:75px"></a>
+                         <a class="x-source-image"><img class="kitten" src="images/c.jpg" style="width:56px;height:75px"></a>
                     </div>
                 </li>
 
                 <li>
                     <h2>Effects:</h2>
                     <div class="x-effects">
-                    </div>
-                </li>
-
-                <li>
-                    <h2>Stickers:</h2>
-                    <div class="x-stickers">
                     </div>
                 </li>
 
@@ -323,6 +317,12 @@
 
                         </div>
                     </li>
+
+                     <li>
+                            <h2>Stickers:</h2>
+                            <div class="x-stickers">
+                            </div>
+                        </li>
 
                     <li>
                         <h2>Render:</h2>

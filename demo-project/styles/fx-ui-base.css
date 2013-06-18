@@ -19,7 +19,7 @@ ul {
 }
 ul li {
   list-style: none;
-  margin: 1em 0 2em;
+  margin: 1em 0;
 }
 fieldset {
   border: solid #000 1px ;
@@ -43,24 +43,47 @@ fieldset {
 .x-demo-area .x-preview .x-preview-image {
   width: 400px;
 }
+.x-demo-area .x-settings .x-source,
+.x-demo-area .x-settings .x-effects,
+.x-demo-area .x-settings .x-stickers {
+  white-space: nowrap;
+  overflow-x: scroll;
+  padding-bottom: 20px;
+}
 .x-demo-area .x-settings .x-source a,
-.x-demo-area .x-settings .x-effects a {
+.x-demo-area .x-settings .x-effects a,
+.x-demo-area .x-settings .x-stickers a {
   text-align: center;
   display: inline-block;
 }
 .x-demo-area .x-settings .x-source a img,
-.x-demo-area .x-settings .x-effects a img {
+.x-demo-area .x-settings .x-effects a img,
+.x-demo-area .x-settings .x-stickers a img {
   display: block;
   margin: 0 .25em 0 0;
   border: solid #000 1px;
 }
 .x-demo-area .x-settings .x-source a img.x-current-image,
-.x-demo-area .x-settings .x-effects a img.x-current-image {
+.x-demo-area .x-settings .x-effects a img.x-current-image,
+.x-demo-area .x-settings .x-stickers a img.x-current-image {
   border: solid #ffff00 1px;
 }
+.x-demo-area .x-settings .x-source a:hover img,
+.x-demo-area .x-settings .x-effects a:hover img,
+.x-demo-area .x-settings .x-stickers a:hover img,
 .x-demo-area .x-settings .x-source a.x-current-filter img,
-.x-demo-area .x-settings .x-effects a.x-current-filter img {
+.x-demo-area .x-settings .x-effects a.x-current-filter img,
+.x-demo-area .x-settings .x-stickers a.x-current-filter img {
   border: solid #ffff00 1px;
+}
+.x-demo-area .x-settings .x-stickers a {
+  width: 60px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.x-demo-area .x-settings .x-stickers a img {
+  width: 56px;
+  height: 56px;
 }
 .x-demo-area .x-settings .font-size {
   width: 3em;
@@ -68,14 +91,37 @@ fieldset {
 .x-demo-area .x-output {
   width: 560px;
 }
+.fx-delete-layer,
+.fx-render-layer {
+  background-color: yellow;
+  padding: 4px;
+  display: block;
+  min-width: 12px;
+  min-height: 12px;
+  border-radius: 20px;
+  border: white solid 2px;
+  font-size: 12px;
+  line-height: 12px;
+  text-align: center;
+  color: white;
+  margin: -12px;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
+.fx-delete-layer {
+  background-color: black;
+  color: white;
+}
+.fx-text-inner {
+  border: solid rgba(240, 240, 240, 0.8) 2px !important;
+  border-radius: 4px;
+  box-sizing: border-box;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
 .x-activity-indicator {
   display: none;
 }
 .x-processing .x-preview-image-area {
   position: relative;
-}
-.x-processing .x-preview-image-area .x-preview-image {
-  opacity: .6;
 }
 .x-processing .x-preview-image-area .x-activity-indicator {
   display: block;
