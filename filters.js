@@ -199,14 +199,6 @@ SnaprFX.prototype.init = function(options){  var self = this;
         }
     });
 
-
-    var css = ".fx-text-active{";
-            css += "border: 1px solid #933;";
-            css += "outline: 1px solid #f99;";
-        css += "}";
-
-    $('<style>'+css+'</style>').appendTo(document.head);
-
     self.filter_specs = {};
     self.stickers = [];
 };
@@ -1732,14 +1724,14 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         self.overlay.find('.fx-text-active')
             .not(wrapper)
             .removeClass('fx-text-active')
-            .css({opacity: 0, 'z-index': false})
+            .css({opacity: 0, 'z-index': false, border: 'none'})
             .trigger('deactivate', layer)
             .find('.fx-text-inner')
                 .attr('contenteditable', false);
         if(!active){
             wrapper
                 .addClass('fx-text-active')
-                .css({opacity: 1, 'z-index': 1})
+                .css({opacity: 1, 'z-index': 1, border: '1px dashed #999'})
                 .trigger('activate', layer)
                 .find('.fx-text-inner')
                     .attr('contenteditable', true);
