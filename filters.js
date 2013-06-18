@@ -177,7 +177,21 @@ SnaprFX.prototype.init = function(options){  var self = this;
         });
     });
 
-    self.load_fonts();
+    self.load_filter_pack = $.Deferred();
+    $.ajax({
+        url: self.options.filter_pack + '/filter-pack.json',
+        success: function(pack){
+            self.filter_pack = pack;
+            self.filter_pack.base_path = self.options.filter_pack;
+            self.load_filter_pack.resolve(self.filter_pack);
+
+            self.load_fonts();
+        }
+    });
+    self.load_sticker_pack = $.ajax({
+        url: self.options.sticker_pack + '/sticker-pack.json'
+    });
+
 
     var css = ".fx-text-active{";
             css += "border: 1px solid #933;";
@@ -189,7 +203,6 @@ SnaprFX.prototype.init = function(options){  var self = this;
     self.filter_specs = {};
     self.stickers = [];
 };
-
 
 /**
  * Change the base image
@@ -223,46 +236,41 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
  */
 SnaprFX.prototype.load_fonts = function(){  var self = this;
 
-    // get list of filters
-    $.ajax({
-        url: self.options.fx_assets + '../filter-pack.json',
-        success: function(pack){
-            $.each(pack.filter_pack.filters, function(i, filter){
+    $.each(self.filter_pack.filter_pack.filters, function(i, filter){
 
-                // get filter details
-                $.ajax({
-                    url: self.options.fx_assets + filter.slug + '/filter.json',
-                    success: function(data){
+        var filter_path = self.filter_pack.base_path + 'filters/' + filter.slug + '/';
+        // get filter details
+        $.ajax({
+            url: filter_path + 'filter.json',
+            success: function(data){
 
-                        // cache
-                        self.filter_specs[filter.slug] = data.filter;
+                // cache
+                self.filter_specs[filter.slug] = data.filter;
 
-                        if(data.filter.fonts){
-                            $.each(data.filter.fonts, function(i, font){
+                if(data.filter.fonts){
+                    $.each(data.filter.fonts, function(i, font){
 
-                                var css = "@font-face {";
-                                css += "font-family: '"+font['font-family']+"';";
-                                if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
-                                if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
-                                if(font.eot){ css += "src: url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.eot+"');"; }
-                                css += "src:";
-                                if(font.eot){ css += "url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
-                                if(font.woff){ css += "url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.woff+"') format('woff'),"; }
-                                if(font.ttf){ css += "url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.ttf+"') format('truetype'),"; }
-                                if(font.svg){ css += "url('"+self.options.fx_assets + filter.slug + '/fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
-                                css += "}";
+                        var css = "@font-face {";
+                        css += "font-family: '"+font['font-family']+"';";
+                        if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
+                        if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
+                        if(font.eot){ css += "src: url('"+filter_path + 'fonts/'+font.eot+"');"; }
+                        css += "src:";
+                        if(font.eot){ css += "url('"+filter_path + 'fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
+                        if(font.woff){ css += "url('"+filter_path + 'fonts/'+font.woff+"') format('woff'),"; }
+                        if(font.ttf){ css += "url('"+filter_path + 'fonts/'+font.ttf+"') format('truetype'),"; }
+                        if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
+                        css += "}";
 
-                                $('<style>'+css+'</style>').appendTo(document.head);
+                        $('<style>'+css+'</style>').appendTo(document.head);
 
-                                // use font on page so it's preloaded
-                                $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
+                        // use font on page so it's preloaded
+                        $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
 
-                            });
-                        }
-                    }
-                });
-            });
-        }
+                    });
+                }
+            }
+        });
     });
 };
 
@@ -406,7 +414,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         apply();
     }else{
         $.ajax({
-            url: self.options.fx_assets + options.filter + '/filter.json',
+            url: self.filter_pack.base_path + options.filter + '/filter.json',
             success: function(data){
                 console.log('loaded', options.filter);
                 self.filter_specs[options.filter] = data.filter;
@@ -529,7 +537,7 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
 
             // load mask image
             var mask = new SnaprFX.Canvas({
-                url: self.options.fx_assets+filter_spec.slug+'/'+layer.mask_image, width:
+                url: self.filter_pack.base_path+filter_spec.slug+'/'+layer.mask_image, width:
                 self.canvas.width, height:
                 self.canvas.height
             });
@@ -1444,7 +1452,7 @@ SnaprFX.filters.image = function(layer, fx){
     this.url = layer.image.image;
     this.width = fx.canvas.width;
     this.height = fx.canvas.height;
-    this.canvas = new SnaprFX.Canvas({url: fx.options.fx_assets+fx.current_filter+'/'+this.url, width: this.width, height: this.height});
+    this.canvas = new SnaprFX.Canvas({url: fx.filter_pack.base_path + 'filters/' + fx.current_filter+'/'+this.url, width: this.width, height: this.height});
     this.deferred = $.Deferred();
     var image_filter = this;
     this.canvas.deferred.done(function(){

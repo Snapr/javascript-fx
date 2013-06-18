@@ -14,53 +14,52 @@
     <script>
 
 
-    var pack = 'booktrack-demo';
+    var filter_pack = '../filter-packs/booktrack-demo/',
+        sticker_pack = '../sticker-packs/tuxedo-kittie/';
 
 
     $(function(){
         var img = $('.x-preview-image'),
             orig = img.clone().hide().appendTo(document.body);
             src = orig.attr('src'),
+
             image = new SnaprFX({
                 url: src,
                 element: img,
                 width: 400,
                 height: Math.floor((40 / 56) * 750),
-                fx: pack,
-                fx_assets: '../filter-packs/'+pack+'/filters/',
+                filter_pack: filter_pack,
+                sticker_pack: sticker_pack,
                 text: {
                 }
             });
 
-        $.ajax({
-            url: '../filter-packs/'+pack+'/filter-pack.json',
-            success: function(pack){
+        image.load_filter_pack.done(function(pack){
+            $('.x-effects').append(
+                $('<a> <img src="'+pack.base_path+'original-thumb@2x.png">Original </a>')
+                .click(function(){
+                    $('.x-current-filter').removeClass('x-current-filter');
+                    $(this).addClass('x-current-filter');
+                    image.revert();
+                })
+            );
+            $.each(pack.filter_pack.filters, function(i, filter){
                 $('.x-effects').append(
-                    $('<a> <img src="../filter-packs/'+pack.filter_pack.slug+'/original-thumb@2x.png">Original </a>')
+                    $('<a> <img src="'+pack.base_path+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
                     .click(function(){
+                        if(image.current_filter == filter.slug){
+                            return;
+                        }
+                        $(document.body).addClass('x-processing');
+                        image.apply_filter({filter: filter.slug});
                         $('.x-current-filter').removeClass('x-current-filter');
                         $(this).addClass('x-current-filter');
-                        image.revert();
+                        image.deferred.done(function(){
+                            $(document.body).removeClass('x-processing');
+                        });
                     })
                 );
-                $.each(pack.filter_pack.filters, function(i, filter){
-                    $('.x-effects').append(
-                        $('<a> <img src="../filter-packs/'+pack.filter_pack.slug+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
-                        .click(function(){
-                            if(image.current_filter == filter.slug){
-                                return;
-                            }
-                            $(document.body).addClass('x-processing');
-                            image.apply_filter({filter: filter.slug});
-                            $('.x-current-filter').removeClass('x-current-filter');
-                            $(this).addClass('x-current-filter');
-                            image.deferred.done(function(){
-                                $(document.body).removeClass('x-processing');
-                            });
-                        })
-                    );
-                });
-            }
+            });
         });
 
         $('.x-render-full').click(function(){
@@ -68,9 +67,7 @@
                 url: src,
                 element: $('.x-output-area img'),
                 width: 560,
-                height: 750,
-                fx: pack,
-                fx_assets: '../filter-packs/'+pack+'/filters/'
+                height: 750
             });
             output.deferred.done(function(){
                 output.apply_filter({filter: image.current_filter});
