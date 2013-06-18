@@ -15,7 +15,7 @@
 
 
     var filter_pack = '../filter-packs/booktrack-demo/',
-        sticker_pack = '../sticker-packs/tuxedo-kittie/';
+        sticker_pack = '../sticker-packs/tk-classic/';
 
 
     $(function(){
@@ -45,7 +45,7 @@
             );
             $.each(pack.filter_pack.filters, function(i, filter){
                 $('.x-effects').append(
-                    $('<a> <img src="'+pack.base_path+'/filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
+                    $('<a> <img src="'+pack.base_path+'filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
                     .click(function(){
                         if(image.current_filter == filter.slug){
                             return;
@@ -57,6 +57,17 @@
                         image.deferred.done(function(){
                             $(document.body).removeClass('x-processing');
                         });
+                    })
+                );
+            });
+        });
+
+        image.load_sticker_pack.done(function(pack){
+            $.each(pack.sticker_pack.stickers, function(i, sticker){
+                $('.x-stickers').append(
+                    $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'@2x.png">'+sticker.name+' </a>')
+                    .click(function(){
+                        image.add_sticker(sticker.slug);
                     })
                 );
             });
@@ -235,6 +246,12 @@
                 <li>
                     <h2>Effects:</h2>
                     <div class="x-effects">
+                    </div>
+                </li>
+
+                <li>
+                    <h2>Stickers:</h2>
+                    <div class="x-stickers">
                     </div>
                 </li>
 

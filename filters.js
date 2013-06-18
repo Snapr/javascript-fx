@@ -25,6 +25,7 @@
 // put the px back on the canvas
 // update img element
 
+var debug_logging = false;
 
 // used to address vaues in pixel arrays in a more human-readible way. pixel[R] == red value
 var R=0,G=1,B=2,O=3;
@@ -179,7 +180,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
 
     self.load_filter_pack = $.Deferred();
     $.ajax({
-        url: self.options.filter_pack + '/filter-pack.json',
+        url: self.options.filter_pack + 'filter-pack.json',
         success: function(pack){
             self.filter_pack = pack;
             self.filter_pack.base_path = self.options.filter_pack;
@@ -188,8 +189,14 @@ SnaprFX.prototype.init = function(options){  var self = this;
             self.load_fonts();
         }
     });
-    self.load_sticker_pack = $.ajax({
-        url: self.options.sticker_pack + '/sticker-pack.json'
+    self.load_sticker_pack = $.Deferred();
+    $.ajax({
+        url: self.options.sticker_pack + 'sticker-pack.json',
+        success: function(pack){
+            self.sticker_pack = pack;
+            self.sticker_pack.base_path = self.options.sticker_pack;
+            self.load_sticker_pack.resolve(self.sticker_pack);
+        }
     });
 
 
@@ -377,7 +384,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         return;
     }
 
-    console.group(options.filter);
+    if(debug_logging){ console.group(options.filter); }
 
     self.current_filter = options.filter;
 
@@ -388,7 +395,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         filter_spec.layer_index = -1;  // so first time we call 'next' layer it's 0
 
         if(self.render_options.region){
-            console.log('region', self.render_options.region);
+            if(debug_logging){ console.log('region', self.render_options.region); }
             var r = self.render_options.region;
             self.canvas.context.drawImage(
                 self.original.canvas,
@@ -416,7 +423,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         $.ajax({
             url: self.filter_pack.base_path + options.filter + '/filter.json',
             success: function(data){
-                console.log('loaded', options.filter);
+                if(debug_logging){ console.log('loaded', options.filter); }
                 self.filter_specs[options.filter] = data.filter;
                 apply();
             }
@@ -442,9 +449,9 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
         return;
     }
 
-    console.time("applying " + filter_spec.layers[filter_spec.layer_index].type + " layer");
+    if(debug_logging){ console.time("applying " + filter_spec.layers[filter_spec.layer_index].type + " layer"); }
 
-    console.log("applying", filter_spec.layers[filter_spec.layer_index].type, "layer");
+    if(debug_logging){ console.log("applying", filter_spec.layers[filter_spec.layer_index].type, "layer"); }
 
         // this layers spec
     var layer = filter_spec.layers[filter_spec.layer_index],
@@ -486,7 +493,7 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
             };
             var i;
 
-            console.log(region);
+            if(debug_logging){ console.log(region); }
             for ( var y = region.top; y < region.top+region.height; y += 1 ) {
                 for ( var x = region.left; x < region.left+region.width; x += 1 ) {
 
@@ -528,7 +535,7 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
                 }
             }
 
-            console.timeEnd("applying " + filter_spec.layers[filter_spec.layer_index].type + " layer");
+            if(debug_logging){ console.timeEnd("applying " + filter_spec.layers[filter_spec.layer_index].type + " layer"); }
             self.apply_next_layer();
         }
 
@@ -556,15 +563,15 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
 SnaprFX.prototype.finish = function(){  var self = this;
     // put px back in canvas
 
-    console.time('writing data back');
+    if(debug_logging){ console.time('writing data back'); }
 
     self.canvas.put_data(self.pixels);
     self.update_element();
     self.deferred.resolve();
 
-    console.timeEnd('writing data back');
+    if(debug_logging){ console.timeEnd('writing data back'); }
 
-    console.groupEnd(self.current_filter);
+    if(debug_logging){ console.groupEnd(self.current_filter); }
 };
 
 // removes stickers from render and displays their html overaly elements
@@ -643,7 +650,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
         html += '<a class="fx-render-sticker fx-sticker-handle" data-role="button" data-icon="tick" data-iconpos="notext" data-theme="e">y</a>';
         html += '<a class="fx-scale-sticker fx-sticker-handle" data-role="button" data-icon="rotate" data-iconpos="notext" data-theme="e">r</a>';
 
-        html += '<img class="fx-sticker-image" src="'+self.parent.options.sticker_assets+slug+'.png">';
+        html += '<img class="fx-sticker-image" src="'+self.parent.sticker_pack.base_path+'assets/'+slug+'.png">';
     html += '</div>';
 
     self.el = $(html).css({
@@ -797,7 +804,7 @@ SnaprFX.Canvas = function(options){  var self = this;
         return;
     }
 
-    console.time('get image');
+    if(debug_logging){ console.time('get image'); }
 
     // correct orientation
     var rotation;
@@ -871,7 +878,7 @@ SnaprFX.Canvas = function(options){  var self = this;
         // notify that it's ready
         self.deferred.resolve();
 
-        console.timeEnd('get image');
+        if(debug_logging){ console.timeEnd('get image'); }
     };
 };
 
@@ -902,7 +909,7 @@ SnaprFX.Canvas.prototype.get_data_url = function() {
  * @constructor
  */
 SnaprFX.Blender = function(mode){
-    console.log(' - Blend:', mode);
+    if(debug_logging){ console.log(' - Blend:', mode); }
 
     this.mode = this.blend_modes[mode];
 
@@ -1130,7 +1137,7 @@ SnaprFX.filters = {};
  */
 SnaprFX.filters.adjustment = function(layer){
     // adjustment layer is just a wrapper for real adjustment type
-    console.log(" - Adjustment:", layer.adjustment.type);
+    if(debug_logging){ console.log(" - Adjustment:", layer.adjustment.type); }
 
     this.filter = new SnaprFX.filters[layer.adjustment.type](layer);
     this.whole_canvas = this.filter.whole_canvas;
