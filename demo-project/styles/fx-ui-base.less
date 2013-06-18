@@ -94,9 +94,10 @@ fieldset{
 }
 
 
-// Layer Controls
+// Layer Corner Buttons
 .fx-delete-layer,
-.fx-render-layer{
+.fx-render-layer,
+.fx-sticker-handle{
     background-color: yellow;
     padding: 4px;
     display: block;
@@ -110,17 +111,39 @@ fieldset{
     color: white;
     margin: -12px;
     box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
-    
+    cursor: pointer;
+    position: absolute;
 }
 .fx-delete-layer{
     background-color: black;
     color: white;
 }
+
+// Layer borders
+.fx-sticker,
 .fx-text-inner{
+    padding: .5em;
     border:solid rgba(240,240,240,.8) 2px!important;
     border-radius: 4px;
     box-sizing: border-box;
     box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
+
+.fx-sticker{
+    .fx-remove-sticker{
+        top: 0;
+        left: 0;
+        background: black;
+        color: white;
+    }
+    .fx-render-sticker{
+        top: 0;
+        right: 0;
+    }
+    .fx-scale-sticker{
+        bottom: 0;
+        right: 0;
+    }
 }
 
 
