@@ -201,6 +201,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
 
     self.filter_specs = {};
     self.stickers = [];
+    self.text = [];
 };
 
 /**
@@ -307,14 +308,13 @@ SnaprFX.prototype.load_original = function(stickers){  var self = this;
 };
 
 // sets the html element's src to our canvas data
-// TODO: canvas itself on page?
 SnaprFX.prototype.update_element = function(){  var self = this;
     self.options.element.attr('src', self.canvas.get_data_url());
 };
 
-// remove all filters. Also removes stickers if 'stickers' === false
+// remove all filters
 /** @expose */
-SnaprFX.prototype.revert = function(stickers){  var self = this;
+SnaprFX.prototype.revert = function(){  var self = this;
     self.current_filter = null;
 
     self.canvas.context.drawImage(self.original.canvas, 0, 0);
@@ -332,9 +332,8 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     // defaults
     options = $.extend({
-        // not specifying filter will re-render current one (pops in any stickers)
         filter: self.current_filter,
-        stickers: true
+        editable: false
     }, options);
 
     self.render_options = options;
@@ -346,7 +345,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         self.elements.overlay.empty();
     }
 
-    if(debug_logging){ console.group(options.filter); console.trace(); }
+    if(debug_logging){ console.group(options.filter); }
 
     self.current_filter = options.filter;
 
@@ -380,7 +379,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             });
         };
 
-        if(options.stickers){
+        if(!options.editable){
             self.render_stickers().done(filter);
         }else{
             filter();
@@ -547,13 +546,17 @@ SnaprFX.prototype.finish = function(){  var self = this;
 };
 
 // removes stickers from render and displays their html overaly elements
-SnaprFX.prototype.unrender_stickers = function(){  var self = this;
+SnaprFX.prototype.unrender_editables = function(){  var self = this;
 
     // revert to orig with no stickers
-    self.apply_filter({stickers: false});
+    self.apply_filter({editable: true});
 
     $.each(self.stickers, function(i, sticker){
         sticker.unrender();
+    });
+
+    $.each(self.text, function(i, text){
+        text.unrender();
     });
 };
 
@@ -675,7 +678,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
     // click to unrender
     self.el.on('click', function(){
         if(self.rendered){
-            parent.unrender_stickers();
+            parent.unrender_editables();
         }
     });
 
@@ -1512,6 +1515,12 @@ SnaprFX.prototype.remove_text = function(slug){  var self = this;
  */
 SnaprFX.filters.text = function(layer, fx){  var self = this;
 
+    fx.text.push(self);
+
+    self.rendered = !fx.render_options.editable;
+
+    self.spec = layer;
+
     self.canvas = new SnaprFX.Canvas({width: fx.canvas.width, height: fx.canvas.height});
     self.deferred = $.Deferred();
 
@@ -1727,38 +1736,49 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     })
     .text(self.text)
     .click(function(){
-        var wrapper = $(this).parent();
-        if(self.overlay.find('.fx-text-active').length){
-            return;
-        }
-        var active = wrapper.hasClass('fx-text-active');
-        self.overlay.find('.fx-text-active')
-            .not(wrapper)
-            .removeClass('fx-text-active')
-            .css({opacity: 0, 'z-index': false, border: 'none'})
-            .trigger('deactivate', layer)
-            .find('.fx-text-inner')
-                .attr('contenteditable', false);
-        if(!active){
-            wrapper
-                .addClass('fx-text-active')
-                .css({opacity: 1, 'z-index': 1, border: '1px dashed #999'})
-                .trigger('activate', layer)
-                .find('.fx-text-inner')
-                    .attr('contenteditable', true);
+        // var wrapper = $(this).parent();
+        // if(self.overlay.find('.fx-text-active').length){
+        //     return;
+        // }
+        // var active = wrapper.hasClass('fx-text-active');
+        // self.overlay.find('.fx-text-active')
+        //     .not(wrapper)
+        //     .removeClass('fx-text-active')
+        //     .css({opacity: 0, 'z-index': false, border: 'none'})
+        //     .trigger('deactivate', layer)
+        //     .find('.fx-text-inner')
+        //         .attr('contenteditable', false);
+        // if(!active){
+        //     wrapper
+        //         .addClass('fx-text-active')
+        //         .css({opacity: 1, 'z-index': 1, border: '1px dashed #999'})
+        //         .trigger('activate', layer)
+        //         .find('.fx-text-inner')
+        //             .attr('contenteditable', true);
 
-            //render without this text
-            fx.apply_filter({
-                active_text: self.slug,
-                region: {
-                    left: Math.floor(self.position.left),
-                    top: Math.floor(self.position.top),
-                    width: Math.ceil(self.position.right - self.position.left),
-                    height: Math.ceil(self.position.bottom - self.position.top)
-                }
-            });
-        }
+            fx.unrender_editables();
+
+            // //render without this text
+            // fx.apply_filter({
+            //     active_text: self.slug,
+            //     region: {
+            //         left: Math.floor(self.position.left),
+            //         top: Math.floor(self.position.top),
+            //         width: Math.ceil(self.position.right - self.position.left),
+            //         height: Math.ceil(self.position.bottom - self.position.top)
+            //     }
+            // });
+        //}
     });
+
+    if(!self.rendered){
+        self.element
+            .addClass('fx-text-active')
+            .css({opacity: 1, 'z-index': 1, border: '1px dashed #999'})
+            .trigger('activate', layer)
+            .find('.fx-text-inner')
+                .attr('contenteditable', true);
+    }
     self.element.append(self.text_element);
 
     self.element.append(
@@ -1766,7 +1786,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             .css({
                 position: 'absolute',
                 top: 0,
-                left: 0,
+                left: 0
             }).click(function(){self.element.hide();})
     );
     self.element.append(
@@ -1780,7 +1800,17 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
     self.overlay.append(self.element);
 };
+
+SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
+    $(this).parent()
+        .addClass('fx-text-active')
+        .css({opacity: 1, 'z-index': 1, border: '1px dashed #999'})
+        .trigger('activate', self.spec)
+        .find('.fx-text-inner')
+            .attr('contenteditable', true);
+};
 SnaprFX.filters.text.prototype.process = function(i, rgb){  var self = this;
+    if(!self.rendered){ return rgb; }
     return [self.pixels[i], self.pixels[i+1], self.pixels[i+2], self.pixels[i+3]];
 };
 
