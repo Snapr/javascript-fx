@@ -1,3 +1,6 @@
 [submodule "filter-packs"]
 	path = filter-packs
 	url = git@github.com:Snapr/filter-packs.git
+[submodule "sticker-packs"]
+	path = sticker-packs
+	url = git@github.com:Snapr/sticker-packs.git
