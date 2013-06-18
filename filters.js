@@ -291,41 +291,18 @@ SnaprFX.prototype.load_original = function(stickers){  var self = this;
 
     // stop here if we aren't rendering the Stickers
     // defaults to true
-    if(stickers === false){
-        self.original.deferred.done(function(){
-            deferred.resolve();
-        });
-        return deferred;
-    }
 
-    // function to check if all other stickers
-    // are placed after each on is done
-    function check_stickers_resolved(){
-        var done = true;
-        $.each(self.stickers, function(i, sticker){
-            if(sticker.deferred.state() == 'pending'){
-                done = false;
-                return false; // break each
-            }
-        });
-        if(done){
-            deferred.resolve();
-        }
-    }
-
-    // when canvas is ready, place stickers
     self.original.deferred.done(function(){
-
-        // resolve if there are no stickers
-        if(!self.stickers.length){
+        if(stickers === false){
             deferred.resolve();
+        }else{
+            self.render_stickers().done(function(){
+                deferred.resolve();
+            });
         }
-
-        // place each sticker
-        $.each(self.stickers, function(i){
-            self.stickers[i].render(self.original).done(check_stickers_resolved);
-        });
     });
+
+
     return deferred;
 };
 
@@ -366,17 +343,10 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     // remove text frames from prev filter
     if(options.filter != self.current_filter){
-        self.elements.text.empty();
+        self.elements.overlay.empty();
     }
 
-    // if there is no filter revert to unfiltered
-    if(!options.filter){
-        self.revert(options.stickers);
-        self.deferred.resolve();
-        return;
-    }
-
-    if(debug_logging){ console.group(options.filter); }
+    if(debug_logging){ console.group(options.filter); console.trace(); }
 
     self.current_filter = options.filter;
 
@@ -398,14 +368,24 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             self.canvas.context.drawImage(self.original.canvas, 0, 0);
         }
 
-        self.pixels = self.canvas.get_data();
-        self.apply_next_layer();
+
+        var filter = function(){
+            self.pixels = self.canvas.get_data();
+            self.apply_next_layer();
 
 
-        // update element when done
-        self.deferred.done(function(){
-            self.update_element();
-        });
+            // update element when done
+            self.deferred.done(function(){
+                self.update_element();
+            });
+        };
+
+        if(options.stickers){
+            self.render_stickers().done(filter);
+        }else{
+            filter();
+        }
+
     }
 
     // run the above function, getting the spec first if not in cache
@@ -588,12 +568,8 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
         height: '100%',
         width: '100%'
     };
-    self.elements.stickers = $('<div class="fx-stickers">')
-        .css(full_size)
-        .css('z-index', (self.elements.image.css('z-index') || 0) + 2);
-    self.elements.text = $('<div class="fx-text-layer">')
-        .css(full_size)
-        .css('z-index', (self.elements.image.css('z-index') || 0) + 1);
+    self.elements.overlay = $('<div class="fx-overlay-layer">')
+        .css(full_size);
     self.elements.wrapper = $('<div class="fx-wrapper">').css({
         position: 'relative',
         height: self.elements.image.height(),
@@ -605,8 +581,7 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
 
     // put elements in wrapper
     self.elements.image.appendTo(self.elements.wrapper);
-    self.elements.stickers.appendTo(self.elements.wrapper);
-    self.elements.text.appendTo(self.elements.wrapper);
+    self.elements.overlay.appendTo(self.elements.wrapper);
 };
 
 
@@ -619,8 +594,44 @@ SnaprFX.prototype.add_sticker = function(slug){  var self = this;
 
     var sticker = new SnaprFX.sticker(slug, self);
     self.stickers.push(sticker);
-    self.elements.stickers.append(sticker.el).trigger('create');
+    self.elements.overlay.append(sticker.el).trigger('create');
 
+};
+
+SnaprFX.prototype.render_stickers = function(){  var self = this;
+
+    var deferred = $.Deferred();
+
+    // function to check if all other stickers
+    // are placed after each on is done
+    function check_stickers_resolved(){
+        var done = true;
+        $.each(self.stickers, function(i, sticker){
+            if(sticker.deferred.state() == 'pending'){
+                done = false;
+                return false; // break each
+            }
+        });
+        if(done){
+            deferred.resolve();
+        }
+    }
+
+    // when canvas is ready, place stickers
+    self.original.deferred.done(function(){
+
+        // resolve if there are no stickers
+        if(!self.stickers.length){
+            deferred.resolve();
+        }
+
+        // place each sticker
+        $.each(self.stickers, function(i){
+            self.stickers[i].render(self.canvas).done(check_stickers_resolved);
+        });
+    });
+
+    return deferred;
 };
 
 // Sticker class
@@ -656,7 +667,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
     // ------
 
     // render button
-    self.el.find('.fx-render-sticker').on('click', function(){ parent.apply_filter(); });
+    self.el.find('.fx-render-sticker').on('click', function(event){ parent.apply_filter(); event.stopPropagation(); });
 
     // delete button
     self.el.find('.fx-remove-sticker').on('click', function(){ self.remove(); });
@@ -709,7 +720,7 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
 
     // get image
     self.image = new Image();
-    self.image.src = self.parent.options.sticker_assets+self.slug+'.png';
+    self.image.src = self.parent.sticker_pack.base_path+'assets/'+self.slug+'.png';
 
     var sticker = self.el.find('.fx-sticker-image'),
         offset = sticker.offset(),
@@ -1690,7 +1701,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
 SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self = this;
 
-    self.overlay = fx.elements.text;
+    self.overlay = fx.elements.overlay;
 
     self.element  = $('<div class="fx-text">')
     .css({
