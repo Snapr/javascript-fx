@@ -1496,18 +1496,6 @@ SnaprFX.prototype.set_text_style = function(slug, data){  var self = this;
     return $.Deferred().resolve();
 };
 
-SnaprFX.prototype.remove_text = function(slug){  var self = this;
-
-    $.each(self.filter_specs[self.current_filter].layers, function(i, layer){
-        if(layer.type == 'text' && layer.slug == slug){
-            layer.removed = true;
-        }
-    });
-
-    self.apply_filter();
-    return $.Deferred().resolve();
-};
-
 /**
  * Text layer
  * @constructor
@@ -1770,7 +1758,9 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 position: 'absolute',
                 top: 0,
                 left: 0
-            }).click(function(){self.element.hide();})
+            })
+            // trigger removal
+            .click(function(){ self.remove(); })
     );
     self.element.append(
         $('<a class="fx-render-layer">✔</a>')
@@ -1782,6 +1772,11 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     );
 
     self.overlay.append(self.element);
+};
+
+SnaprFX.filters.text.prototype.remove = function(){  var self = this;
+    self.element.hide();
+    self.spec.removed = true;
 };
 
 SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
