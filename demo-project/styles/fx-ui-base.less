@@ -156,22 +156,36 @@ fieldset{
 }
 
 .fx-text{
-    &.fx-text-rendered{
+    &.fx-text-rendered{  // hide when rendered
         opacity: 0;
+    }
+
+    .fx-text-wrapper{  // wrapper holds buttons and text
+        position: relative;  // for button positioning
+        display: inline-block;  // shrink to text element
     }
 
     .fx-text-inner{
         padding: 9px;
-        outline: none;
-        display: inline-block;
+        outline: none;  // no default outline when contenteditable=true
+        display: inline-block;  // shrink to text
         margin: 0;
     }
 
-    &.fx-text-active .fx-text-inner{
-        border:solid rgba(240,240,240,.8) 2px;
-        border-radius: 4px;
-        box-sizing: border-box;
-        box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+    .fx-text-button{  // hide buttons normally
+        display: none;
+    }
+
+    &.fx-text-active{
+        .fx-text-inner{  // show border on active
+            border:solid rgba(240,240,240,.8) 2px;
+            border-radius: 4px;
+            box-sizing: border-box;
+            box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+        }
+        .fx-text-button{
+            display: block;  // show buttons on active
+        }
     }
 }
 

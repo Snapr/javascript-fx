@@ -1710,6 +1710,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         'text-align': self.text_style.textAlign
     });
 
+    self.wrapper = $('<div class="fx-text-wrapper">');
+
     self.text_element  = $('<div class="fx-text-inner" data-layer="'+self.slug+'">')
     .css({
         font: self.text_style.font,
@@ -1718,7 +1720,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     .text(self.text)
     .click(function(){
         console.log('click');
-        var wrapper = $(this).parent();
+        var wrapper = $(this).parent().parent();
         // if(self.overlay.find('.fx-text-active').length){
         //     return;
         // }
@@ -1750,10 +1752,13 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         self.element
             .removeClass('fx-text-rendered');
     }
-    self.element.append(self.text_element);
 
-    self.element.append(
-        $('<a class="fx-delete-layer">✗</a>')
+    self.element.append(self.wrapper);
+
+    self.wrapper.append(self.text_element);
+
+    self.wrapper.append(
+        $('<a class="fx-delete-layer fx-text-button">✗</a>')
             .css({
                 position: 'absolute',
                 top: 0,
@@ -1762,8 +1767,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             // trigger removal
             .click(function(){ self.remove(); })
     );
-    self.element.append(
-        $('<a class="fx-render-layer">✔</a>')
+    self.wrapper.append(
+        $('<a class="fx-render-layer fx-text-button">✔</a>')
             .css({
                 position: 'absolute',
                 bottom: 0,
@@ -1778,7 +1783,6 @@ SnaprFX.filters.text.prototype.remove = function(){  var self = this;
     self.element.hide();
     self.spec.removed = true;
 };
-
 SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
     $(this).parent()
         .removeClass('fx-text-rendered')

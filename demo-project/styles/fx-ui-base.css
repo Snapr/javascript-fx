@@ -142,17 +142,27 @@ fieldset {
 .fx-text.fx-text-rendered {
   opacity: 0;
 }
+.fx-text .fx-text-wrapper {
+  position: relative;
+  display: inline-block;
+}
 .fx-text .fx-text-inner {
   padding: 9px;
   outline: none;
   display: inline-block;
   margin: 0;
 }
+.fx-text .fx-text-button {
+  display: none;
+}
 .fx-text.fx-text-active .fx-text-inner {
   border: solid rgba(240, 240, 240, 0.8) 2px;
   border-radius: 4px;
   box-sizing: border-box;
   box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
+.fx-text.fx-text-active .fx-text-button {
+  display: block;
 }
 .fx-sticker .fx-remove-sticker {
   top: 0;
