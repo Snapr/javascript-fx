@@ -114,28 +114,6 @@ fieldset {
   background-color: black;
   color: white;
 }
-.fx-sticker,
-.fx-text-inner {
-  padding: .5em;
-  border: solid rgba(240, 240, 240, 0.8) 2px !important;
-  border-radius: 4px;
-  box-sizing: border-box;
-  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
-}
-.fx-sticker .fx-remove-sticker {
-  top: 0;
-  left: 0;
-  background: black;
-  color: white;
-}
-.fx-sticker .fx-render-sticker {
-  top: 0;
-  right: 0;
-}
-.fx-sticker .fx-scale-sticker {
-  bottom: 0;
-  right: 0;
-}
 .x-activity-indicator {
   display: none;
 }
@@ -154,3 +132,41 @@ fieldset {
   padding: 10px;
   border-radius: 5px;
 }
+.fx-sticker {
+  padding: .5em;
+  border: solid rgba(240, 240, 240, 0.8) 2px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
+.fx-text.fx-text-rendered {
+  opacity: 0;
+}
+.fx-text .fx-text-inner {
+  padding: 9px;
+  outline: none;
+  display: inline-block;
+  margin: 0;
+}
+.fx-text.fx-text-active .fx-text-inner {
+  border: solid rgba(240, 240, 240, 0.8) 2px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
+.fx-sticker .fx-remove-sticker {
+  top: 0;
+  left: 0;
+  background: black;
+  color: white;
+}
+.fx-sticker .fx-render-sticker {
+  top: 0;
+  right: 0;
+}
+.fx-sticker .fx-scale-sticker {
+  bottom: 0;
+  right: 0;
+}
+
+/* This beautiful CSS-File has been crafted with LESS (lesscss.org) and compiled by simpLESS (wearekiss.com/simpless) */

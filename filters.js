@@ -25,7 +25,7 @@
 // put the px back on the canvas
 // update img element
 
-var debug_logging = false;
+var debug_logging = true;
 
 // used to address vaues in pixel arrays in a more human-readible way. pixel[R] == red value
 var R=0,G=1,B=2,O=3;
@@ -1712,72 +1712,54 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
     self.overlay = fx.elements.overlay;
 
-    self.element  = $('<div class="fx-text">')
+    self.element  = $('<div class="fx-text fx-text-rendered">')
     .css({
-        padding: 9,
         position: 'absolute',
         left: self.position.left - 10 + "px",
         top: self.position.top - 10 + "px",
         width: self.position.right - self.position.left + "px",
         height: self.position.bottom - self.position.top + "px",
-        opacity: 0
+        'text-align': self.text_style.textAlign
     });
 
     self.text_element  = $('<div class="fx-text-inner" data-layer="'+self.slug+'">')
     .css({
         font: self.text_style.font,
-        color: self.text_style.fillStyle,
-        'text-align': self.text_style.textAlign,
-        border: '1px solid #900',
-        outline: 'none',
-        display: 'inline-block',
-        margin: 0,
-        padding: 0
+        color: self.text_style.fillStyle
     })
     .text(self.text)
     .click(function(){
-        // var wrapper = $(this).parent();
+        console.log('click');
+        var wrapper = $(this).parent();
         // if(self.overlay.find('.fx-text-active').length){
         //     return;
         // }
-        // var active = wrapper.hasClass('fx-text-active');
-        // self.overlay.find('.fx-text-active')
-        //     .not(wrapper)
-        //     .removeClass('fx-text-active')
-        //     .css({opacity: 0, 'z-index': false, border: 'none'})
-        //     .trigger('deactivate', layer)
-        //     .find('.fx-text-inner')
-        //         .attr('contenteditable', false);
-        // if(!active){
-        //     wrapper
-        //         .addClass('fx-text-active')
-        //         .css({opacity: 1, 'z-index': 1, border: '1px dashed #999'})
-        //         .trigger('activate', layer)
-        //         .find('.fx-text-inner')
-        //             .attr('contenteditable', true);
+        var active = wrapper.hasClass('fx-text-active'),
+            rendered = wrapper.hasClass('fx-text-rendered');
+        console.log('active', active);
+        console.log('rendered', rendered);
+        self.overlay.find('.fx-text-active')
+            .not(wrapper)
+            .removeClass('fx-text-active')
+            .trigger('deactivate', layer)
+            .find('.fx-text-inner')
+                .attr('contenteditable', false);
+        if(!active){
+            wrapper
+                .addClass('fx-text-active')
+                .trigger('activate', layer)
+                .find('.fx-text-inner')
+                    .attr('contenteditable', true);
 
+        }
+        if(rendered){
             fx.unrender_editables();
-
-            // //render without this text
-            // fx.apply_filter({
-            //     active_text: self.slug,
-            //     region: {
-            //         left: Math.floor(self.position.left),
-            //         top: Math.floor(self.position.top),
-            //         width: Math.ceil(self.position.right - self.position.left),
-            //         height: Math.ceil(self.position.bottom - self.position.top)
-            //     }
-            // });
-        //}
+        }
     });
 
     if(!self.rendered){
         self.element
-            .addClass('fx-text-active')
-            .css({opacity: 1, 'z-index': 1, border: '1px dashed #999'})
-            .trigger('activate', layer)
-            .find('.fx-text-inner')
-                .attr('contenteditable', true);
+            .removeClass('fx-text-rendered');
     }
     self.element.append(self.text_element);
 
@@ -1803,8 +1785,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
 SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
     $(this).parent()
-        .addClass('fx-text-active')
-        .css({opacity: 1, 'z-index': 1, border: '1px dashed #999'})
+        .removeClass('fx-text-rendered')
         .trigger('activate', self.spec)
         .find('.fx-text-inner')
             .attr('contenteditable', true);
