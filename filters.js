@@ -1738,9 +1738,10 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             rendered = wrapper.hasClass('fx-text-rendered');
         console.log('active', active);
         console.log('rendered', rendered);
-        self.overlay.find('.fx-text-active')
-            .not(wrapper)
-            .removeClass('fx-text-active')
+
+        self.overlay.find('.fx-text-active')    // find active text
+            .not(wrapper)                       // not this one though
+            .removeClass('fx-text-active')      // make inactive...
             .trigger('deactivate', layer)
             .find('.fx-text-inner')
                 .attr('contenteditable', false);
@@ -1791,7 +1792,7 @@ SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
             .attr('contenteditable', true);
 };
 SnaprFX.filters.text.prototype.process = function(i, rgb){  var self = this;
-    if(!self.rendered){ return rgb; }
+    if(!self.rendered){ return [0,0,0,0]; }
     return [self.pixels[i], self.pixels[i+1], self.pixels[i+2], self.pixels[i+3]];
 };
 
