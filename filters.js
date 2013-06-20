@@ -1555,7 +1555,6 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
 };
 
-
 SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
     self.rendered = !fx.render_options.editable;
@@ -1693,13 +1692,10 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
     self.pixels = self.canvas.get_data();
     self.deferred.resolve();
-
 };
-
 SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self = this;
 
-    // element already exists and is in dom
-    console.log(self.element,  self.element && jQuery.contains(document.documentElement, self.element[0]));
+    // stop if element already exists and is in dom
     if(self.element && jQuery.contains(document.documentElement, self.element[0])){
         return;
     }
@@ -1738,6 +1734,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             .find('.fx-text-inner')
                 .attr('contenteditable', false);
 
+        fx.active_text = null;
+
         // activate if not already active
         if(!active){
             wrapper
@@ -1746,6 +1744,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 .find('.fx-text-inner')
                     .attr('contenteditable', true);
 
+            fx.active_text = self;
         }
 
         // remove text from rendered image
@@ -1806,6 +1805,13 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
 
     self.overlay.append(self.element);
+};
+
+SnaprFX.filters.text.prototype.change_style = function(css){  var self = this;
+    self.text_element.css(css);
+    if('text-align' in css){
+        self.element.css('text-align', css['text-align']);
+    }
 };
 
 SnaprFX.filters.text.prototype.remove = function(){  var self = this;

@@ -152,17 +152,17 @@
         });
 
         $('.x-change-font').on('change', function(){
-            var overlay = $('.fx-text-active .fx-text-inner');
 
-            overlay.css({
+            image.active_text.change_style({
                 'font-family': $('.font').val(),
                 'font-size': $('.font-size').val()+'px',
-                'line-height': $('.font-size').val()*overlay.data('line-height-multiplier')+'px',
+                'line-height': $('.font-size').val()*$('.fx-text-active .fx-text-inner').data('line-height-multiplier')+'px',
                 'font-weight': $('#x-text-bold').attr('checked') ? 'bold' : 'normal',
                 'font-style': $('#x-text-italic').attr('checked') ? 'italic' : 'normal',
-                'color': $('.other-color').val()
+                'color': $('.other-color').val(),
+                'text-align': $('[name=x-text-align]:checked').val()
             });
-            overlay.parent().parent().css({'text-align': $('[name=x-text-align]:checked').val()});
+
         });
 
         $('.x-change-color').on('change', function(){
