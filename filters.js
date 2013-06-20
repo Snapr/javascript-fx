@@ -1528,28 +1528,6 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         right: layer.position.right * self.x_scale_factor
     };
 
-    // needs to be set before creating overlay
-    self.rendered = !fx.render_options.editable;
-    self.create_overlay(layer, fx);
-
-
-    // font setup
-    // ----------
-
-    // apply scale factor to font size
-    self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10) * self.y_scale_factor;
-    self.text_element.css('font-size', self.text_style.fontSize);
-
-    // apply scale factor to line height
-    // if line hight is % then convert it to px now
-    self.text_style.lineHeight = self.text_element.css('line-height');
-    if(self.text_style.lineHeight.substr(-1) == '%'){
-        self.text_style.lineHeight = (parseInt(self.text_style.lineHeight, 10) / 100) * self.text_style.fontSize;
-    }else{
-        self.text_style.lineHeight = parseInt(self.text_style.lineHeight, 10) * self.y_scale_factor;
-    }
-    self.text_element.css('line-height', self.text_style.lineHeight + 'px');
-
 
     // debug
     // -----
@@ -1572,6 +1550,8 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     self.rendered = !fx.render_options.editable;
     self.spec = layer;
     self.deferred = $.Deferred();
+
+    self.create_overlay(layer, fx);
 
     self.canvas.clear();
 
@@ -1704,7 +1684,9 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
 SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self = this;
 
-    if(self.element){
+    // element already exists and is in dom
+    console.log(self.element,  self.element && jQuery.contains(document.documentElement, self.element[0]));
+    if(self.element && jQuery.contains(document.documentElement, self.element[0])){
         return;
     }
 
@@ -1803,6 +1785,25 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 fx.rerender_editables();
             })
     );
+
+
+    // font setup
+    // ----------
+
+    // apply scale factor to font size
+    self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10) * self.y_scale_factor;
+    self.text_element.css('font-size', self.text_style.fontSize);
+
+    // apply scale factor to line height
+    // if line hight is % then convert it to px now
+    self.text_style.lineHeight = self.text_element.css('line-height');
+    if(self.text_style.lineHeight.substr(-1) == '%'){
+        self.text_style.lineHeight = (parseInt(self.text_style.lineHeight, 10) / 100) * self.text_style.fontSize;
+    }else{
+        self.text_style.lineHeight = parseInt(self.text_style.lineHeight, 10) * self.y_scale_factor;
+    }
+    self.text_element.css('line-height', self.text_style.lineHeight + 'px');
+
 
     self.overlay.append(self.element);
 };
