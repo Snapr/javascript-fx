@@ -425,20 +425,24 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
     if(debug_logging){ console.log("applying", filter_spec.layers[filter_spec.layer_index].type, "layer"); }
 
         // this layers spec
-    var layer = filter_spec.layers[filter_spec.layer_index],
-        // filter processes the px
-        filter = new SnaprFX.filters[layer.type](layer, self),
-        // blender mixes this layer with underlying
-        blender = new SnaprFX.Blender(layer.blending_mode || 'normal');
+    var layer = filter_spec.layers[filter_spec.layer_index];
+    // filter processes the px
+    if(layer.filter){
+        layer.filter.update && layer.filter.update(layer, self);
+    }else{
+        layer.filter = new SnaprFX.filters[layer.type](layer, self);
+    }
+    // blender mixes this layer with underlying
+    layer.blender = layer.blender || new SnaprFX.Blender(layer.blending_mode || 'normal');
 
     // when the filter is ready (may need to load an image etc)
-    filter.deferred.done(function(){
+    layer.filter.deferred.done(function(){
 
 
         // some filters (eg blur) need the whole canvas - they can't work px by px
         // we store the result and blend it in px by px using blender/mask image
         var whole_canvas_result;
-        if(filter.whole_canvas){
+        if(layer.filter.whole_canvas){
             // put results of any underlying filters back on canvas
             // (not needed if this is the first layer - they are already there)
             if(filter_spec.layer_index !== 0){
@@ -446,7 +450,7 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
             }
 
             // run the filter
-            filter.process(self.canvas);
+            layer.filter.process(self.canvas);
 
             whole_canvas_result = self.canvas.get_data();
         }
@@ -464,20 +468,20 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
             };
             var i;
 
-            if(debug_logging){ console.log(region); }
+            //if(debug_logging){ console.log(region); }
             for ( var y = region.top; y < region.top+region.height; y += 1 ) {
                 for ( var x = region.left; x < region.left+region.width; x += 1 ) {
 
                     i = (y * self.canvas.width + x) * 4;
 
                     var rgb;
-                    if(filter.whole_canvas){
+                    if(layer.filter.whole_canvas){
                         // whole canvas has been processed by filter
                         // get relivent px
                         rgb = [whole_canvas_result[i], whole_canvas_result[i+1], whole_canvas_result[i+2], whole_canvas_result[i+3]];
                     }else{
                         // process this px now
-                        rgb = filter.process(i, [self.pixels[i], self.pixels[i+1], self.pixels[i+2]]);
+                        rgb = layer.filter.process(i, [self.pixels[i], self.pixels[i+1], self.pixels[i+2]]);
                     }
 
                     // start with opacity for px returned by filter
@@ -495,7 +499,7 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
                     opacity = opacity * (layer.opacity/100);
 
                     // blend this layer with underlying
-                    rgb = blender.process(
+                    rgb = layer.blender.process(
                         [self.pixels[i], self.pixels[i+1], self.pixels[i+2]],
                         [rgb[R], rgb[G], rgb[B]],
                         opacity
@@ -545,7 +549,7 @@ SnaprFX.prototype.finish = function(){  var self = this;
     if(debug_logging){ console.groupEnd(self.current_filter); }
 };
 
-// removes stickers from render and displays their html overaly elements
+// removes stickers/text from render and displays their html overaly elements
 SnaprFX.prototype.unrender_editables = function(){  var self = this;
 
     // revert to orig with no stickers
@@ -557,6 +561,21 @@ SnaprFX.prototype.unrender_editables = function(){  var self = this;
 
     $.each(self.text, function(i, text){
         text.unrender();
+    });
+};
+
+// replaces stickers/text in render and hides their html overaly elements
+SnaprFX.prototype.rerender_editables = function(){  var self = this;
+
+    // revert to orig with no stickers
+    self.apply_filter({editable: false});
+
+    // $.each(self.stickers, function(i, sticker){
+    //     sticker.rerender();
+    // });
+
+    $.each(self.text, function(i, text){
+        text.rerender();
     });
 };
 
@@ -903,6 +922,11 @@ SnaprFX.Canvas.prototype.put_data = function(data) {
 
 SnaprFX.Canvas.prototype.get_data_url = function() {
     return this.canvas.toDataURL( 'image/jpeg', 1.0 );
+};
+
+SnaprFX.Canvas.prototype.clear = function() {
+    // setting width clears and resets canvas
+    this.canvas.width = this.canvas.width;
 };
 
 
@@ -1480,22 +1504,6 @@ SnaprFX.filters.image.prototype.process = function(i, rgb){
 // Text
 // ----
 
-
-SnaprFX.prototype.set_text_style = function(slug, data){  var self = this;
-
-    $.each(self.filter_specs[self.current_filter].layers, function(i, layer){
-        if(layer.type == 'text' && layer.slug == slug){
-            $.extend(layer.text.style, data, {scale: false});
-            if(data.text){
-                layer.text.default_value = data.text;
-            }
-        }
-    });
-
-    self.apply_filter();
-    return $.Deferred().resolve();
-};
-
 /**
  * Text layer
  * @constructor
@@ -1504,20 +1512,14 @@ SnaprFX.prototype.set_text_style = function(slug, data){  var self = this;
 SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     fx.text.push(self);
-
-    self.rendered = !fx.render_options.editable;
-
-    self.spec = layer;
-
-    self.canvas = new SnaprFX.Canvas({width: fx.canvas.width, height: fx.canvas.height});
-    self.deferred = $.Deferred();
-
-    self.x_scale_factor = self.canvas.width / fx.filter_specs[fx.current_filter].width;
-    self.y_scale_factor = self.canvas.height / fx.filter_specs[fx.current_filter].height;
-
     self.slug = layer.slug;
     self.text_style = layer.text.style;
     self.text = fx.options.text && fx.options.text[layer.slug] || layer.text.default_value;
+
+    self.canvas = new SnaprFX.Canvas({width: fx.canvas.width, height: fx.canvas.height});
+
+    self.x_scale_factor = self.canvas.width / fx.filter_specs[fx.current_filter].width;
+    self.y_scale_factor = self.canvas.height / fx.filter_specs[fx.current_filter].height;
 
     self.position = {
         top: layer.position.top * self.y_scale_factor,
@@ -1526,25 +1528,29 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         right: layer.position.right * self.x_scale_factor
     };
 
-
-    // overlay element
-    // ---------------
-    // to make text clickable
-    // if a partial render, don't
+    // needs to be set before creating overlay
+    self.rendered = !fx.render_options.editable;
     self.create_overlay(layer, fx);
-
-
-    // font setup
-    // ----------
-
-    if(self.text_style.scale === false){
-        self.x_scale_factor = 1;
-        self.y_scale_factor = 1;
-    }
 
     // apply scale factor to font size
     self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10) * self.y_scale_factor;
     self.text_element.css('font-size', self.text_style.fontSize);
+
+    self.update(layer, fx);
+
+};
+
+
+SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
+
+    self.rendered = !fx.render_options.editable;
+    self.spec = layer;
+    self.deferred = $.Deferred();
+
+    self.canvas.clear();
+
+    // font setup
+    // ----------
 
     // apply scale factor to line height
     // if line hight is % then convert it to px now
@@ -1698,6 +1704,10 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
 SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self = this;
 
+    if(self.element){
+        return;
+    }
+
     self.overlay = fx.elements.overlay;
 
     self.element  = $('<div class="fx-text fx-text-rendered">')
@@ -1774,6 +1784,24 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 bottom: 0,
                 right: 0
             })
+            // trigger render
+            .click(function(){
+                console.log('clickle');
+
+                // strip HTML, replace <br> with newlines
+                self.text = self.text_element.html()
+                    .replace(/<br\/?>/g, '\n')  // <br> to newline
+                    .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
+                    .replace(/<.*?>/g, '');  // strip html tags
+
+                // but back stripped text with <br>s for newlines
+                self.text_element.html(self.text.replace(/\n/g, '<br>'));
+
+                self.text_style.fillStyle = self.text_element.css('color');
+                self.text_style.textAlign = self.element.css('text-align');
+
+                fx.rerender_editables();
+            })
     );
 
     self.overlay.append(self.element);
@@ -1786,6 +1814,10 @@ SnaprFX.filters.text.prototype.remove = function(){  var self = this;
 SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
     self.element.removeClass('fx-text-rendered');
 };
+SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
+    self.element.addClass('fx-text-rendered');
+};
+
 SnaprFX.filters.text.prototype.process = function(i, rgb){  var self = this;
     if(!self.rendered){ return [0,0,0,0]; }
     return [self.pixels[i], self.pixels[i+1], self.pixels[i+2], self.pixels[i+3]];
