@@ -98,34 +98,34 @@
         });
 
         var active_slug;
-        // $('.fx-text').live('activate', function(e, data){
+        $('.fx-text').live('activate', function(e, data){
 
-        //     active_slug = data.slug;
+            active_slug = data.slug;
 
-        //     $('.x-text-active-layer-name').text(data.name);
+            $('.x-text-active-layer-name').text(data.name);
 
-        //     var font = $(this).find('.fx-text-inner').css('font-family').split(', ')[0];
-        //     var $font = $('.font');
-        //     $font.val(font);
-        //     // if the select hasn't change to the right font then we need to add it
-        //     if($font.val() != font){
-        //         $font.append($('<option value="'+font+'">'+font+'</option>'));
-        //         $font.val(font);
-        //     }
+            var font = $(this).find('.fx-text-inner').css('font-family').split(', ')[0];
+            var $font = $('.font');
+            $font.val(font);
+            // if the select hasn't change to the right font then we need to add it
+            if($font.val() != font){
+                $font.append($('<option value="'+font+'">'+font+'</option>'));
+                $font.val(font);
+            }
 
-        //     $('#x-text-bold').attr('checked', $(this).find('.fx-text-inner').css('font-weight') == 'bold');
-        //     $('#x-text-italic').attr('checked', $(this).find('.fx-text-inner').css('font-style') == 'italic');
+            $('#x-text-bold').attr('checked', $(this).find('.fx-text-inner').css('font-weight') == 'bold');
+            $('#x-text-italic').attr('checked', $(this).find('.fx-text-inner').css('font-style') == 'italic');
 
-        //     $('.font-size').val(Math.round(data.text.style.fontSize));
-        //     $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
+            $('.font-size').val(Math.round(data.text.style.fontSize));
+            $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
 
-        //     $('.other-color').val(data.text.style.fillStyle);
-        //     var checked = $('[name=x-text-color][value='+data.text.style.fillStyle+']').attr('checked', true);
-        //     if(!checked.length){
-        //         $('[name=x-text-color][value=other]').attr('checked', true);
-        //     }
+            $('.other-color').val(data.text.style.fillStyle);
+            var checked = $('[name=x-text-color][value='+data.text.style.fillStyle+']').attr('checked', true);
+            if(!checked.length){
+                $('[name=x-text-color][value=other]').attr('checked', true);
+            }
 
-        // });
+        });
         // $('.fx-text').live('deactivate', function(e, data){
         //     $(document.body).addClass('x-processing');
         //     image.set_text_style(active_slug, {}).done(function(){
@@ -149,7 +149,6 @@
             $('.x-change-font').trigger('change');
         });
 
-
         $('.x-change-font').on('change', function(){
             var overlay = $('.fx-text-active .fx-text-inner');
 
@@ -158,42 +157,14 @@
                 'font-size': $('.font-size').val()+'px',
                 'font-weight': $('#x-text-bold').attr('checked') ? 'bold' : 'normal',
                 'font-style': $('#x-text-italic').attr('checked') ? 'italic' : 'normal',
-                'color': $('.other-color').val(),
-                'text-align': $('[name=x-text-align]:checked').val()
+                'color': $('.other-color').val()
             });
+            overlay.parent().parent().css({'text-align': $('[name=x-text-align]:checked').val()});
         });
 
         $('.x-change-color').on('change', function(){
             $('.other-color').val($('[name=x-text-color]:checked').val()).trigger('change');
         });
-
-        // $('.fx-render-layer').live('click', function(event){
-        //     event.preventDefault();
-
-        //     var text = $('.fx-text-active .fx-text-inner');
-
-        //     image.options.text[active_slug] = text.html()
-        //         .replace(/<br\/?>/g, '\n')  // <br> to newline
-        //         .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
-        //         .replace(/<.*?>/g, '');  // strip html tags
-
-        //     text.html(image.options.text[active_slug].replace(/\n/g, '<br>'));
-
-        //     var data = {
-        //         font: text.css('font'),
-        //         textAlign: $('[name=x-text-align]:checked').val(),
-        //         fillStyle: $('.other-color').val()
-        //     };
-
-        //     $(document.body).addClass('x-processing');
-        //     image.set_text_style(active_slug, data).done(function(){
-        //         image.deferred.done(function(){
-
-        //             $(document.body).removeClass('x-processing');
-        //         });
-        //     });
-
-        // });
 
     });
     </script>
