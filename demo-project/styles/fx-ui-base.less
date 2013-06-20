@@ -120,12 +120,10 @@ fieldset{
 
 // FX base styles - move to lib
 
-// Layer borders
-.fx-sticker{
-    padding: .5em;
+.fx-active{
+    margin: -2px;  // account for border
     border:solid rgba(240,240,240,.8) 2px;
     border-radius: 4px;
-    box-sizing: border-box;
     box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -151,11 +149,8 @@ fieldset{
     }
 
     &.fx-text-active{
-        .fx-text-inner{  // show border on active
-            margin: -2px;  // account for border
-            border:solid rgba(240,240,240,.8) 2px;
-            border-radius: 4px;
-            box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+        .fx-text-inner{
+            .fx-active;
         }
         .fx-text-button{
             display: block;  // show buttons on active
@@ -164,6 +159,24 @@ fieldset{
 }
 
 .fx-sticker{
+    padding: .5em;
+    -webkit-user-select: none;
+
+    &.fx-sticker-rendered{  // hide when rendered
+        opacity: 0;
+    }
+
+    .fx-sticker-handle{
+        display: none;  // hide buttons normally
+    }
+
+    &.fx-sticker-active{
+        .fx-active;
+        .fx-sticker-handle{
+            display: block;  // show buttons on active
+        }
+    }
+
     .fx-remove-sticker{
         top: 0;
         left: 0;
@@ -177,11 +190,11 @@ fieldset{
     .fx-scale-sticker{
         bottom: 0;
         right: 0;
+        font-weight: bold;
     }
 }
 
-.fx-delete-layer,
-.fx-render-layer,
+.fx-text-button,
 .fx-sticker-handle{
     background-color: yellow;
     padding: 4px;
@@ -193,7 +206,7 @@ fieldset{
     font-size: 12px;
     line-height: 12px;
     text-align: center;
-    color: white;
+    color: black;
     margin: -12px;
     box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
     cursor: pointer;

@@ -593,8 +593,11 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
     self.elements.overlay = $('<div class="fx-overlay-layer">')
         .css(full_size)
         .click(function(event){
-            // if click is not on a text wrapper
-            if(self.render_options.editable && !$(event.target).closest('.fx-text-wrapper').length){
+            if(
+                self.render_options.editable &&  // if thifs are already unrendered
+                !$(event.target).closest('.fx-text-wrapper').length &&  // and click wasn't on a text el
+                !$(event.target).closest('.fx-sticker').length  // and click wasn't on a sticker
+            ){
                 self.rerender_editables();
             }
         });
@@ -622,7 +625,7 @@ SnaprFX.prototype.add_sticker = function(slug){  var self = this;
 
     var sticker = new SnaprFX.sticker(slug, self);
     self.stickers.push(sticker);
-    self.elements.overlay.append(sticker.el).trigger('create');
+    self.elements.overlay.append(sticker.element.addClass('fx-sticker-active'));
 
 };
 
@@ -676,34 +679,42 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
     // Build element
     // -------------
 
-    var html = '<div class="fx-sticker fx-sticker-unrendered">';
-        html += '<a class="fx-remove-sticker fx-sticker-handle" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="e">x</a>';
-        html += '<a class="fx-render-sticker fx-sticker-handle" data-role="button" data-icon="tick" data-iconpos="notext" data-theme="e">y</a>';
-        html += '<a class="fx-scale-sticker fx-sticker-handle" data-role="button" data-icon="rotate" data-iconpos="notext" data-theme="e">r</a>';
+    var html = '<div class="fx-sticker fx-sticker-rendered">';
+        html += '<a class="fx-remove-sticker fx-sticker-handle" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="e">✗</a>';
+        html += '<a class="fx-render-sticker fx-sticker-handle" data-role="button" data-icon="tick" data-iconpos="notext" data-theme="e">✔</a>';
+        html += '<a class="fx-scale-sticker fx-sticker-handle" data-role="button" data-icon="rotate" data-iconpos="notext" data-theme="e">R</a>';
 
         html += '<img class="fx-sticker-image" src="'+self.parent.sticker_pack.base_path+'assets/'+slug+'.png">';
     html += '</div>';
 
-    self.el = $(html).css({
+    self.element = $(html).css({
         position: 'absolute',
         left: '20%',
-        top: '30%',
-        '-webkit-user-select': 'none'
+        top: '30%'
     });
+
+    if(!self.rendered){
+        self.element.removeClass('fx-sticker-rendered');
+    }
 
     // events
     // ------
 
     // render button
-    self.el.find('.fx-render-sticker').on('click', function(event){ parent.apply_filter(); event.stopPropagation(); });
+    self.element.find('.fx-render-sticker').on('click', function(event){
+        parent.rerender_editables();
+        // stop click porpegating up to sticker element and triggering unrender right after rerender
+        event.stopPropagation();
+    });
 
     // delete button
-    self.el.find('.fx-remove-sticker').on('click', function(){ self.remove(); });
+    self.element.find('.fx-remove-sticker').on('click', function(){ self.remove(); });
 
     // click to unrender
-    self.el.on('click', function(){
+    self.element.on('click', function(){
         if(self.rendered){
             parent.unrender_editables();
+            self.element.addClass('fx-sticker-active');
         }
     });
 
@@ -713,7 +724,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
     // move
     self.mousemove = function(event){
         if(!self.rendered){
-            self.el.css({
+            self.element.css({
                 left: event.pageX - self.drag_from.left,
                 top: event.pageY - self.drag_from.top
             });
@@ -727,18 +738,18 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
     parent.elements.wrapper.on('mouseup', self.mouseup);
 
     // start drag
-    self.el.on('mousedown', function(event) {
+    self.element.on('mousedown', function(event) {
         if(!self.rendered){
             self.drag_from = {
-                left: event.pageX - self.el.position().left,
-                top: event.pageY - self.el.position().top
+                left: event.pageX - self.element.position().left,
+                top: event.pageY - self.element.position().top
             };
             parent.elements.wrapper.on('mousemove', self.mousemove);
         }
     });
 
     // prevent default drag (like drag image to desktop)
-    self.el.on('dragstart', function(event) { event.preventDefault(); });  // stop normal dragging of image
+    self.element.on('dragstart', function(event) { event.preventDefault(); });  // stop normal dragging of image
 };
 
 // render sticker into actual image
@@ -750,9 +761,9 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
     self.image = new Image();
     self.image.src = self.parent.sticker_pack.base_path+'assets/'+self.slug+'.png';
 
-    var sticker = self.el.find('.fx-sticker-image'),
+    var sticker = self.element.find('.fx-sticker-image'),
         offset = sticker.offset(),
-        layer = self.el.parent(),
+        layer = self.element.parent(),
         layer_offset = layer.offset(),
 
         x = (offset.left - layer_offset.left) / layer.width(),
@@ -773,10 +784,7 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
     // track if it's rendered in image or html overlay
     self.rendered = true;
 
-    // hide html overlay visuals
-    self.el.removeClass('fx-sticker-unrendered');
-    self.el.find('.fx-sticker-handle').hide();
-    self.el.find('.fx-sticker-image').css('opacity', 0);
+    self.element.addClass('fx-sticker-rendered');
 
     return self.deferred;
 };
@@ -787,16 +795,13 @@ SnaprFX.sticker.prototype.unrender = function(){  var self = this;
     // track if it's rendered in image or html overlay
     self.rendered = false;
 
-    // show html overlay visuals
-    self.el.addClass('fx-sticker-unrendered');
-    self.el.find('.fx-sticker-handle').show();
-    self.el.find('.fx-sticker-image').css('opacity', 1);
+    self.element.removeClass('fx-sticker-rendered');
 };
 
 SnaprFX.sticker.prototype.remove = function(){  var self = this;
 
     // remove html overlay
-    self.el.remove();
+    self.element.remove();
 
     // remove events
     self.parent.elements.wrapper.off('mousemove', self.mousemove).off('mouseup', self.mouseup);
@@ -1747,8 +1752,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     });
 
     if(!self.rendered){
-        self.element
-            .removeClass('fx-text-rendered');
+        self.element.removeClass('fx-text-rendered');
     }
 
     self.element.append(self.wrapper);

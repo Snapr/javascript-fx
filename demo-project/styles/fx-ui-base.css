@@ -109,11 +109,10 @@ fieldset {
   padding: 10px;
   border-radius: 5px;
 }
-.fx-sticker {
-  padding: .5em;
+.fx-active {
+  margin: -2px;
   border: solid rgba(240, 240, 240, 0.8) 2px;
   border-radius: 4px;
-  box-sizing: border-box;
   box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
 }
 .fx-text.fx-text-rendered {
@@ -141,6 +140,25 @@ fieldset {
 .fx-text.fx-text-active .fx-text-button {
   display: block;
 }
+.fx-sticker {
+  padding: .5em;
+  -webkit-user-select: none;
+}
+.fx-sticker.fx-sticker-rendered {
+  opacity: 0;
+}
+.fx-sticker .fx-sticker-handle {
+  display: none;
+}
+.fx-sticker.fx-sticker-active {
+  margin: -2px;
+  border: solid rgba(240, 240, 240, 0.8) 2px;
+  border-radius: 4px;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
+.fx-sticker.fx-sticker-active .fx-sticker-handle {
+  display: block;
+}
 .fx-sticker .fx-remove-sticker {
   top: 0;
   left: 0;
@@ -154,9 +172,9 @@ fieldset {
 .fx-sticker .fx-scale-sticker {
   bottom: 0;
   right: 0;
+  font-weight: bold;
 }
-.fx-delete-layer,
-.fx-render-layer,
+.fx-text-button,
 .fx-sticker-handle {
   background-color: yellow;
   padding: 4px;
@@ -168,7 +186,7 @@ fieldset {
   font-size: 12px;
   line-height: 12px;
   text-align: center;
-  color: white;
+  color: black;
   margin: -12px;
   box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
   cursor: pointer;
