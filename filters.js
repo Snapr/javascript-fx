@@ -567,16 +567,16 @@ SnaprFX.prototype.unrender_editables = function(){  var self = this;
 // replaces stickers/text in render and hides their html overaly elements
 SnaprFX.prototype.rerender_editables = function(){  var self = this;
 
+    $.each(self.text, function(i, text){
+        text.rerender();
+    });
+
     // revert to orig with no stickers
     self.apply_filter({editable: false});
 
     // $.each(self.stickers, function(i, sticker){
     //     sticker.rerender();
     // });
-
-    $.each(self.text, function(i, text){
-        text.rerender();
-    });
 };
 
 // initialise sticker and text overlay layers
@@ -591,7 +591,13 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
         width: '100%'
     };
     self.elements.overlay = $('<div class="fx-overlay-layer">')
-        .css(full_size);
+        .css(full_size)
+        .click(function(event){
+            // if click is not on a text wrapper
+            if(self.render_options.editable && !$(event.target).closest('.fx-text-wrapper').length){
+                self.rerender_editables();
+            }
+        });
     self.elements.wrapper = $('<div class="fx-wrapper">').css({
         position: 'relative',
         height: self.elements.image.height(),
@@ -1767,23 +1773,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 right: 0
             })
             // trigger render
-            .click(function(){
-                console.log('clickle');
-
-                // strip HTML, replace <br> with newlines
-                self.text = self.text_element.html()
-                    .replace(/<br\/?>/g, '\n')  // <br> to newline
-                    .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
-                    .replace(/<.*?>/g, '');  // strip html tags
-
-                // but back stripped text with <br>s for newlines
-                self.text_element.html(self.text.replace(/\n/g, '<br>'));
-
-                self.text_style.fillStyle = self.text_element.css('color');
-                self.text_style.textAlign = self.element.css('text-align');
-
-                fx.rerender_editables();
-            })
+            .click(function(){ fx.rerender_editables(); })
     );
 
 
@@ -1816,6 +1806,19 @@ SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
     self.element.removeClass('fx-text-rendered');
 };
 SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
+
+    // strip HTML, replace <br> with newlines
+    self.text = self.text_element.html()
+        .replace(/<br\/?>/g, '\n')  // <br> to newline
+        .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
+        .replace(/<.*?>/g, '');  // strip html tags
+
+    // but back stripped text with <br>s for newlines
+    self.text_element.html(self.text.replace(/\n/g, '<br>'));
+
+    self.text_style.fillStyle = self.text_element.css('color');
+    self.text_style.textAlign = self.element.css('text-align');
+
     self.element.addClass('fx-text-rendered');
 };
 
