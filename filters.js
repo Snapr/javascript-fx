@@ -1572,6 +1572,9 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     self.canvas.context.textBaseline = self.text_style.textBaseline || 'top';
     self.canvas.context.fillStyle = self.text_style.fillStyle;
 
+    self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10);
+    self.text_style.lineHeight = parseInt(self.text_element.css('line-height'), 10);
+
     // wrapping
     // --------
 
@@ -1796,7 +1799,10 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     }else{
         self.text_style.lineHeight = parseInt(self.text_style.lineHeight, 10) * self.y_scale_factor;
     }
-    self.text_element.css('line-height', self.text_style.lineHeight + 'px');
+    self.text_element
+        .css('line-height', self.text_style.lineHeight + 'px')
+        .data('line-height-multiplier', self.text_style.lineHeight / self.text_style.fontSize);
+
 
 
     self.overlay.append(self.element);
