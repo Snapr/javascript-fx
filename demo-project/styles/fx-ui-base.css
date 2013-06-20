@@ -122,12 +122,12 @@ fieldset {
 .fx-text .fx-text-wrapper {
   position: relative;
   display: inline-block;
+  margin: -9px;
 }
 .fx-text .fx-text-inner {
-  padding: 11px 10px;
+  padding: 9px;
   outline: none;
   display: inline-block;
-  margin: 0;
 }
 .fx-text .fx-text-button {
   display: none;

@@ -1713,8 +1713,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     self.element  = $('<div class="fx-text fx-text-rendered">')
     .css({
         position: 'absolute',
-        left: self.position.left - 10 + "px",
-        top: self.position.top - 10 + "px",
+        left: self.position.left + "px",
+        top: self.position.top + "px",
         width: self.position.right - self.position.left + "px",
         height: self.position.bottom - self.position.top + "px",
         'text-align': self.text_style.textAlign
