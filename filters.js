@@ -1719,22 +1719,20 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     })
     .text(self.text)
     .click(function(){
-        console.log('click');
         var wrapper = $(this).parent().parent();
-        // if(self.overlay.find('.fx-text-active').length){
-        //     return;
-        // }
+
         var active = wrapper.hasClass('fx-text-active'),
             rendered = wrapper.hasClass('fx-text-rendered');
-        console.log('active', active);
-        console.log('rendered', rendered);
 
+        // deactivate all other text layers
         self.overlay.find('.fx-text-active')    // find active text
             .not(wrapper)                       // not this one though
             .removeClass('fx-text-active')      // make inactive...
             .trigger('deactivate', layer)
             .find('.fx-text-inner')
                 .attr('contenteditable', false);
+
+        // activate if not already active
         if(!active){
             wrapper
                 .addClass('fx-text-active')
@@ -1743,6 +1741,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                     .attr('contenteditable', true);
 
         }
+
+        // remove text from rendered image
         if(rendered){
             fx.unrender_editables();
         }
@@ -1784,11 +1784,7 @@ SnaprFX.filters.text.prototype.remove = function(){  var self = this;
     self.spec.removed = true;
 };
 SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
-    $(this).parent()
-        .removeClass('fx-text-rendered')
-        .trigger('activate', self.spec)
-        .find('.fx-text-inner')
-            .attr('contenteditable', true);
+    self.element.removeClass('fx-text-rendered');
 };
 SnaprFX.filters.text.prototype.process = function(i, rgb){  var self = this;
     if(!self.rendered){ return [0,0,0,0]; }

@@ -91,29 +91,6 @@ fieldset {
 .x-demo-area .x-output {
   width: 560px;
 }
-.fx-delete-layer,
-.fx-render-layer,
-.fx-sticker-handle {
-  background-color: yellow;
-  padding: 4px;
-  display: block;
-  min-width: 12px;
-  min-height: 12px;
-  border-radius: 20px;
-  border: white solid 2px;
-  font-size: 12px;
-  line-height: 12px;
-  text-align: center;
-  color: white;
-  margin: -12px;
-  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  position: absolute;
-}
-.fx-delete-layer {
-  background-color: black;
-  color: white;
-}
 .x-activity-indicator {
   display: none;
 }
@@ -156,9 +133,9 @@ fieldset {
   display: none;
 }
 .fx-text.fx-text-active .fx-text-inner {
+  margin: -2px;
   border: solid rgba(240, 240, 240, 0.8) 2px;
   border-radius: 4px;
-  box-sizing: border-box;
   box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
 }
 .fx-text.fx-text-active .fx-text-button {
@@ -177,6 +154,29 @@ fieldset {
 .fx-sticker .fx-scale-sticker {
   bottom: 0;
   right: 0;
+}
+.fx-delete-layer,
+.fx-render-layer,
+.fx-sticker-handle {
+  background-color: yellow;
+  padding: 4px;
+  display: block;
+  min-width: 12px;
+  min-height: 12px;
+  border-radius: 20px;
+  border: white solid 2px;
+  font-size: 12px;
+  line-height: 12px;
+  text-align: center;
+  color: white;
+  margin: -12px;
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  position: absolute;
+}
+.fx-delete-layer {
+  background-color: black;
+  color: white;
 }
 
 /* This beautiful CSS-File has been crafted with LESS (lesscss.org) and compiled by simpLESS (wearekiss.com/simpless) */
