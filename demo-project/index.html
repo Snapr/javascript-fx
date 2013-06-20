@@ -126,17 +126,10 @@
             }
 
         });
-        // $('.fx-text').live('deactivate', function(e, data){
-        //     $(document.body).addClass('x-processing');
-        //     image.set_text_style(active_slug, {}).done(function(){
-        //         image.deferred.done(function(){
-        //             $(document.body).removeClass('x-processing');
-        //         });
-        //     });
-
-        //     active_slug = null;
-        //     $('.x-text-active-layer-name').text('No layer selected');
-        // });
+        $('.fx-text').live('deactivate', function(e, data){
+            active_slug = null;
+            $('.x-text-active-layer-name').text('No layer selected');
+        });
 
         $('.x-increase-text-size').click(function(event){
             event.preventDefault();

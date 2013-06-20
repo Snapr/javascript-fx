@@ -1532,9 +1532,35 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     self.rendered = !fx.render_options.editable;
     self.create_overlay(layer, fx);
 
+
+    // font setup
+    // ----------
+
     // apply scale factor to font size
     self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10) * self.y_scale_factor;
     self.text_element.css('font-size', self.text_style.fontSize);
+
+    // apply scale factor to line height
+    // if line hight is % then convert it to px now
+    self.text_style.lineHeight = self.text_element.css('line-height');
+    if(self.text_style.lineHeight.substr(-1) == '%'){
+        self.text_style.lineHeight = (parseInt(self.text_style.lineHeight, 10) / 100) * self.text_style.fontSize;
+    }else{
+        self.text_style.lineHeight = parseInt(self.text_style.lineHeight, 10) * self.y_scale_factor;
+    }
+    self.text_element.css('line-height', self.text_style.lineHeight + 'px');
+
+
+    // debug
+    // -----
+    // draws bounding box
+    // self.canvas.context.strokeRect(
+    //     self.position.left,
+    //     self.position.top,
+    //     self.position.right - self.position.left,
+    //     self.position.bottom - self.position.top
+    // );
+
 
     self.update(layer, fx);
 
@@ -1549,37 +1575,11 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
     self.canvas.clear();
 
-    // font setup
-    // ----------
-
-    // apply scale factor to line height
-    // if line hight is % then convert it to px now
-    self.text_style.lineHeight = self.text_element.css('line-height');
-    if(self.text_style.lineHeight.substr(-1) == '%'){
-        self.text_style.lineHeight = (parseInt(self.text_style.lineHeight, 10) / 100) * self.text_style.fontSize;
-    }else{
-        self.text_style.lineHeight = parseInt(self.text_style.lineHeight, 10) * self.y_scale_factor;
-    }
-    self.text_element.css('line-height', self.text_style.lineHeight + 'px');
-
     // set font properties on canvas
     self.canvas.context.font = self.text_element.css('font');
     self.canvas.context.textAlign = self.text_style.textAlign || 'left';
     self.canvas.context.textBaseline = self.text_style.textBaseline || 'top';
     self.canvas.context.fillStyle = self.text_style.fillStyle;
-
-
-    // debug
-    // -----
-    // draws bounding box
-
-    // self.canvas.context.strokeRect(
-    //     self.position.left,
-    //     self.position.top,
-    //     self.position.right - self.position.left,
-    //     self.position.bottom - self.position.top
-    // );
-
 
     // wrapping
     // --------
