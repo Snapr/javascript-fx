@@ -1673,7 +1673,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
     // update overlay with new y value
     self.element.css({
-        'padding-top': 9 + y-self.position.top + padding_offset + 'px',
+        'padding-top': y-self.position.top + padding_offset + 'px',
         'height': self.position.bottom - y - padding_offset + "px"
     });
 

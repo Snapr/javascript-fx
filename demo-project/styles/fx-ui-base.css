@@ -124,7 +124,7 @@ fieldset {
   display: inline-block;
 }
 .fx-text .fx-text-inner {
-  padding: 9px;
+  padding: 11px 10px;
   outline: none;
   display: inline-block;
   margin: 0;
