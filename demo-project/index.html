@@ -169,6 +169,7 @@
         $('.x-change-font').on('change', update_style);
 
         $('.x-change-color').on('change', function(){
+            $('.other-color').val($('[name=x-text-color]:checked').val());
             update_style();
         });
 
