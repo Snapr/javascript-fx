@@ -1829,13 +1829,38 @@ SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
 
     while(self.text_element.width() > self.element.width() || self.text_element.height() > self.element.height()){
 
-        self.text_style.fontSize = self.text_style.fontSize * 0.8;
+        self.text_style.fontSize = self.text_style.fontSize * 0.9;
         self.text_element.css('font-size', self.text_style.fontSize);
 
-        self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
+        self.text_style.lineHeight = self.text_style.lineHeight * 0.9;
         self.text_element.css('line-height', self.text_style.lineHeight+ 'px');
 
     }
+
+    // set y position for text based on alignment
+    var padding;
+    switch(self.text_style.textBaseline){
+        case 'hanging':
+        case 'alphabetic':
+        case 'ideographic':
+        case 'bottom':
+            // start No. of extra lines up from bottom
+            padding = self.position.bottom - self.text_element.height();
+            break;
+        case 'middle':
+            padding = (self.element.outerHeight() / 2) - (self.text_element.height() / 2);
+            break;
+        default:  // top
+            // start at top
+            padding = 0;
+
+    }
+
+    // update overlay with new y value
+    self.element.css({
+        'padding-top': padding + 'px',
+        'height': self.position.bottom - self.position.top - padding + "px"
+    });
 
 };
 
