@@ -30,8 +30,7 @@
                 height: Math.floor((40 / 56) * 750),
                 filter_pack: filter_pack,
                 sticker_pack: sticker_pack,
-                text: {
-                }
+                text: {}
             });
 
         image.load_filter_pack.done(function(pack){
@@ -77,9 +76,18 @@
             var output = new SnaprFX({
                 url: src,
                 element: $('.x-output-area img'),
-                width: 560,
-                height: 750
+                width: 400,
+                height: Math.floor((40 / 56) * 750),
+                filter_pack: filter_pack,
+                sticker_pack: sticker_pack,
+                text: {}
             });
+
+
+            output.filter_specs = image.filter_specs;
+            output.stickers = image.stickers;
+            output.text = image.text;
+
             output.deferred.done(function(){
                 output.apply_filter({filter: image.current_filter});
             });
