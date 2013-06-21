@@ -342,8 +342,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     // remove text frames from prev filter
     if(options.filter != self.current_filter){
-        self.elements.overlay.empty();
-        self.stickers = [];
+        self.elements.overlay.find('.fx-text').remove();
     }
 
     if(debug_logging){ console.group(options.filter); }
