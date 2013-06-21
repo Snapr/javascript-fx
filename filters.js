@@ -1727,14 +1727,17 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             rendered = wrapper.hasClass('fx-text-rendered');
 
         // deactivate all other text layers
-        self.overlay.find('.fx-text-active')    // find active text
+        var deactivate = self.overlay.find('.fx-text-active')    // find active text
             .not(wrapper)                       // not this one though
             .removeClass('fx-text-active')      // make inactive...
             .trigger('deactivate', layer)
             .find('.fx-text-inner')
                 .attr('contenteditable', false);
 
-        fx.active_text = null;
+        if(deactivate.length){
+            fx.active_text = null;
+        }
+
 
         // activate if not already active
         if(!active){
