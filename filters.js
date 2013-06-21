@@ -552,9 +552,6 @@ SnaprFX.prototype.finish = function(){  var self = this;
 // removes stickers/text from render and displays their html overaly elements
 SnaprFX.prototype.unrender_editables = function(){  var self = this;
 
-    // revert to orig with no stickers
-    self.apply_filter({editable: true});
-
     $.each(self.stickers, function(i, sticker){
         sticker.unrender();
     });
@@ -562,6 +559,11 @@ SnaprFX.prototype.unrender_editables = function(){  var self = this;
     $.each(self.text, function(i, text){
         text.unrender();
     });
+
+    // revert to orig with no stickers
+    setTimeout(function(){  // timeout allows other thigs to update before this starts
+        self.apply_filter({editable: true});
+    }, 0);
 };
 
 // replaces stickers/text in render and hides their html overaly elements
@@ -713,8 +715,10 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
     // click to unrender
     self.element.on('click', function(){
         if(self.rendered){
+            self.element
+                .addClass('fx-sticker-active')
+                .removeClass('fx-sticker-rendered');
             parent.unrender_editables();
-            self.element.addClass('fx-sticker-active');
         }
     });
 
@@ -1743,6 +1747,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         if(!active){
             wrapper
                 .addClass('fx-text-active')
+                .removeClass('fx-text-rendered')
                 .trigger('activate', layer)
                 .find('.fx-text-inner')
                     .attr('contenteditable', true);
