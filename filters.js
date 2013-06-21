@@ -1812,6 +1812,20 @@ SnaprFX.filters.text.prototype.change_style = function(css){  var self = this;
     if('text-align' in css){
         self.element.css('text-align', css['text-align']);
     }
+
+    self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10);
+    self.text_style.lineHeight = parseInt(self.text_element.css('line-height'), 10);
+
+    while(self.text_element.width() > self.element.width() || self.text_element.height() > self.element.height()){
+
+        self.text_style.fontSize = self.text_style.fontSize * 0.8;
+        self.text_element.css('font-size', self.text_style.fontSize);
+
+        self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
+        self.text_element.css('line-height', self.text_style.lineHeight+ 'px');
+
+    }
+
 };
 
 SnaprFX.filters.text.prototype.remove = function(){  var self = this;

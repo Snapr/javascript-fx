@@ -135,24 +135,8 @@
             }
 
         });
-        $('.fx-text').live('deactivate', function(e, data){
-            active_slug = null;
-            $('.x-text-active-layer-name').text('No layer selected');
-        });
 
-        $('.x-increase-text-size').click(function(event){
-            event.preventDefault();
-            $('.font-size').val(parseInt($('.font-size').val(), 10)+1);
-            $('.x-change-font').trigger('change');
-        });
-        $('.x-decrease-text-size').click(function(event){
-            event.preventDefault();
-            $('.font-size').val(parseInt($('.font-size').val(), 10)-1);
-            $('.x-change-font').trigger('change');
-        });
-
-        $('.x-change-font').on('change', function(){
-
+        function update_style(){
             image.active_text.change_style({
                 'font-family': $('.font').val(),
                 'font-size': $('.font-size').val()+'px',
@@ -163,10 +147,29 @@
                 'text-align': $('[name=x-text-align]:checked').val()
             });
 
+            $('.font-size').val(image.active_text.text_style.fontSize);
+        }
+
+        $('.fx-text').live('deactivate', function(e, data){
+            active_slug = null;
+            $('.x-text-active-layer-name').text('No layer selected');
         });
 
+        $('.x-increase-text-size').click(function(event){
+            event.preventDefault();
+            $('.font-size').val(parseInt($('.font-size').val(), 10)+1);
+            update_style();
+        });
+        $('.x-decrease-text-size').click(function(event){
+            event.preventDefault();
+            $('.font-size').val(parseInt($('.font-size').val(), 10)-1);
+            update_style();
+        });
+
+        $('.x-change-font').on('change', update_style);
+
         $('.x-change-color').on('change', function(){
-            $('.other-color').val($('[name=x-text-color]:checked').val()).trigger('change');
+            update_style();
         });
 
     });
