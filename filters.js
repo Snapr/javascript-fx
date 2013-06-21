@@ -1720,7 +1720,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         color: self.text_style.fillStyle
     })
     .text(self.text)
-    .click(function(){
+    .on('click', function(){
         var wrapper = $(this).parent().parent();
 
         var active = wrapper.hasClass('fx-text-active'),
@@ -1754,6 +1754,9 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         if(rendered){
             fx.unrender_editables();
         }
+    })
+    .on('keyup', function(){
+        self.check_size();
     });
 
     if(!self.rendered){
@@ -1815,6 +1818,11 @@ SnaprFX.filters.text.prototype.change_style = function(css){  var self = this;
     if('text-align' in css){
         self.element.css('text-align', css['text-align']);
     }
+
+    self.check_size();
+
+};
+SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
 
     self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10);
     self.text_style.lineHeight = parseInt(self.text_element.css('line-height'), 10);
