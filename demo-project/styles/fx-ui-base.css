@@ -131,9 +131,6 @@ fieldset {
 .fx-text .fx-text-button {
   display: none;
 }
-.fx-text.fx-text-active {
-  z-index: 100;
-}
 .fx-text.fx-text-active .fx-text-inner {
   margin: -2px;
   border: solid rgba(240, 240, 240, 0.8) 2px;
@@ -177,6 +174,12 @@ fieldset {
   right: 0;
   font-weight: bold;
 }
+.fx-editing-text .fx-text {
+  z-index: 2;
+}
+.fx-editing-sticker .fx-sticker {
+  z-index: 2;
+}
 .fx-text-button,
 .fx-sticker-handle {
   background-color: yellow;
@@ -199,3 +202,5 @@ fieldset {
   background-color: black;
   color: white;
 }
+
+/* This beautiful CSS-File has been crafted with LESS (lesscss.org) and compiled by simpLESS (wearekiss.com/simpless) */

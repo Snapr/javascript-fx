@@ -718,6 +718,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             self.element
                 .addClass('fx-sticker-active')
                 .removeClass('fx-sticker-rendered');
+
             parent.unrender_editables();
         }
     });
@@ -750,6 +751,10 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             };
             parent.elements.wrapper.on('mousemove', self.mousemove);
         }
+
+        parent.elements.overlay
+            .addClass('fx-editing-sticker')
+            .removeClass('fx-editing-text');
     });
 
     // prevent default drag (like drag image to desktop)
@@ -1754,6 +1759,10 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
             fx.active_text = self;
         }
+
+        fx.elements.overlay
+            .addClass('fx-editing-text')
+            .removeClass('fx-editing-sticker');
 
         // remove text from rendered image
         if(rendered){
