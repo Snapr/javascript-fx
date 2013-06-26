@@ -143,9 +143,12 @@ fieldset {
 .fx-sticker {
   padding: .5em;
   -webkit-user-select: none;
+  opacity: 1;
+  transition: 0;
 }
 .fx-sticker.fx-sticker-rendered {
   opacity: 0;
+  transition: opacity 0.4s linear;
 }
 .fx-sticker .fx-sticker-handle {
   display: none;
@@ -202,5 +205,3 @@ fieldset {
   background-color: black;
   color: white;
 }
-
-/* This beautiful CSS-File has been crafted with LESS (lesscss.org) and compiled by simpLESS (wearekiss.com/simpless) */

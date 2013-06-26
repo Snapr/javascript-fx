@@ -165,8 +165,12 @@ fieldset{
     padding: .5em;
     -webkit-user-select: none;
 
+        opacity: 1;
+        transition: 0;
+
     &.fx-sticker-rendered{  // hide when rendered
         opacity: 0;
+        transition: opacity 0.4s linear;
     }
 
     .fx-sticker-handle{
