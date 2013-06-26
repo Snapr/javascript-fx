@@ -563,7 +563,7 @@ SnaprFX.prototype.unrender_editables = function(){  var self = this;
     // revert to orig with no stickers
     setTimeout(function(){  // timeout allows other thigs to update before this starts
         self.apply_filter({editable: true});
-    }, 0);
+    }, 4);
 };
 
 // replaces stickers/text in render and hides their html overaly elements
