@@ -330,6 +330,8 @@ SnaprFX.prototype.revert = function(){  var self = this;
  */
 SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
+    $(document.body).addClass('fx-processing');
+
     // defaults
     options = $.extend({
         filter: self.current_filter,
@@ -389,14 +391,14 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     // run the above function, getting the spec first if not in cache
     if(options.filter in self.filter_specs){
-        apply();
+        setTimeout(apply, 4);
     }else{
         $.ajax({
             url: self.filter_pack.base_path + options.filter + '/filter.json',
             success: function(data){
                 if(debug_logging){ console.log('loaded', options.filter); }
                 self.filter_specs[options.filter] = data.filter;
-                apply();
+                setTimeout(apply, 4);
             }
         });
     }
@@ -544,6 +546,8 @@ SnaprFX.prototype.finish = function(){  var self = this;
     self.update_element();
     self.deferred.resolve();
 
+    $(document.body).removeClass('fx-processing');
+
     if(debug_logging){ console.timeEnd('writing data back'); }
 
     if(debug_logging){ console.groupEnd(self.current_filter); }
@@ -561,24 +565,26 @@ SnaprFX.prototype.unrender_editables = function(){  var self = this;
     });
 
     // revert to orig with no stickers
-    setTimeout(function(){  // timeout allows other thigs to update before this starts
+    //setTimeout(function(){  // timeout allows other thigs to update before this starts
         self.apply_filter({editable: true});
-    }, 4);
+    //}, 4);
 };
 
 // replaces stickers/text in render and hides their html overaly elements
 SnaprFX.prototype.rerender_editables = function(){  var self = this;
 
-    $.each(self.text, function(i, text){
-        text.rerender();
-    });
-
     // revert to orig with no stickers
     self.apply_filter({editable: false});
 
-    // $.each(self.stickers, function(i, sticker){
-    //     sticker.rerender();
-    // });
+    self.deferred.done(function(){
+        $.each(self.text, function(i, text){
+            text.rerender();
+        });
+
+        $.each(self.stickers, function(i, sticker){
+            sticker.rerender();
+        });
+    });
 };
 
 // initialise sticker and text overlay layers
@@ -790,11 +796,6 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
         self.deferred.resolve();
     };
 
-    // track if it's rendered in image or html overlay
-    self.rendered = true;
-
-    self.element.addClass('fx-sticker-rendered');
-
     return self.deferred;
 };
 
@@ -805,6 +806,15 @@ SnaprFX.sticker.prototype.unrender = function(){  var self = this;
     self.rendered = false;
 
     self.element.removeClass('fx-sticker-rendered');
+};
+
+
+SnaprFX.sticker.prototype.rerender = function(){  var self = this;
+
+    // track if it's rendered in image or html overlay
+    self.rendered = true;
+
+    self.element.addClass('fx-sticker-rendered');
 };
 
 SnaprFX.sticker.prototype.remove = function(){  var self = this;

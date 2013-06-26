@@ -94,10 +94,10 @@ fieldset {
 .x-activity-indicator {
   display: none;
 }
-.x-processing .x-preview-image-area {
+.fx-processing .x-preview-image-area {
   position: relative;
 }
-.x-processing .x-preview-image-area .x-activity-indicator {
+.fx-processing .x-preview-image-area .x-activity-indicator {
   display: block;
   position: absolute;
   top: 5%;
