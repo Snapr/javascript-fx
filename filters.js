@@ -686,97 +686,127 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
     self.slug = slug;
     self.parent = parent;
 
-    // Build element
-    // -------------
+    self.deferred = $.Deferred();
 
-    var html = '<div class="fx-sticker fx-sticker-rendered">';
-        html += '<a class="fx-remove-sticker fx-sticker-handle" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="e">✗</a>';
-        html += '<a class="fx-render-sticker fx-sticker-handle" data-role="button" data-icon="tick" data-iconpos="notext" data-theme="e">✔</a>';
-        html += '<a class="fx-scale-sticker fx-sticker-handle" data-role="button" data-icon="rotate" data-iconpos="notext" data-theme="e">R</a>';
+    self.load().done(function(){
 
-        html += '<img class="fx-sticker-image" src="'+self.parent.sticker_pack.base_path+'assets/'+slug+'.png">';
-    html += '</div>';
 
-    self.element = $(html).css({
-        position: 'absolute',
-        left: '20%',
-        top: '30%'
+        self.scale_factor = Math.min(self.image.width / parent.sticker_pack.sticker_pack.target_canvas.width, self.image.height / parent.sticker_pack.sticker_pack.target_canvas.height);
+
+        // Build element
+        // -------------
+
+        var html = '<div class="fx-sticker fx-sticker-rendered">';
+            html += '<a class="fx-remove-sticker fx-sticker-handle" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="e">✗</a>';
+            html += '<a class="fx-render-sticker fx-sticker-handle" data-role="button" data-icon="tick" data-iconpos="notext" data-theme="e">✔</a>';
+            html += '<a class="fx-scale-sticker fx-sticker-handle" data-role="button" data-icon="rotate" data-iconpos="notext" data-theme="e">R</a>';
+
+            html += '<img class="fx-sticker-image" src="'+self.parent.sticker_pack.base_path+'assets/'+slug+'.png">';
+        html += '</div>';
+
+        self.element = $(html).css({
+            position: 'absolute',
+            left: '20%',
+            top: '30%',
+            width: self.image.width * self.scale_factor + 'px',
+            height: self.image.width * self.scale_factor + 'px'
+        });
+
+        if(!self.rendered){
+            self.element.removeClass('fx-sticker-rendered');
+        }
+
+        // events
+        // ------
+
+        // render button
+        self.element.find('.fx-render-sticker').on('click', function(event){
+            parent.rerender_editables();
+            // stop click porpegating up to sticker element and triggering unrender right after rerender
+            event.stopPropagation();
+        });
+
+        // delete button
+        self.element.find('.fx-remove-sticker').on('click', function(){ self.remove(); });
+
+        // click to unrender
+        self.element.on('click', function(){
+            if(self.rendered){
+                self.element
+                    .addClass('fx-sticker-active')
+                    .removeClass('fx-sticker-rendered');
+
+                parent.unrender_editables();
+            }
+        });
+
+        // dragging
+        // --------
+
+        // move
+        self.mousemove = function(event){
+            if(!self.rendered){
+                self.element.css({
+                    left: event.pageX - self.drag_from.left,
+                    top: event.pageY - self.drag_from.top
+                });
+            }
+        };
+
+        // finish drag
+        self.mouseup = function(){
+            parent.elements.wrapper.off('mousemove', self.mousemove);
+        };
+        parent.elements.wrapper.on('mouseup', self.mouseup);
+
+        // start drag
+        self.element.on('mousedown', function(event) {
+            if(!self.rendered){
+                self.drag_from = {
+                    left: event.pageX - self.element.position().left,
+                    top: event.pageY - self.element.position().top
+                };
+                parent.elements.wrapper.on('mousemove', self.mousemove);
+            }
+
+            parent.elements.overlay
+                .addClass('fx-editing-sticker')
+                .removeClass('fx-editing-text');
+        });
+
+        // prevent default drag (like drag image to desktop)
+        self.element.on('dragstart', function(event) { event.preventDefault(); });  // stop normal dragging of image
+
+        self.deferred.resolve();
+
     });
+};
 
-    if(!self.rendered){
-        self.element.removeClass('fx-sticker-rendered');
+// load sticker image
+SnaprFX.sticker.prototype.load = function(){  var self = this;
+
+    if(self.load.deferred){
+        return self.load.deferred;
     }
 
-    // events
-    // ------
+    self.load.deferred = $.Deferred();
 
-    // render button
-    self.element.find('.fx-render-sticker').on('click', function(event){
-        parent.rerender_editables();
-        // stop click porpegating up to sticker element and triggering unrender right after rerender
-        event.stopPropagation();
-    });
+    // get image
+    self.image = new Image();
+    self.image.src = self.parent.sticker_pack.base_path+'assets/'+self.slug+'.png';
 
-    // delete button
-    self.element.find('.fx-remove-sticker').on('click', function(){ self.remove(); });
-
-    // click to unrender
-    self.element.on('click', function(){
-        if(self.rendered){
-            self.element
-                .addClass('fx-sticker-active')
-                .removeClass('fx-sticker-rendered');
-
-            parent.unrender_editables();
-        }
-    });
-
-    // dragging
-    // --------
-
-    // move
-    self.mousemove = function(event){
-        if(!self.rendered){
-            self.element.css({
-                left: event.pageX - self.drag_from.left,
-                top: event.pageY - self.drag_from.top
-            });
-        }
+    self.image.onload = function() {
+        self.load.deferred.resolve();
     };
 
-    // finish drag
-    self.mouseup = function(){
-        parent.elements.wrapper.off('mousemove', self.mousemove);
-    };
-    parent.elements.wrapper.on('mouseup', self.mouseup);
+    return self.load.deferred;
 
-    // start drag
-    self.element.on('mousedown', function(event) {
-        if(!self.rendered){
-            self.drag_from = {
-                left: event.pageX - self.element.position().left,
-                top: event.pageY - self.element.position().top
-            };
-            parent.elements.wrapper.on('mousemove', self.mousemove);
-        }
-
-        parent.elements.overlay
-            .addClass('fx-editing-sticker')
-            .removeClass('fx-editing-text');
-    });
-
-    // prevent default drag (like drag image to desktop)
-    self.element.on('dragstart', function(event) { event.preventDefault(); });  // stop normal dragging of image
 };
 
 // render sticker into actual image
 SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
 
     self.deferred = $.Deferred();
-
-    // get image
-    self.image = new Image();
-    self.image.src = self.parent.sticker_pack.base_path+'assets/'+self.slug+'.png';
 
     var sticker = self.element.find('.fx-sticker-image'),
         offset = sticker.offset(),
@@ -788,15 +818,12 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
         width = sticker.width() / layer.width(),
         height = sticker.height() / layer.height();
 
-    self.image.onload = function() {
-        var image  = this;
+    self.load().done(function() {
         // place sticker
-        canvas.context.drawImage(image, 0,0, image.width, image.height ,x * canvas.width ,y * canvas.height ,width * canvas.width ,height * canvas.height);
-        // done with this large obj, GC can have it
-        delete self.image;
+        canvas.context.drawImage(self.image, 0,0, self.image.width, self.image.height ,x * canvas.width ,y * canvas.height ,width * canvas.width ,height * canvas.height);
         // notify that it's ready
         self.deferred.resolve();
-    };
+    });
 
     return self.deferred;
 };

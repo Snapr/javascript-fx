@@ -146,6 +146,10 @@ fieldset {
   opacity: 1;
   transition: 0;
 }
+.fx-sticker .fx-sticker-image {
+  width: 100%;
+  height: 100%;
+}
 .fx-sticker.fx-sticker-rendered {
   opacity: 0;
   transition: opacity 0.4s linear;

@@ -70,7 +70,7 @@
             $.each(pack.sticker_pack.sections, function(i, section){
                 var section_el = $('<fieldset>');
                 section_el.append($('<legend>'+section.name+'</legend>'));
-                $('.x-effects').append(section_el);
+                $('.x-stickers').append(section_el);
                 $.each(section.stickers, function(i, sticker){
                     section_el.append(
                         $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'@2x.png">'+sticker.name+' </a>')
