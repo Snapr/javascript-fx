@@ -236,40 +236,42 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
  */
 SnaprFX.prototype.load_fonts = function(){  var self = this;
 
-    $.each(self.filter_pack.filter_pack.filters, function(i, filter){
+    $.each(self.filter_pack.filter_pack.sections, function(i, section){
+        $.each(section.filters, function(i, filter){
 
-        var filter_path = self.filter_pack.base_path + 'filters/' + filter.slug + '/';
-        // get filter details
-        $.ajax({
-            url: filter_path + 'filter.json',
-            success: function(data){
+            var filter_path = self.filter_pack.base_path + 'filters/' + filter.slug + '/';
+            // get filter details
+            $.ajax({
+                url: filter_path + 'filter.json',
+                success: function(data){
 
-                // cache
-                self.filter_specs[filter.slug] = data.filter;
+                    // cache
+                    self.filter_specs[filter.slug] = data.filter;
 
-                if(data.filter.fonts){
-                    $.each(data.filter.fonts, function(i, font){
+                    if(data.filter.fonts){
+                        $.each(data.filter.fonts, function(i, font){
 
-                        var css = "@font-face {";
-                        css += "font-family: '"+font['font-family']+"';";
-                        if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
-                        if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
-                        if(font.eot){ css += "src: url('"+filter_path + 'fonts/'+font.eot+"');"; }
-                        css += "src:";
-                        if(font.eot){ css += "url('"+filter_path + 'fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
-                        if(font.woff){ css += "url('"+filter_path + 'fonts/'+font.woff+"') format('woff'),"; }
-                        if(font.ttf){ css += "url('"+filter_path + 'fonts/'+font.ttf+"') format('truetype'),"; }
-                        if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
-                        css += "}";
+                            var css = "@font-face {";
+                            css += "font-family: '"+font['font-family']+"';";
+                            if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
+                            if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
+                            if(font.eot){ css += "src: url('"+filter_path + 'fonts/'+font.eot+"');"; }
+                            css += "src:";
+                            if(font.eot){ css += "url('"+filter_path + 'fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
+                            if(font.woff){ css += "url('"+filter_path + 'fonts/'+font.woff+"') format('woff'),"; }
+                            if(font.ttf){ css += "url('"+filter_path + 'fonts/'+font.ttf+"') format('truetype'),"; }
+                            if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
+                            css += "}";
 
-                        $('<style>'+css+'</style>').appendTo(document.head);
+                            $('<style>'+css+'</style>').appendTo(document.head);
 
-                        // use font on page so it's preloaded
-                        $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
+                            // use font on page so it's preloaded
+                            $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
 
-                    });
+                        });
+                    }
                 }
-            }
+            });
         });
     });
 };
@@ -394,7 +396,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         setTimeout(apply, 4);
     }else{
         $.ajax({
-            url: self.filter_pack.base_path + options.filter + '/filter.json',
+            url: self.filter_pack.base_path + 'filters/' + options.filter + '/filter.json',
             success: function(data){
                 if(debug_logging){ console.log('loaded', options.filter); }
                 self.filter_specs[options.filter] = data.filter;
@@ -521,7 +523,7 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
 
             // load mask image
             var mask = new SnaprFX.Canvas({
-                url: self.filter_pack.base_path+filter_spec.slug+'/'+layer.mask_image, width:
+                url: self.filter_pack.base_path + 'filters/' +filter_spec.slug+'/'+layer.mask_image, width:
                 self.canvas.width, height:
                 self.canvas.height
             });
@@ -1548,26 +1550,26 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     self.canvas = new SnaprFX.Canvas({width: fx.canvas.width, height: fx.canvas.height});
 
-    self.x_scale_factor = self.canvas.width / fx.filter_specs[fx.current_filter].width;
-    self.y_scale_factor = self.canvas.height / fx.filter_specs[fx.current_filter].height;
+    self.x_scale_factor = self.canvas.width / fx.filter_specs[fx.current_filter].target_canvas.width;
+    self.y_scale_factor = self.canvas.height / fx.filter_specs[fx.current_filter].target_canvas.height;
 
     self.position = {
-        top: layer.position.top * self.y_scale_factor,
-        bottom: layer.position.bottom * self.y_scale_factor,
-        left: layer.position.left * self.x_scale_factor,
-        right: layer.position.right * self.x_scale_factor
+        top: layer.position.bbox.top * self.y_scale_factor,
+        bottom: layer.position.bbox.bottom * self.y_scale_factor,
+        left: layer.position.bbox.left * self.x_scale_factor,
+        right: layer.position.bbox.right * self.x_scale_factor
     };
 
 
     // debug
     // -----
     // draws bounding box
-    // self.canvas.context.strokeRect(
-    //     self.position.left,
-    //     self.position.top,
-    //     self.position.right - self.position.left,
-    //     self.position.bottom - self.position.top
-    // );
+    self.canvas.context.strokeRect(
+        self.position.left,
+        self.position.top,
+        self.position.right - self.position.left,
+        self.position.bottom - self.position.top
+    );
 
 
     self.update(layer, fx);

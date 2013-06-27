@@ -42,33 +42,43 @@
                     image.revert();
                 })
             );
-            $.each(pack.filter_pack.filters, function(i, filter){
-                $('.x-effects').append(
-                    $('<a> <img src="'+pack.base_path+'filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
-                    .click(function(){
-                        if(image.current_filter == filter.slug){
-                            return;
-                        }
-                        $(document.body).addClass('x-processing');
-                        image.apply_filter({filter: filter.slug});
-                        $('.x-current-filter').removeClass('x-current-filter');
-                        $(this).addClass('x-current-filter');
-                        image.deferred.done(function(){
-                            $(document.body).removeClass('x-processing');
-                        });
-                    })
-                );
+            $.each(pack.filter_pack.sections, function(i, section){
+                var section_el = $('<fieldset>');
+                section_el.append($('<legend>'+section.name+'</legend>'));
+                $('.x-effects').append(section_el);
+                $.each(section.filters, function(i, filter){
+                    section_el.append(
+                        $('<a> <img src="'+pack.base_path+'filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
+                        .click(function(){
+                            if(image.current_filter == filter.slug){
+                                return;
+                            }
+                            $(document.body).addClass('x-processing');
+                            image.apply_filter({filter: filter.slug});
+                            $('.x-current-filter').removeClass('x-current-filter');
+                            $(this).addClass('x-current-filter');
+                            image.deferred.done(function(){
+                                $(document.body).removeClass('x-processing');
+                            });
+                        })
+                    );
+                });
             });
         });
 
         image.load_sticker_pack.done(function(pack){
-            $.each(pack.sticker_pack.stickers, function(i, sticker){
-                $('.x-stickers').append(
-                    $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'@2x.png">'+sticker.name+' </a>')
-                    .click(function(){
-                        image.add_sticker(sticker.slug);
-                    })
-                );
+            $.each(pack.sticker_pack.sections, function(i, section){
+                var section_el = $('<fieldset>');
+                section_el.append($('<legend>'+section.name+'</legend>'));
+                $('.x-effects').append(section_el);
+                $.each(section.stickers, function(i, sticker){
+                    section_el.append(
+                        $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'@2x.png">'+sticker.name+' </a>')
+                        .click(function(){
+                            image.add_sticker(sticker.slug);
+                        })
+                    );
+                });
             });
         });
 
