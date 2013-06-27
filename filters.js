@@ -1644,7 +1644,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     // --------
 
     var max_width = self.position.right - self.position.left,
-        max_height = self.position.bottom - self.position.top;
+        max_height = Math.round(self.position.bottom - self.position.top);
 
     function word_wrap(text, max_width){
         var orig_lines = text.split('\n'),
@@ -1898,7 +1898,7 @@ SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
     self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10);
     self.text_style.lineHeight = parseInt(self.text_element.css('line-height'), 10);
 
-    while(self.text_element.width() > self.element.width() || self.text_element.height() > self.element.height()){
+    while(self.text_element.width() > self.element.width() || self.text_element.height() > Math.round(self.element.height())){
 
         self.text_style.fontSize = self.text_style.fontSize * 0.99;
         self.text_element.css('font-size', self.text_style.fontSize);
