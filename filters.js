@@ -25,7 +25,8 @@
 // put the px back on the canvas
 // update img element
 
-var debug_logging = true;
+var debug_logging = true,
+    debug_canvas = true;
 
 // used to address vaues in pixel arrays in a more human-readible way. pixel[R] == red value
 var R=0,G=1,B=2,O=3;
@@ -909,6 +910,11 @@ SnaprFX.Canvas = function(options){  var self = this;
     // create canvas
     self.canvas = document.createElement('canvas');
     self.context = self.canvas.getContext('2d');
+
+    if(debug_canvas){
+        $(document.body).append(self.canvas);
+        $(self.canvas).css({border: '1px solid #f00', width: 200});
+    }
 
     // no image url, stop here
     if(!options.url){
