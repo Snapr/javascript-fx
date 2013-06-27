@@ -364,7 +364,10 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
     function apply(){
 
         var filter_spec = self.filter_specs[self.current_filter];
-        filter_spec.layer_index = -1;  // so first time we call 'next' layer it's 0
+
+        if(filter_spec){
+            filter_spec.layer_index = -1;  // so first time we call 'next' layer it's 0
+        }
 
         if(self.render_options.region){
             if(debug_logging){ console.log('region', self.render_options.region); }
@@ -398,18 +401,22 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     }
 
-    // run the above function, getting the spec first if not in cache
-    if(options.filter in self.filter_specs){
-        setTimeout(apply, 4);
+    if(!options.filter){
+       setTimeout(apply, 4);
     }else{
-        $.ajax({
-            url: self.filter_pack.base_path + 'filters/' + options.filter + '/filter.json',
-            success: function(data){
-                if(debug_logging){ console.log('loaded', options.filter); }
-                self.filter_specs[options.filter] = data.filter;
-                setTimeout(apply, 4);
-            }
-        });
+        // run the above function, getting the spec first if not in cache
+        if(options.filter in self.filter_specs){
+            setTimeout(apply, 4);
+        }else{
+            $.ajax({
+                url: self.filter_pack.base_path + 'filters/' + options.filter + '/filter.json',
+                success: function(data){
+                    if(debug_logging){ console.log('loaded', options.filter); }
+                    self.filter_specs[options.filter] = data.filter;
+                    setTimeout(apply, 4);
+                }
+            });
+        }
     }
 
 };
@@ -419,6 +426,11 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 SnaprFX.prototype.apply_next_layer = function(){  var self = this;
     // apply_next_layer allows processing to be deffered until something is ready (eg, loading mask image)
     // after this layer is finished apply_next_layer will be called again
+
+    if(!self.current_filter){
+        self.finish();
+        return;
+    }
 
     var filter_spec = self.filter_specs[self.current_filter];
 
