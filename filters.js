@@ -194,7 +194,14 @@ SnaprFX.prototype.init = function(options){  var self = this;
         url: self.options.sticker_pack + 'sticker-pack.json',
         success: function(pack){
             self.sticker_pack = pack.sticker_pack;
+            self.sticker_pack.by_slug = {};
             self.sticker_pack.base_path = self.options.sticker_pack;
+            $.each(self.sticker_pack.sections, function(i, section){
+                console.log(section);
+                $.each(section.stickers, function(i, sticker){
+                    self.sticker_pack.by_slug[sticker.slug] = sticker;
+                });
+            });
             self.load_sticker_pack.resolve(self.sticker_pack);
         }
     });
@@ -689,12 +696,13 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
     self.slug = slug;
     self.parent = parent;
 
+    self.spec = parent.sticker_pack.by_slug[slug];
+
     self.deferred = $.Deferred();
 
     self.load().done(function(){
 
-
-        self.scale_factor = Math.min(self.image.width / parent.sticker_pack.target_canvas.width, self.image.height / parent.sticker_pack.target_canvas.height);
+        self.scale_factor = Math.min(parent.canvas.width / parent.sticker_pack.target_canvas.width, parent.canvas.height / parent.sticker_pack.target_canvas.height);
 
         // Build element
         // -------------
@@ -707,13 +715,20 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             html += '<img class="fx-sticker-image" src="'+self.parent.sticker_pack.base_path+'assets/'+slug+'.png">';
         html += '</div>';
 
-        self.element = $(html).css({
+        var css = {
             position: 'absolute',
-            left: '20%',
-            top: '30%',
-            width: self.image.width * self.scale_factor + 'px',
-            height: self.image.width * self.scale_factor + 'px'
-        });
+            width: self.image.width * self.scale_factor,
+            height: self.image.height * self.scale_factor
+        };
+
+        if(self.spec.position && self.spec.position.center){
+            css.left = self.spec.position.center.x * self.scale_factor - css.width/2;
+            css.top = self.spec.position.center.y * self.scale_factor - css.height/2;
+        }else{
+            css.left = parent.canvas.width/2 - css.width/2;
+            css.top = parent.canvas.height/2 - css.height/2;
+        }
+        self.element = $(html).css(css);
 
         if(!self.rendered){
             self.element.removeClass('fx-sticker-rendered');
@@ -788,21 +803,21 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
 // load sticker image
 SnaprFX.sticker.prototype.load = function(){  var self = this;
 
-    if(self.load.deferred){
-        return self.load.deferred;
+    if(self.load_deferred){
+        return self.load_deferred;
     }
 
-    self.load.deferred = $.Deferred();
+    self.load_deferred = $.Deferred();
 
     // get image
     self.image = new Image();
     self.image.src = self.parent.sticker_pack.base_path+'assets/'+self.slug+'.png';
 
     self.image.onload = function() {
-        self.load.deferred.resolve();
+        self.load_deferred.resolve();
     };
 
-    return self.load.deferred;
+    return self.load_deferred;
 
 };
 
