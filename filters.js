@@ -1900,10 +1900,10 @@ SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
 
     while(self.text_element.width() > self.element.width() || self.text_element.height() > self.element.height()){
 
-        self.text_style.fontSize = self.text_style.fontSize * 0.9;
+        self.text_style.fontSize = self.text_style.fontSize * 0.99;
         self.text_element.css('font-size', self.text_style.fontSize);
 
-        self.text_style.lineHeight = self.text_style.lineHeight * 0.9;
+        self.text_style.lineHeight = self.text_style.lineHeight * 0.99;
         self.text_element.css('line-height', self.text_style.lineHeight+ 'px');
 
     }
