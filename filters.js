@@ -182,7 +182,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
     $.ajax({
         url: self.options.filter_pack + 'filter-pack.json',
         success: function(pack){
-            self.filter_pack = pack;
+            self.filter_pack = pack.filter_pack;
             self.filter_pack.base_path = self.options.filter_pack;
             self.load_filter_pack.resolve(self.filter_pack);
 
@@ -193,7 +193,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
     $.ajax({
         url: self.options.sticker_pack + 'sticker-pack.json',
         success: function(pack){
-            self.sticker_pack = pack;
+            self.sticker_pack = pack.sticker_pack;
             self.sticker_pack.base_path = self.options.sticker_pack;
             self.load_sticker_pack.resolve(self.sticker_pack);
         }
@@ -236,7 +236,7 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
  */
 SnaprFX.prototype.load_fonts = function(){  var self = this;
 
-    $.each(self.filter_pack.filter_pack.sections, function(i, section){
+    $.each(self.filter_pack.sections, function(i, section){
         $.each(section.filters, function(i, filter){
 
             var filter_path = self.filter_pack.base_path + 'filters/' + filter.slug + '/';
@@ -635,7 +635,10 @@ SnaprFX.prototype.add_sticker = function(slug){  var self = this;
 
     var sticker = new SnaprFX.sticker(slug, self);
     self.stickers.push(sticker);
-    self.elements.overlay.append(sticker.element.addClass('fx-sticker-active'));
+    sticker.deferred.done(function(){
+        self.elements.overlay.append(sticker.element.addClass('fx-sticker-active'));
+    });
+
 
 };
 
@@ -691,7 +694,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
     self.load().done(function(){
 
 
-        self.scale_factor = Math.min(self.image.width / parent.sticker_pack.sticker_pack.target_canvas.width, self.image.height / parent.sticker_pack.sticker_pack.target_canvas.height);
+        self.scale_factor = Math.min(self.image.width / parent.sticker_pack.target_canvas.width, self.image.height / parent.sticker_pack.target_canvas.height);
 
         // Build element
         // -------------

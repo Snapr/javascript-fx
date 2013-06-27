@@ -42,7 +42,7 @@
                     image.revert();
                 })
             );
-            $.each(pack.filter_pack.sections, function(i, section){
+            $.each(pack.sections, function(i, section){
                 var section_el = $('<fieldset>');
                 section_el.append($('<legend>'+section.name+'</legend>'));
                 $('.x-effects').append(section_el);
@@ -67,7 +67,7 @@
         });
 
         image.load_sticker_pack.done(function(pack){
-            $.each(pack.sticker_pack.sections, function(i, section){
+            $.each(pack.sections, function(i, section){
                 var section_el = $('<fieldset>');
                 section_el.append($('<legend>'+section.name+'</legend>'));
                 $('.x-stickers').append(section_el);
