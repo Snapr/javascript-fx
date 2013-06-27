@@ -345,7 +345,9 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
     // defaults
     options = $.extend({
         filter: self.current_filter,
-        editable: false
+        editable: false,
+        width: self.options.width,
+        height: self.options.height
     }, options);
 
     self.render_options = options;
@@ -379,19 +381,21 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
                 r.left, r.top, r.width, r.height
             );
         }else{
-            self.canvas.context.drawImage(self.original.canvas, 0, 0);
+            var done = false;
+            function draw_original(){
+                if(done){
+                    self.canvas.context.drawImage(self.original.canvas, 0, 0);
+                }
+                done = true;
+            }
+            self.canvas.set_size(self.render_options.width, self.render_options.height).done(draw_original);
+            self.original.set_size(self.render_options.width, self.render_options.height).done(draw_original);
         }
 
 
         var filter = function(){
             self.pixels = self.canvas.get_data();
             self.apply_next_layer();
-
-
-            // update element when done
-            self.deferred.done(function(){
-                self.update_element();
-            });
         };
 
         if(!options.editable){
@@ -420,6 +424,22 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         }
     }
 
+};
+
+SnaprFX.prototype.output = function(options){  var self = this;
+
+    var deferred = $.Deferred();
+
+    self.apply_filter({
+        output: true,
+        width: options.width,
+        height: options.height
+    });
+    self.deferred.done(function(){
+        deferred.resolve(self.canvas.get_data_url());
+    });
+
+    return deferred;
 };
 
 // "main" function - runs filter on px and puts them back
@@ -565,7 +585,9 @@ SnaprFX.prototype.finish = function(){  var self = this;
     if(debug_logging){ console.time('writing data back'); }
 
     self.canvas.put_data(self.pixels);
-    self.update_element();
+    if(!self.render_options.output){
+        self.update_element();
+    }
     self.deferred.resolve();
 
     $(document.body).removeClass('fx-processing');
@@ -904,6 +926,9 @@ SnaprFX.sticker.prototype.remove = function(){  var self = this;
  * @constructor
  */
 SnaprFX.Canvas = function(options){  var self = this;
+    if(debug_logging){ console.log('canvas', options); }
+
+    self.options = options;
 
     self.deferred = $.Deferred();  // to notify when read to read
 
@@ -927,79 +952,87 @@ SnaprFX.Canvas = function(options){  var self = this;
     if(debug_logging){ console.time('get image'); }
 
     // correct orientation
-    var rotation;
     switch (options.orientation){
         case 3:
-            rotation = Math.PI;
+            self.options.rotation = Math.PI;
             break;
         case 6:
-            rotation = Math.PI * 0.5;
+            self.options.rotation = Math.PI * 0.5;
             break;
         case 8:
-            rotation = Math.PI * 1.5;
+            self.options.rotation = Math.PI * 1.5;
             break;
         default:
-            rotation = 0;
+            self.options.rotation = 0;
     }
 
     // get image
     self.image = new Image();
     self.image.src = options.url;
 
-    self.image.onload = function() {
+    self.image.onload = function(){
+        self.place_image().done(function(){
+            self.deferred.resolve();
+        });
+    };
 
-        this.aspect = this.width/this.height;
-        var x1 = 0,
-            y1 = 0,
-            x2 = this.width,
-            y2 = this.height;
-        if(options.size){
-            if(options.aspect){
-                var chop;
-                if(this.aspect > options.aspect){
-                    self.height = self.canvas.height = options.size;
-                    self.width = self.canvas.width = self.height * options.aspect;
-                    chop = this.width - (this.height * options.aspect);
+};
 
-                    x1 = chop/2;
-                    x2 = this.width-chop;
-                }else{
-                    self.width = self.canvas.width = options.size;
-                    self.height = self.canvas.height = self.width / options.aspect;
-                    chop = (this.height - (this.width / options.aspect));
+SnaprFX.Canvas.prototype.place_image = function() {  var self = this;
 
-                    y1 = chop/2;
-                    y2 = this.height-chop;
-                }
+    var deferred = $.Deferred();
+
+    self.image.aspect = self.image.width/self.image.height;
+    var x1 = 0,
+        y1 = 0,
+        x2 = self.image.width,
+        y2 = self.image.height;
+    if(self.options.size){
+        if(self.options.aspect){
+            var chop;
+            if(self.image.aspect > self.options.aspect){
+                self.height = self.canvas.height = self.options.size;
+                self.width = self.canvas.width = self.height * self.options.aspect;
+                chop = self.image.width - (self.image.height * self.options.aspect);
+
+                x1 = chop/2;
+                x2 = self.image.width-chop;
             }else{
-                if(this.aspect > 1){
-                    self.width = self.canvas.width = options.size;
-                    self.height = self.canvas.height = self.width / this.aspect;
-                }else{
-                    self.height = self.canvas.height = options.size;
-                    self.width = self.canvas.width = self.height * this.aspect;
-                }
+                self.width = self.canvas.width = self.options.size;
+                self.height = self.canvas.height = self.width / self.options.aspect;
+                chop = (self.image.height - (self.image.width / self.options.aspect));
+
+                y1 = chop/2;
+                y2 = self.image.height-chop;
             }
         }else{
-            // scale canvas to image size
-            self.width = self.canvas.width = options.width || this.width;
-            self.height = self.canvas.height = options.height || this.height;
+            if(self.image.aspect > 1){
+                self.width = self.canvas.width = self.options.size;
+                self.height = self.canvas.height = self.width / self.image.aspect;
+            }else{
+                self.height = self.canvas.height = self.options.size;
+                self.width = self.canvas.width = self.height * self.image.aspect;
+            }
         }
+    }else{
+        // scale canvas to image size
+        self.width = self.canvas.width = self.options.width || self.image.width;
+        self.height = self.canvas.height = self.options.height || self.image.height;
+    }
 
-        // Draw the image onto the canvas
-        self.context.translate(self.canvas.width/2, self.canvas.height/2);
-        self.context.rotate(rotation);
-        self.context.drawImage(this, x1, y1, x2, y2, self.canvas.width/-2, self.canvas.height/-2, self.canvas.width, self.canvas.height);
-        self.context.rotate(-rotation);
-        self.context.translate(self.canvas.width/-2, self.canvas.height/-2);
+    // Draw the image onto the canvas
+    self.context.translate(self.canvas.width/2, self.canvas.height/2);
+    self.context.rotate(self.options.rotation);
+    self.context.drawImage(self.image, x1, y1, x2, y2, self.canvas.width/-2, self.canvas.height/-2, self.canvas.width, self.canvas.height);
+    self.context.rotate(-self.options.rotation);
+    self.context.translate(self.canvas.width/-2, self.canvas.height/-2);
 
-        delete self.image;
+    // notify that it's ready
+    deferred.resolve();
 
-        // notify that it's ready
-        self.deferred.resolve();
+    if(debug_logging){ console.timeEnd('get image'); }
 
-        if(debug_logging){ console.timeEnd('get image'); }
-    };
+    return deferred;
 };
 
 SnaprFX.Canvas.prototype.get_data = function(){
@@ -1022,6 +1055,28 @@ SnaprFX.Canvas.prototype.get_data_url = function() {
 SnaprFX.Canvas.prototype.clear = function() {
     // setting width clears and resets canvas
     this.canvas.width = this.canvas.width;
+};
+
+SnaprFX.Canvas.prototype.set_size = function(width, height) {  var self = this;
+    if(self.canvas.width != width){
+        self.width = width;
+        self.options.width = width;
+        self.canvas.width = width;
+    }
+    if(self.canvas.height != height){
+        self.height = height;
+        self.options.height = height;
+        self.canvas.height = height;
+    }
+    if(self.image){
+        return self.place_image();
+    }else{
+        return $.Deferred().resolve();
+    }
+};
+
+SnaprFX.Canvas.prototype.clone = function(options) {  var self = this;
+    return new SnaprFX.Canvas($.extend({}, self.options, options));
 };
 
 
@@ -1579,19 +1634,29 @@ SnaprFX.filters.color.prototype.process = function(i, rgb){ return this.color; }
  * @param {Object} layer. Layer options.
  * @param {Object} fx. An instance of SnaprFX.
  */
-SnaprFX.filters.image = function(layer, fx){
+SnaprFX.filters.image = function(layer, fx){  var self = this;
     // TODO: if opacity == 1 and mask == false we can use canvas.context.drawImage to do this more efficiently
-    this.url = layer.image.image;
-    this.width = fx.canvas.width;
-    this.height = fx.canvas.height;
-    this.canvas = new SnaprFX.Canvas({url: fx.filter_pack.base_path + 'filters/' + fx.current_filter+'/'+this.url, width: this.width, height: this.height});
-    this.deferred = $.Deferred();
-    var image_filter = this;
-    this.canvas.deferred.done(function(){
-        image_filter.pixels = image_filter.canvas.get_data();
-        image_filter.deferred.resolve();
+    self.url = layer.image.image;
+    self.width = fx.canvas.width;
+    self.height = fx.canvas.height;
+    self.canvas = new SnaprFX.Canvas({url: fx.filter_pack.base_path + 'filters/' + fx.current_filter+'/'+self.url, width: self.width, height: self.height});
+    self.deferred = $.Deferred();
+    self.canvas.deferred.done(function(){
+        self.pixels = self.canvas.get_data();
+        self.deferred.resolve();
     });
 };
+SnaprFX.filters.image.prototype.update = function(layer, fx){  var self = this;
+    console.log('updating', fx.canvas.width);
+    self.width = fx.canvas.width;
+    self.height = fx.canvas.height;
+    self.deferred = $.Deferred();
+    self.canvas.set_size(self.width, self.height).done(function(){
+        self.pixels = self.canvas.get_data();
+        self.deferred.resolve();
+    });
+};
+
 SnaprFX.filters.image.prototype.process = function(i, rgb){
     return [this.pixels[i], this.pixels[i+1], this.pixels[i+2], this.pixels[i+3]];
 };
@@ -1613,6 +1678,21 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 
     self.canvas = new SnaprFX.Canvas({width: fx.canvas.width, height: fx.canvas.height});
 
+    // debug
+    // -----
+    // draws bounding box
+    // self.canvas.context.strokeRect(
+    //     self.position.left,
+    //     self.position.top,
+    //     self.position.right - self.position.left,
+    //     self.position.bottom - self.position.top
+    // );
+
+    self.update(layer, fx);
+
+};
+
+SnaprFX.filters.text.prototype.calculate_position = function(layer, fx){  var self = this;
     self.x_scale_factor = self.canvas.width / fx.filter_specs[fx.current_filter].target_canvas.width;
     self.y_scale_factor = self.canvas.height / fx.filter_specs[fx.current_filter].target_canvas.height;
 
@@ -1622,21 +1702,15 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
         left: layer.position.bbox.left * self.x_scale_factor,
         right: layer.position.bbox.right * self.x_scale_factor
     };
+};
 
 
-    // debug
-    // -----
-    // draws bounding box
-    self.canvas.context.strokeRect(
-        self.position.left,
-        self.position.top,
-        self.position.right - self.position.left,
-        self.position.bottom - self.position.top
-    );
-
-
-    self.update(layer, fx);
-
+SnaprFX.filters.text.prototype.set_canvas_font = function(){  var self = this;
+    self.text_element.css('font-size', parseInt(self.text_element.css('font-size'), 10) * self.render_scale);
+    self.text_element.css('line-height', parseInt(self.text_element.css('line-height'), 10) * self.render_scale + 'px');
+    self.canvas.context.font = self.text_element.css('font');
+    self.text_element.css('font-size', parseInt(self.text_element.css('font-size'), 10) / self.render_scale);
+    self.text_element.css('line-height', parseInt(self.text_element.css('line-height'), 10) / self.render_scale + 'px');
 };
 
 SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
@@ -1645,12 +1719,17 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     self.spec = layer;
     self.deferred = $.Deferred();
 
-    self.create_overlay(layer, fx);
-
+    self.canvas.set_size(fx.canvas.width, fx.canvas.height);
     self.canvas.clear();
 
+    self.calculate_position(layer, fx);
+
+    self.create_overlay(layer, fx);
+
+    self.render_scale = self.canvas.height / fx.elements.overlay.height();
+
     // set font properties on canvas
-    self.canvas.context.font = self.text_element.css('font');
+    self.set_canvas_font();
     self.canvas.context.textAlign = self.text_style.textAlign || 'left';
     self.canvas.context.textBaseline = self.text_style.textBaseline || 'top';
     self.canvas.context.fillStyle = self.text_style.fillStyle;
@@ -1699,7 +1778,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
         self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
         self.text_element.css('line-height', self.text_style.lineHeight+ 'px');
 
-        self.canvas.context.font = self.text_element.css('font');
+        self.set_canvas_font();
 
         lines = word_wrap(self.text, max_width);
 
@@ -1734,12 +1813,12 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
         case 'ideographic':
         case 'bottom':
             // start No. of extra lines up from bottom
-            y = self.position.bottom - (self.text_style.lineHeight * (lines.length - 1));
-            padding_offset = - self.text_style.lineHeight;
+            y = self.position.bottom - (self.text_style.lineHeight*self.render_scale * (lines.length - 1));
+            padding_offset = - self.text_style.lineHeight*self.render_scale;
             break;
         case 'middle':
-            y = (max_height / 2 + self.position.top) - ((self.text_style.lineHeight * (lines.length - 1)) / 2);
-            padding_offset = - self.text_style.lineHeight/2;
+            y = (max_height / 2 + self.position.top) - ((self.text_style.lineHeight*self.render_scale * (lines.length - 1)) / 2);
+            padding_offset = - self.text_style.lineHeight*self.render_scale/2;
             break;
         default:  // top
             // start at top
@@ -1760,7 +1839,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     if(self.slug !== fx.render_options.active_text && !layer.removed){
 
         for(var l=0; l < lines.length; l++){
-            self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight, max_width);
+            self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight*self.render_scale, max_width);
 
             // draws bounding box
             // self.canvas.context.strokeRect(
