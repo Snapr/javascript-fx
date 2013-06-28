@@ -1791,6 +1791,20 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
     self.create_overlay(layer, fx);
 
+    // update text from overlay
+
+    // strip HTML, replace <br> with newlines
+    self.text = self.text_element.html()
+        .replace(/<br\/?>/g, '\n')  // <br> to newline
+        .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
+        .replace(/<.*?>/g, '');  // strip html tags
+
+    // but back stripped text with <br>s for newlines
+    self.text_element.html(self.text.replace(/\n/g, '<br>'));
+
+    self.text_style.fillStyle = self.text_element.css('color');
+    self.text_style.textAlign = self.element.css('text-align');
+
     self.render_scale = self.canvas.height / fx.elements.overlay.height();
 
     // set font properties on canvas
@@ -2105,19 +2119,6 @@ SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
     self.element.removeClass('fx-text-rendered');
 };
 SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
-
-    // strip HTML, replace <br> with newlines
-    self.text = self.text_element.html()
-        .replace(/<br\/?>/g, '\n')  // <br> to newline
-        .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
-        .replace(/<.*?>/g, '');  // strip html tags
-
-    // but back stripped text with <br>s for newlines
-    self.text_element.html(self.text.replace(/\n/g, '<br>'));
-
-    self.text_style.fillStyle = self.text_element.css('color');
-    self.text_style.textAlign = self.element.css('text-align');
-
     self.element.addClass('fx-text-rendered');
 };
 
