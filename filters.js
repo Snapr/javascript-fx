@@ -291,7 +291,7 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
 
         self.load_original(true).done(function(){
 
-            self.apply_filter();
+            self.apply_filter({editable: self.render_options.editable});
             deferred.resolve();
 
         });
