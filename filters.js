@@ -99,7 +99,6 @@ SnaprFX.utils = {
                 $.each(pack.sticker_pack.sections, function(i, section){
                     $.each(section.stickers, function(i, sticker){
                         var image = new Image();
-                        console.log(options.sticker_pack+'assets/'+sticker.slug+'.png');
                         image.src = options.sticker_pack+'assets/'+sticker.slug+'.png';
                     });
                 });
@@ -741,7 +740,10 @@ SnaprFX.prototype.add_sticker = function(slug){  var self = this;
     var sticker = new SnaprFX.sticker(slug, self);
     self.stickers.push(sticker);
     sticker.deferred.done(function(){
-        self.elements.overlay.append(sticker.element.addClass('fx-sticker-active'));
+        self.elements.overlay.append(sticker.element);
+        sticker.element
+            .addClass('fx-active')
+            .siblings('.fx-active').removeClass('fx-active');
     });
 
 
@@ -848,12 +850,12 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
         // click to unrender
         self.element.on('click', function(){
             if(self.rendered){
-                self.element
-                    .addClass('fx-sticker-active')
-                    .removeClass('fx-sticker-rendered');
-
                 parent.unrender_editables();
             }
+            self.element
+                .addClass('fx-active')
+                .removeClass('fx-sticker-rendered')
+                .siblings('.fx-active').removeClass('fx-active');
         });
 
         // dragging
@@ -1949,13 +1951,13 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     .on('click', function(){
         var wrapper = $(this).parent().parent();
 
-        var active = wrapper.hasClass('fx-text-active'),
+        var active = wrapper.hasClass('fx-active'),
             rendered = wrapper.hasClass('fx-text-rendered');
 
         // deactivate all other text layers
-        var deactivate = self.overlay.find('.fx-text-active')    // find active text
+        var deactivate = self.overlay.find('.fx-active')    // find active text
             .not(wrapper)                       // not this one though
-            .removeClass('fx-text-active')      // make inactive...
+            .removeClass('fx-active')      // make inactive...
             .trigger('deactivate', layer)
             .find('.fx-text-inner')
                 .attr('contenteditable', false);
@@ -1968,7 +1970,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         // activate if not already active
         if(!active){
             wrapper
-                .addClass('fx-text-active')
+                .addClass('fx-active')
                 .removeClass('fx-text-rendered')
                 .trigger('activate', layer)
                 .find('.fx-text-inner')

@@ -120,7 +120,7 @@ fieldset{
 
 // FX base styles - move to lib
 
-.fx-active{
+.fx-active-border{
     margin: -2px;  // account for border
     border:solid rgba(240,240,240,.8) 2px;
     border-radius: 4px;
@@ -151,9 +151,9 @@ fieldset{
         display: none;
     }
 
-    &.fx-text-active{
+    &.fx-active{
         .fx-text-inner{
-            .fx-active;
+            .fx-active-border;
         }
         .fx-text-button{
             display: block;  // show buttons on active
@@ -182,8 +182,8 @@ fieldset{
         display: none;  // hide buttons normally
     }
 
-    &.fx-sticker-active{
-        .fx-active;
+    &.fx-active{
+        .fx-active-border;
         .fx-sticker-handle{
             display: block;  // show buttons on active
         }

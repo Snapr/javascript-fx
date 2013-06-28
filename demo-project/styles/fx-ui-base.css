@@ -109,7 +109,7 @@ fieldset {
   padding: 10px;
   border-radius: 5px;
 }
-.fx-active {
+.fx-active-border {
   margin: -2px;
   border: solid rgba(240, 240, 240, 0.8) 2px;
   border-radius: 4px;
@@ -131,13 +131,13 @@ fieldset {
 .fx-text .fx-text-button {
   display: none;
 }
-.fx-text.fx-text-active .fx-text-inner {
+.fx-text.fx-active .fx-text-inner {
   margin: -2px;
   border: solid rgba(240, 240, 240, 0.8) 2px;
   border-radius: 4px;
   box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
 }
-.fx-text.fx-text-active .fx-text-button {
+.fx-text.fx-active .fx-text-button {
   display: block;
 }
 .fx-sticker {
@@ -157,13 +157,13 @@ fieldset {
 .fx-sticker .fx-sticker-handle {
   display: none;
 }
-.fx-sticker.fx-sticker-active {
+.fx-sticker.fx-active {
   margin: -2px;
   border: solid rgba(240, 240, 240, 0.8) 2px;
   border-radius: 4px;
   box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
 }
-.fx-sticker.fx-sticker-active .fx-sticker-handle {
+.fx-sticker.fx-active .fx-sticker-handle {
   display: block;
 }
 .fx-sticker .fx-remove-sticker {
