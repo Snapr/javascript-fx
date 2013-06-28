@@ -23,6 +23,11 @@
             orig = img.clone().hide().appendTo(document.body);
             src = orig.attr('src'),
 
+            SnaprFX.utils.preload_assets({
+                filter_pack: filter_pack,
+                sticker_pack: sticker_pack
+            });
+
             image = new SnaprFX({
                 url: src,
                 element: img,

@@ -44,6 +44,69 @@ var SnaprFX = function(options){ return this.init(options); };
 // ---------
 
 SnaprFX.utils = {
+    preload_assets: function(options){
+        var filter_pack, sticker_pack;
+        $.ajax({
+            url: options.filter_pack + 'filter-pack.json',
+            success: function(pack){
+                $.each(pack.filter_pack.sections, function(i, section){
+                    $.each(section.filters, function(i, filter){
+
+                        var filter_path = options.filter_pack    + 'filters/' + filter.slug + '/';
+                        // get filter details
+                        $.ajax({
+                            url: filter_path + 'filter.json',
+                            success: function(data){
+
+                                if(data.filter.fonts){
+                                    $.each(data.filter.fonts, function(i, font){
+
+                                        var css = "@font-face {";
+                                        css += "font-family: '"+font['font-family']+"';";
+                                        if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
+                                        if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
+                                        if(font.eot){ css += "src: url('"+filter_path + 'fonts/'+font.eot+"');"; }
+                                        css += "src:";
+                                        if(font.eot){ css += "url('"+filter_path + 'fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
+                                        if(font.woff){ css += "url('"+filter_path + 'fonts/'+font.woff+"') format('woff'),"; }
+                                        if(font.ttf){ css += "url('"+filter_path + 'fonts/'+font.ttf+"') format('truetype'),"; }
+                                        if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
+                                        css += "}";
+
+                                        $('<style>'+css+'</style>').appendTo(document.head);
+
+                                        // use font on page so it's preloaded
+                                        $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
+
+                                    });
+                                }
+
+                                $.each(data.filter.layers, function(i, layer){
+                                    if(layer.type == 'image'){
+                                        var image = new Image();
+                                        image.src = filter_path+layer.image.image;
+                                    }
+                                });
+                            }
+                        });
+                    });
+                });
+            }
+        });
+        $.ajax({
+            url: options.sticker_pack + 'sticker-pack.json',
+            success: function(pack){
+                $.each(pack.sticker_pack.sections, function(i, section){
+                    $.each(section.stickers, function(i, sticker){
+                        var image = new Image();
+                        console.log(options.sticker_pack+'assets/'+sticker.slug+'.png');
+                        image.src = options.sticker_pack+'assets/'+sticker.slug+'.png';
+                    });
+                });
+            }
+        });
+    },
+
     // Reads EXIF from a file identified by 'url'
     // Returns Deferred which resolves with selected EXIF properties
     read_exif: function(url){
