@@ -6,6 +6,19 @@ body{
     color: #a0a0a0;
     background-color: #262626;
     padding: 1em;
+    -webkit-user-select: none;
+     -khtml-user-select: none;
+     -moz-user-select: none;
+     -o-user-select: none;
+      user-select: none;
+}
+
+.fx-text-inner{
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -o-user-select: text;
+    user-select: text;
 }
 
 h1,h2,h3,h4,h5,h6{
@@ -53,24 +66,28 @@ fieldset{
             white-space: nowrap;
             overflow-x: scroll;
             padding-bottom: 20px;
-            a{
-                text-align: center;
+            fieldset{
                 display: inline-block;
-                img{
-                    display: block;
-                    margin: 0 .25em 0 0;
-                    border: solid #000 1px;
-                    &.x-current-image{
-                        border: solid #ffff00 1px;
+                 a{
+                        text-align: center;
+                        display: inline-block;
+                        img{
+                            display: block;
+                            margin: 0 .25em 0 0;
+                            border: solid #000 1px;
+                            &.x-current-image{
+                                border: solid #ffff00 1px;
+                            }
+                        }
+                        &:hover,
+                        &.x-current-filter{
+                            img{
+                                border: solid #ffff00 1px;
+                            }
+                        }
                     }
-                }
-                &:hover,
-                &.x-current-filter{
-                    img{
-                        border: solid #ffff00 1px;
-                    }
-                }
             }
+            
         }
         .x-stickers{
             a{

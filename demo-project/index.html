@@ -40,7 +40,7 @@
 
         image.load_filter_pack.done(function(pack){
             $('.x-effects').append(
-                $('<a> <img src="'+pack.base_path+'original-thumb@2x.png">Original </a>')
+                $('<fieldset><legend>No Filter</legend><a> <img src="'+pack.base_path+'original-thumb@2x.png">Original </a></fieldset>')
                 .click(function(){
                     $('.x-current-filter').removeClass('x-current-filter');
                     $(this).addClass('x-current-filter');
