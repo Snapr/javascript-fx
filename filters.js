@@ -942,6 +942,9 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
                 self.element.css({
                     transform: 'scale('+self.scale+') rotate('+(self.rotation/(2*Math.PI) * 360)+'deg)'
                 });
+                self.element.find('.fx-sticker-handle').css({
+                    transform: 'scale('+(1/self.scale)+')'
+                });
             }
         };
 
