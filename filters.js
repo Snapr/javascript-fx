@@ -907,9 +907,13 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
         // start drag
         self.element.on('mousedown', function(event) {
             if(!self.rendered){
+
+                var left = parseInt(self.element.css('left'), 10);
+                var top = parseInt(self.element.css('top'), 10);
+
                 self.drag_from = {
-                    left: event.pageX - self.element.position().left,
-                    top: event.pageY - self.element.position().top
+                    left: event.pageX - left,
+                    top: event.pageY - top
                 };
                 parent.elements.wrapper.on('mousemove', self.mousemove_drag);
             }
@@ -941,12 +945,12 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             }
         };
 
-        // start drag
+        // start scale
         self.element.find('.fx-scale-sticker').on('mousedown', function(event) {
             event.stopPropagation();
             window.element=self.element;
             if(!self.rendered){
-                var dimensions = SnaprFX.utils.rotated_dimensions(self.element.width(), self.element.height(), -self.rotation);
+                var dimensions = self.get_dimensions();
                 var offset = self.element.offset();
                 self.scale_from = {
                     left: offset.left + dimensions.width * self.scale/2,
@@ -1000,14 +1004,32 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
 
         x = (offset.left - layer_offset.left) / layer.width(),
         y = (offset.top - layer_offset.top) / layer.height(),
-        width = sticker.width() / layer.width() * self.scale,
-        height = sticker.height() / layer.height() * self.scale;
+        w = sticker.width() / layer.width() * self.scale * canvas.width,
+        h = sticker.height() / layer.height() * self.scale * canvas.height;
+
+        var r = self.rotation, PI = Math.PI;
+        if(r>2*PI){r-=2*PI;}
+        if(r<0){r+=2*PI;}
+        var sin = Math.sin(r);
+        var cos = Math.cos(r);
+
+        if(r < PI/2){  // < 90
+            x += sin*h / canvas.width;
+        }else if(r > PI*1.5){  // > 270
+            y += -sin*w / canvas.height;
+        }else if(r > PI/2 && r < PI){  // > 90
+            x += (sin*h + -cos*w) / canvas.width;
+            y += -cos*h / canvas.height;
+        }else{  // > 180
+            x += -cos*w / canvas.width;
+            y += (-cos*h - sin*w) / canvas.height;
+        }
 
     self.load().done(function() {
         // place sticker
         canvas.context.translate(x * canvas.width, y * canvas.height);
         canvas.context.rotate(self.rotation);
-        canvas.context.drawImage(self.image, 0,0, self.image.width, self.image.height ,x/2 * canvas.width, y/2 * canvas.height ,width * canvas.width ,height * canvas.height);
+        canvas.context.drawImage(self.image, 0,0, self.image.width, self.image.height ,0 ,0 ,w ,h);
         canvas.context.rotate(-self.rotation);
         canvas.context.translate(-x * canvas.width, -y * canvas.height);
         // notify that it's ready
@@ -1050,6 +1072,11 @@ SnaprFX.sticker.prototype.remove = function(){  var self = this;
         }
     });
 };
+SnaprFX.sticker.prototype.get_dimensions = function(){  var self = this;
+    return SnaprFX.utils.rotated_dimensions(self.element.width(), self.element.height(), -self.rotation);
+};
+
+
 
 
 // Canvas
