@@ -441,7 +441,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     if(!options.editable){
         self.deferred.done(function(){
-            if(self.options.render_text !== false){
+            if(self.options.render_text !== false || self.render_options.render_text){
                 $.each(self.text, function(i, text){
                     text.rerender();
                 });
@@ -739,7 +739,6 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
     self.elements.overlay = $('<div class="fx-overlay-layer">')
         .css(full_size)
         .click(function(event){
-            console.log(self.render_options.editable);
             if(!$(event.target).closest('.fx-text-wrapper').length){ // if click wasn't on a text el
 
                 if(self.render_options.editable && !$(event.target).closest('.fx-sticker').length){
@@ -1912,7 +1911,7 @@ SnaprFX.filters.text.prototype.set_canvas_font = function(){  var self = this;
 
 SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
-    self.rendered = fx.options.render_text !== false && (!fx.render_options.editable || fx.options.disable_text_edit);
+    self.rendered = (fx.options.render_text !== false || fx.render_options.render_text) && (!fx.render_options.editable || fx.options.disable_text_edit);
     self.spec = layer;
     self.deferred = $.Deferred();
 
@@ -2086,7 +2085,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         'text-align': self.text_style.textAlign
     });
 
-    if(self.rendered && fx.options.render_text !== false){
+    if(self.rendered && (fx.options.render_text !== false || fx.render_options.render_text)){
         self.element.addCalss('fx-text-rendered');
     }
 
@@ -2167,7 +2166,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             })
             // trigger render
             .click(function(){
-                if(fx.options.render_text !== false){
+                if(fx.options.render_text !== false || fx.render_options.render_text){
                     fx.rerender_editables();
                 }else{
                     self.deactivate();
@@ -2259,7 +2258,6 @@ SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
     self.element.removeClass('fx-text-rendered');
 };
 SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
-    console.trace("rerender");
     self.element.addClass('fx-text-rendered');
 };
 

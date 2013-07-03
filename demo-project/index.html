@@ -197,6 +197,10 @@
             image.options.render_text = $(this).is(':checked');
         });
 
+        $('.x-render-preview').click(function(){
+            image.apply_filter({render_text: true, editable:false});
+        })
+
     });
     </script>
 
@@ -325,7 +329,7 @@
                         <h2>Render:</h2>
 
                         <div class="x-render">
-                            <button class="x-render-full">Update Preview</button>
+                            <button class="x-render-preview">Update Preview</button>
                              <input type="checkbox" id="x-render-text-while-working" value="bold" name="x-render-text-while-working" class="x-render-settings"/>
                              <label for="x-render-text-while-working">Render Text While Working</label>
                             <button class="x-render-full">Final Output</button>
