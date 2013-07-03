@@ -2103,14 +2103,12 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             return;
         }
 
-        var wrapper = $(this).parent().parent();
-
-        var active = wrapper.hasClass('fx-active'),
-            rendered = wrapper.hasClass('fx-text-rendered');
+        var active = self.element.hasClass('fx-active'),
+            rendered = self.element.hasClass('fx-text-rendered');
 
         // deactivate all other text layers
         var to_deactivate = self.overlay.find('.fx-active')    // find active text
-            .not(wrapper);   // not this one though
+            .not(self.element);   // not this one though
 
         if(to_deactivate.length){
             self.deactivate(to_deactivate);
@@ -2120,12 +2118,10 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
         // activate if not already active
         if(!active){
-            wrapper
+            self.element
                 .addClass('fx-active')
                 .removeClass('fx-text-rendered')
-                .trigger('activate', layer)
-                .find('.fx-text-inner')
-                    .attr('contenteditable', true);
+                .trigger('activate', layer);
 
             fx.active_text = self;
         }
@@ -2138,6 +2134,11 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         if(rendered){
             fx.unrender_editables();
         }
+
+    })
+    .on('dblclick', function(){
+        self.element.addClass('fx-editable');
+        self.text_element.attr('contenteditable', true);
     })
     .on('keyup', function(){
         self.check_size();
@@ -2263,6 +2264,7 @@ SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
 
 SnaprFX.filters.text.prototype.deactivate = function(elements){  var self = this;
     (elements || self.element)
+        .removeClass('fx-editable')
         .removeClass('fx-active')      // make inactive...
         .trigger('deactivate')
         .find('.fx-text-inner')

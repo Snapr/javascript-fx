@@ -87,7 +87,7 @@ fieldset{
                         }
                     }
             }
-            
+
         }
         .x-stickers{
             a{
@@ -158,10 +158,19 @@ fieldset{
     }
 
     .fx-text-inner{
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
         // border: 1px solid #900;
         padding: 9px;
         outline: none;  // no default outline when contenteditable=true
         display: inline-block;  // shrink to text
+    }
+
+    &.fx-editable .fx-text-inner{
+        user-select: text;
+        -webkit-user-select: text;
+        -moz-user-select: text;
     }
 
     .fx-text-button{  // hide buttons normally

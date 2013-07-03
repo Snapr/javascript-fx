@@ -141,9 +141,17 @@ fieldset {
   margin: -9px;
 }
 .fx-text .fx-text-inner {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
   padding: 9px;
   outline: none;
   display: inline-block;
+}
+.fx-text.fx-editable .fx-text-inner {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
 }
 .fx-text .fx-text-button {
   display: none;
