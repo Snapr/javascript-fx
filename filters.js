@@ -1964,6 +1964,12 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     // wrapping
     // --------
 
+    var position = self.element.position();
+    self.position.left = position.left;
+    self.position.top = position.top;
+    self.position.right = position.left + self.element.width();
+    self.position.bottom = position.top + self.element.height();
+
     var max_width = self.position.right - self.position.left,
         max_height = Math.round(self.position.bottom - self.position.top);
 
@@ -2188,6 +2194,45 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 }
             })
     );
+
+    // dragging
+    // --------
+
+    // move
+    self.mousemove_drag = function(event){
+        if(!self.rendered){
+            self.element.css({
+                left: event.pageX - self.drag_from.left,
+                top: event.pageY - self.drag_from.top
+            });
+        }
+    };
+
+    // finish drag
+    self.mouseup = function(){
+        fx.elements.wrapper.off('mousemove', self.mousemove_drag);
+    };
+    fx.elements.wrapper.on('mouseup', self.mouseup);
+
+    // start drag
+    self.element.on('mousedown', function(event) {
+        if(!self.rendered){
+
+            var left = parseInt(self.element.css('left'), 10);
+            var top = parseInt(self.element.css('top'), 10);
+
+            self.drag_from = {
+                left: event.pageX - left,
+                top: event.pageY - top
+            };
+            fx.elements.wrapper.on('mousemove', self.mousemove_drag);
+        }
+
+        fx.elements.overlay
+            .addClass('fx-editing-text')
+            .removeClass('fx-editing-sticker');
+    });
+
 
 
     // font setup
