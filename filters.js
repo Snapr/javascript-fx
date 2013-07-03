@@ -323,6 +323,13 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
     return deferred;
 };
 
+SnaprFX.prototype.set_options = function(options){  var self = this;
+    $.extend(self.options, options);
+
+    self.elements.overlay.toggleClass('fx-text-disabled', self.options.disable_text_edit);
+    self.elements.overlay.toggleClass('fx-stickers-disabled', self.options.disable_sticker_edit);
+};
+
 
 /**
  * Loads any custom fonts onto page
@@ -2086,7 +2093,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     });
 
     if(self.rendered && (fx.options.render_text !== false || fx.render_options.render_text)){
-        self.element.addCalss('fx-text-rendered');
+        self.element.addClass('fx-text-rendered');
     }
 
     self.wrapper = $('<div class="fx-text-wrapper">');

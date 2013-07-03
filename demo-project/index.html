@@ -187,14 +187,14 @@
         });
 
         $('#x-text-edit').click(function(){
-            image.options.disable_text_edit = $(this).is(':checked');
+            image.set_options({disable_text_edit: $(this).is(':checked')});
         });
         $('#x-sticker-edit').click(function(){
-            image.options.disable_sticker_edit = $(this).is(':checked');
+            image.set_options({disable_sticker_edit: $(this).is(':checked')});
         });
 
         $('#x-render-text-while-working').click(function(){
-            image.options.render_text = $(this).is(':checked');
+            image.set_options({render_text: $(this).is(':checked')});
         });
 
         $('.x-render-preview').click(function(){
