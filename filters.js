@@ -324,7 +324,14 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
 };
 
 SnaprFX.prototype.set_options = function(options){  var self = this;
+    var render_text = self.options.render_text;
+
     $.extend(self.options, options);
+
+    // if render_text just got turned on then render it
+    if(!render_text && self.options.render_text){
+        self.apply_filter({render_text: true, editable:false});
+    }
 
     self.elements.overlay.toggleClass('fx-text-disabled', self.options.disable_text_edit);
     self.elements.overlay.toggleClass('fx-stickers-disabled', self.options.disable_sticker_edit);
