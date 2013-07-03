@@ -439,6 +439,18 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     self.deferred = $.Deferred();
 
+    if(!options.editable){
+        self.deferred.done(function(){
+            $.each(self.text, function(i, text){
+                text.rerender();
+            });
+
+            $.each(self.stickers, function(i, sticker){
+                sticker.rerender();
+            });
+        });
+    }
+
     // remove text frames from prev filter
     if(options.filter != self.current_filter){
         self.elements.overlay.find('.fx-text').remove();
@@ -705,15 +717,6 @@ SnaprFX.prototype.rerender_editables = function(){  var self = this;
     // revert to orig with no stickers
     self.apply_filter({editable: false});
 
-    self.deferred.done(function(){
-        $.each(self.text, function(i, text){
-            text.rerender();
-        });
-
-        $.each(self.stickers, function(i, sticker){
-            sticker.rerender();
-        });
-    });
 };
 
 // initialise sticker and text overlay layers
