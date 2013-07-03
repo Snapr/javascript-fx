@@ -1911,7 +1911,7 @@ SnaprFX.filters.text.prototype.set_canvas_font = function(){  var self = this;
 
 SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
-    self.rendered = (fx.options.render_text !== false || fx.render_options.render_text) && (!fx.render_options.editable || fx.options.disable_text_edit);
+    self.rendered = (fx.options.render_text !== false || fx.render_options.render_text || fx.render_options.output) && (!fx.render_options.editable || fx.options.disable_text_edit);
     self.spec = layer;
     self.deferred = $.Deferred();
 
