@@ -495,7 +495,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             self.apply_next_layer();
         };
 
-        if(!options.editable){
+        if(!options.editable || self.options.disable_sticker_edit){
             self.render_stickers().done(filter);
         }else{
             filter();
@@ -697,13 +697,17 @@ SnaprFX.prototype.finish = function(){  var self = this;
 // removes stickers/text from render and displays their html overaly elements
 SnaprFX.prototype.unrender_editables = function(){  var self = this;
 
-    $.each(self.stickers, function(i, sticker){
-        sticker.unrender();
-    });
+    if(!self.options.disable_sticker_edit){
+        $.each(self.stickers, function(i, sticker){
+            sticker.unrender();
+        });
+    }
 
-    $.each(self.text, function(i, text){
-        text.unrender();
-    });
+    if(!self.options.disable_text_edit){
+        $.each(self.text, function(i, text){
+            text.unrender();
+        });
+    }
 
     // revert to orig with no stickers
     //setTimeout(function(){  // timeout allows other thigs to update before this starts
@@ -882,6 +886,9 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
 
         // click to unrender
         self.element.on('click', function(){
+            if(self.parent.options.disable_sticker_edit){
+                return;
+            }
             if(self.rendered){
                 parent.unrender_editables();
             }
@@ -1900,7 +1907,7 @@ SnaprFX.filters.text.prototype.set_canvas_font = function(){  var self = this;
 
 SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
-    self.rendered = !fx.render_options.editable;
+    self.rendered = !fx.render_options.editable || fx.options.disable_text_edit;
     self.spec = layer;
     self.deferred = $.Deferred();
 
@@ -2083,6 +2090,11 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     })
     .text(self.text)
     .on('click', function(){
+
+        if(fx.options.disable_text_edit){
+            return;
+        }
+
         var wrapper = $(this).parent().parent();
 
         var active = wrapper.hasClass('fx-active'),

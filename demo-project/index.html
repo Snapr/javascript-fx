@@ -185,6 +185,13 @@
             update_style();
         });
 
+        $('#x-text-edit').click(function(){
+            image.options.disable_text_edit = $(this).is(':checked');
+        });
+        $('#x-sticker-edit').click(function(){
+            image.options.disable_sticker_edit = $(this).is(':checked');
+        });
+
     });
     </script>
 
@@ -297,6 +304,17 @@
                             <div class="x-stickers">
                             </div>
                         </li>
+
+                    <li>
+                        <h2>Edit mode:</h2>
+
+                        <div>
+                             <input type="checkbox" id="x-text-edit"/>
+                             <label for="x-text-edit">Disable text editing</label>
+                             <input type="checkbox" id="x-sticker-edit"/>
+                             <label for="x-sticker-edit">Disable sticker editing</label>
+                        </div>
+                    </li>
 
                     <li>
                         <h2>Render:</h2>
