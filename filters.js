@@ -750,6 +750,8 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
     // put elements in wrapper
     self.elements.image.appendTo(self.elements.wrapper);
     self.elements.overlay.appendTo(self.elements.wrapper);
+
+    self.elements.overlay.offset_cache = self.elements.overlay.offset();
 };
 
 
@@ -856,6 +858,8 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
         }
         self.element = $(html).css(css);
 
+        self.initial = css;
+
         if(!self.rendered){
             self.element.removeClass('fx-sticker-rendered');
         }
@@ -913,7 +917,8 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
 
                 self.drag_from = {
                     left: event.pageX - left,
-                    top: event.pageY - top
+                    top: event.pageY - top,
+                    event: event
                 };
                 parent.elements.wrapper.on('mousemove', self.mousemove_drag);
             }
@@ -930,20 +935,23 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             event.stopPropagation();
             if(!self.rendered){
 
-                var distance = SnaprFX.utils.pythag(event.pageY-self.scale_from.top, event.pageX-self.scale_from.left);
+                var distance = SnaprFX.utils.pythag(event.pageX-self.scale_from.x, event.pageY-self.scale_from.y);
                 self.scale = distance/self.scale_from.size;
-                self.scale = Math.max(self.scale, 0);
+                self.scale = Math.max(self.scale, 0.15);
 
-                var rotation = SnaprFX.utils.cart2polar(event.pageX-self.scale_from.left, event.pageY-self.scale_from.top);
-                //console.log((self.scale_from.rotation-rotation)/(2*Math.PI) * 360);
+                var rotation = SnaprFX.utils.cart2polar(event.pageX-self.scale_from.x, event.pageY-self.scale_from.y);
 
                 self.rotation = -self.scale_from.rotation+rotation;
 
+                var width = self.initial.width * self.scale;
+                var height = self.initial.height * self.scale;
+
                 self.element.css({
-                    transform: 'scale('+self.scale+') rotate('+(self.rotation/(2*Math.PI) * 360)+'deg)'
-                });
-                self.element.find('.fx-sticker-handle').css({
-                    transform: 'scale('+(1/self.scale)+')'
+                    transform: 'rotate('+(self.rotation/(2*Math.PI) * 360)+'deg)',
+                    width: width,
+                    height: height,
+                    top: self.scale_from.y - height/2 - self.parent.elements.overlay.offset_cache.top,
+                    left: self.scale_from.x - width/2 - self.parent.elements.overlay.offset_cache.left
                 });
             }
         };
@@ -954,13 +962,21 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             window.element=self.element;
             if(!self.rendered){
                 var dimensions = self.get_dimensions();
-                var offset = self.element.offset();
+                var offset = self.element.find('.fx-sticker-image').offset();
+                //var position = self.element.position();
                 self.scale_from = {
-                    left: offset.left + dimensions.width * self.scale/2,
-                    top: offset.top + dimensions.height * self.scale/2,
-                    size: SnaprFX.utils.pythag(dimensions.height, dimensions.width) / 2
+
+                    // remember where the center is, the change in mouse distance/angle from this is scale/rotation
+                    x: offset.left + dimensions.width / 2,
+                    y: offset.top + dimensions.height / 2,
+                    // remember distance from center to corner, change in this = change in scale
+                    size: SnaprFX.utils.pythag(self.element.height(), self.element.width()) / 2 / self.scale,
+                    // remember current scale so new scale can be proportional
+                    scale: self.scale
                 };
-                self.scale_from.rotation = SnaprFX.utils.cart2polar(event.pageX-self.scale_from.left, event.pageY-self.scale_from.top) - self.rotation;
+                // remember current rotation to apply change in rotation on top of
+                self.scale_from.rotation = SnaprFX.utils.cart2polar(event.pageX-self.scale_from.x, event.pageY-self.scale_from.y) - self.rotation;
+
                 parent.elements.wrapper.on('mousemove', self.mousemove_scale);
             }
         });
@@ -1007,8 +1023,8 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
 
         x = (offset.left - layer_offset.left) / layer.width(),
         y = (offset.top - layer_offset.top) / layer.height(),
-        w = sticker.width() / layer.width() * self.scale * canvas.width,
-        h = sticker.height() / layer.height() * self.scale * canvas.height;
+        w = sticker.width() / layer.width() * canvas.width,
+        h = sticker.height() / layer.height() * canvas.height;
 
         var r = self.rotation, PI = Math.PI;
         if(r>2*PI){r-=2*PI;}
