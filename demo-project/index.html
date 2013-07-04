@@ -201,6 +201,39 @@
             image.apply_filter({render_text: true, editable:false});
         })
 
+        $('.x-add-text').click(function(e){
+            e.preventDefault();
+            image.add_text({
+                "type": "text",
+                "slug": "book_title",
+                "name": "Book Title",
+                "opacity": 100,
+                "blending_mode": "normal",
+                "mask_image": false,
+                "text": {
+                    "default_value": "Book \nTitle",
+                    "style": {
+                        "font": "bold 44px/46px Helvetica, Arial, sans-serif",
+                        "textAlign": "center",
+                        "fillStyle": "#d63e27",
+                        "textBaseline": "bottom"
+                    }
+                },
+                "position": {
+                    "bbox": {
+                        "top": 0,
+                        "left": 0,
+                        "bottom": 750,
+                        "right": 560
+                    },
+                    "x": 400,
+                    "y": 400
+                }
+            });
+        })
+
+
+
     });
     </script>
 
@@ -300,9 +333,9 @@
                                     <input class="other-color x-change-font">
 
                                 </fieldset>
-                                <!-- <fieldset>
-                                                                  <button id="x-add-textfield">Add a textfield</button>
-                                                              </fieldset> -->
+                                <fieldset>
+                                    <button class="x-add-text">Add a textfield</button>
+                                </fieldset>
                             </form>
 
                         </div>

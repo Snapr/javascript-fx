@@ -1874,6 +1874,11 @@ SnaprFX.filters.image.prototype.process = function(i, rgb){
 // Text
 // ----
 
+SnaprFX.prototype.add_text = function(spec){  var self = this;
+    spec.filter = new SnaprFX.filters.text(spec, self) ;
+    self.filter_specs[self.current_filter].layers.push(spec);
+};
+
 /**
  * Text layer
  * @constructor
