@@ -132,6 +132,9 @@ fieldset {
   border-radius: 4px;
   box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
 }
+.fx-text {
+  pointer-events: none;
+}
 .fx-text.fx-text-rendered {
   opacity: 0;
 }
@@ -141,6 +144,7 @@ fieldset {
   margin: -9px;
 }
 .fx-text .fx-text-inner {
+  pointer-events: auto;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
