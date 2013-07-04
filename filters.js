@@ -1910,7 +1910,16 @@ SnaprFX.filters.text.prototype.calculate_position = function(layer, fx){  var se
         top: layer.position.bbox.top * self.y_scale_factor,
         bottom: layer.position.bbox.bottom * self.y_scale_factor,
         left: layer.position.bbox.left * self.x_scale_factor,
-        right: layer.position.bbox.right * self.x_scale_factor
+        right: layer.position.bbox.right * self.x_scale_factor,
+        x: layer.position.x * self.x_scale_factor,
+        y: layer.position.y * self.y_scale_factor
+    };
+
+    self.bbox = {
+        top: self.position.top,
+        bottom: self.position.bottom,
+        left: self.position.left,
+        right: self.position.right
     };
 };
 
@@ -2036,7 +2045,6 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     }
 
     // set y position for text based on alignment
-    var padding_offset;
     switch(self.text_style.textBaseline){
         case 'hanging':
         case 'alphabetic':
@@ -2044,24 +2052,15 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
         case 'bottom':
             // start No. of extra lines up from bottom
             y = self.position.bottom - (self.text_style.lineHeight*self.render_scale * (lines.length - 1));
-            padding_offset = - self.text_style.lineHeight*self.render_scale;
             break;
         case 'middle':
             y = (max_height / 2 + self.position.top) - ((self.text_style.lineHeight*self.render_scale * (lines.length - 1)) / 2);
-            padding_offset = - self.text_style.lineHeight*self.render_scale/2;
             break;
         default:  // top
             // start at top
             y = self.position.top;
-            padding_offset = 0;
 
     }
-
-    // update overlay with new y value
-    self.element.css({
-        'padding-top': y-self.position.top + padding_offset + 'px',
-        'height': self.position.bottom - y - padding_offset + "px"
-    });
 
     // draw text
     // ---------
@@ -2095,21 +2094,70 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
     self.overlay = fx.elements.overlay;
 
-    self.element  = $('<div class="fx-text">')
-    .css({
+    var css = {
         position: 'absolute',
-        left: self.position.left + "px",
-        top: self.position.top + "px",
-        width: self.position.right - self.position.left + "px",
-        height: self.position.bottom - self.position.top + "px",
+        left: self.position.left,
+        top: self.position.top,
+        width: self.position.right - self.position.left,
+        height: self.position.bottom - self.position.top,
         'text-align': self.text_style.textAlign
-    });
+    };
+
+    if(self.position.x){
+        switch(self.text_style.textAlign){
+            case 'end':
+            case 'right':
+                css.width = self.position.x;
+                break;
+            case 'center':
+                // if text is centered closer to left than right
+                if(self.position.right - self.position.x < self.position.x - self.position.left){
+                    css.width = (self.position.right - self.position.x) * 2;
+                    css.left = self.position.right - css.width;
+                }else{
+                    css.width = (self.position.x - self.position.left) * 2;
+                }
+                break;
+            default:  // left, start
+                css.left = self.position.x;
+                css.width = self.position.right - self.position.x;
+        }
+    }
+
+    if(self.position.y){
+        switch(self.text_style.textBaseline){
+            case 'hanging':
+            case 'alphabetic':
+            case 'ideographic':
+            case 'bottom':
+                css.height = self.position.y;
+                break;
+            case 'middle':
+                // if text is centered closer to top than bottom
+                if(self.position.bottom - self.position.y < self.position.y - self.position.top){
+                    css.height = (self.position.bottom - self.position.y) * 2;
+                    css.top = self.position.bottom - css.height;
+                }else{
+                    css.height = (self.position.y - self.position.top) * 2;
+                }
+                break;
+            default:  // top
+                css.top = self.position.y;
+                css.height = self.bbox.bottom - css.top;
+        }
+    }
+
+    css['line-height'] = css.height + 'px';
+
+
+    self.element  = $('<div class="fx-text">')
+    .css(css);
 
     if(self.rendered && (fx.options.render_text !== false || fx.render_options.render_text)){
         self.element.addClass('fx-text-rendered');
     }
 
-    self.wrapper = $('<div class="fx-text-wrapper">');
+    self.wrapper = $('<div class="fx-text-wrapper">').css({'line-height': 'normal', 'vertical-align': self.text_style.textBaseline});
 
     self.text_element  = $('<div class="fx-text-inner" data-layer="'+self.slug+'">')
     .css({
@@ -2204,52 +2252,56 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             var css = {};
 
             // set x position for text based on alignment
-            var max_width = self.position.right - self.position.left;
+            var max_width = self.bbox.right - self.bbox.left;
             switch(self.text_style.textAlign){
                 case 'end':
                 case 'right':
-                    css.width =  Math.min(event.pageX + self.drag_from.right - self.position.left, max_width);
+                    css.width =  Math.min(event.pageX + self.drag_from.right - self.bbox.left, max_width);
                     break;
                 case 'center':
                     var drag_center = (self.drag_from.right - self.drag_from.left) / 2;
-                    var new_center = event.pageX + drag_center + self.position.left;
+                    var new_center = event.pageX + drag_center + self.bbox.left;
 
-                    css.width = ((new_center - self.position.left) - self.position.left) * 2;
+                    css.width = ((new_center - self.bbox.left) - self.bbox.left) * 2;
 
                     if(css.width > max_width){
-                        css.left = self.position.left + (css.width - max_width);
-                        css.width = max_width - (css.left - self.position.left);
+                        css.left = self.bbox.left + (css.width - max_width);
+                        css.width = max_width - (css.left - self.bbox.left);
                     }
                     break;
                 default:  // left, start
-                    css.left = Math.max(self.position.left, event.pageX - self.drag_from.left);
-                    css.width =  self.position.right - css.left;
+                    css.left = Math.max(self.bbox.left, event.pageX - self.drag_from.left);
+                    css.width =  self.bbox.right - css.left;
 
             }
 
-            // set y position for text based on alignment
-            var max_height = self.position.bottom - self.position.top;
+            // set y bbox for text based on alignment
+            var max_height = self.bbox.bottom - self.bbox.top;
             var current_height = self.text_element.innerHeight() - 18;
             switch(self.text_style.textBaseline){
                 case 'hanging':
                 case 'alphabetic':
                 case 'ideographic':
                 case 'bottom':
-                    // start No. of extra lines up from bottom
-                    css['padding-top'] = Math.min(self.drag_from.padding + (event.pageY - self.drag_from.event.pageY), max_height-current_height) + 'px';
+                    css.height =  Math.min(event.pageY + self.drag_from.bottom - self.bbox.top, max_height);
                     break;
                 case 'middle':
-                    var padding = Math.min(self.drag_from.padding + (event.pageY - self.drag_from.event.pageY));
-                    padding = Math.min(padding, max_height-current_height);
-                    padding = Math.max(padding, 0);
-                    css['padding-top'] = padding + 'px';
-                    css.height = self.position.bottom - self.position.top - padding;
+                    var drag_center = (self.drag_from.bottom - self.drag_from.top) / 2;
+                    var new_center = event.pageY + drag_center + self.bbox.top;
+
+                    css.height = ((new_center - self.bbox.top) - self.bbox.top) * 2;
+
+                    if(css.height > max_height){
+                        css.top = self.bbox.top + (css.height - max_height);
+                        css.height = max_height - (css.top - self.bbox.top);
+                    }
                     break;
                 default:  // top
-                    css.top = Math.min(self.position.bottom - current_height, event.pageY - self.drag_from.top);
-                    css.top = Math.max(self.position.top, css.top);
-                    css.height = self.position.bottom - css.top;
+                    css.top = Math.min(self.bbox.bottom - current_height, event.pageY - self.drag_from.top);
+                    css.top = Math.max(self.bbox.top, css.top);
+                    css.height = self.bbox.bottom - css.top;
             }
+            css['line-height'] = css.height + 'px';
 
             self.element.css(css);
         }
@@ -2275,8 +2327,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 right: (left+width) - event.pageX,
                 top: event.pageY - top,
                 bottom: (top+height) - event.pageY,
-                event: event,
-                padding: parseInt(self.element.css('padding-top'), 10)
+                event: event
             };
             fx.elements.wrapper.on('mousemove', self.mousemove_drag);
         }
@@ -2335,31 +2386,6 @@ SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
         self.text_element.css('line-height', self.text_style.lineHeight+ 'px');
 
     }
-
-    // set y position for text based on alignment
-    var padding;
-    switch(self.text_style.textBaseline){
-        case 'hanging':
-        case 'alphabetic':
-        case 'ideographic':
-        case 'bottom':
-            // start No. of extra lines up from bottom
-            padding = self.position.bottom - self.text_element.height();
-            break;
-        case 'middle':
-            padding = (self.element.outerHeight() / 2) - (self.text_element.height() / 2);
-            break;
-        default:  // top
-            // start at top
-            padding = 0;
-
-    }
-
-    // update overlay with new y value
-    self.element.css({
-        'padding-top': padding + 'px',
-        'height': self.position.bottom - self.position.top - padding + "px"
-    });
 
 };
 
