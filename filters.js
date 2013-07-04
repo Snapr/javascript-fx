@@ -2201,10 +2201,57 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     // move
     self.mousemove_drag = function(event){
         if(!self.rendered){
-            self.element.css({
-                left: event.pageX - self.drag_from.left,
-                top: event.pageY - self.drag_from.top
-            });
+            var css = {};
+
+            // set x position for text based on alignment
+            var max_width = self.position.right - self.position.left;
+            switch(self.text_style.textAlign){
+                case 'end':
+                case 'right':
+                    css.width =  Math.min(event.pageX + self.drag_from.right - self.position.left, max_width);
+                    break;
+                case 'center':
+                    var drag_center = (self.drag_from.right - self.drag_from.left) / 2;
+                    var new_center = event.pageX + drag_center + self.position.left;
+
+                    css.width = ((new_center - self.position.left) - self.position.left) * 2;
+
+                    if(css.width > max_width){
+                        css.left = self.position.left + (css.width - max_width);
+                        css.width = max_width - (css.left - self.position.left);
+                    }
+                    break;
+                default:  // left, start
+                    css.left = Math.max(self.position.left, event.pageX - self.drag_from.left);
+                    css.width =  self.position.right - css.left;
+
+            }
+
+            // set y position for text based on alignment
+            var max_height = self.position.bottom - self.position.top;
+            var current_height = self.text_element.innerHeight() - 18;
+            switch(self.text_style.textBaseline){
+                case 'hanging':
+                case 'alphabetic':
+                case 'ideographic':
+                case 'bottom':
+                    // start No. of extra lines up from bottom
+                    css['padding-top'] = Math.min(self.drag_from.padding + (event.pageY - self.drag_from.event.pageY), max_height-current_height) + 'px';
+                    break;
+                case 'middle':
+                    var padding = Math.min(self.drag_from.padding + (event.pageY - self.drag_from.event.pageY));
+                    padding = Math.min(padding, max_height-current_height);
+                    padding = Math.max(padding, 0);
+                    css['padding-top'] = padding + 'px';
+                    css.height = self.position.bottom - self.position.top - padding;
+                    break;
+                default:  // top
+                    css.top = Math.min(self.position.bottom - current_height, event.pageY - self.drag_from.top);
+                    css.top = Math.max(self.position.top, css.top);
+                    css.height = self.position.bottom - css.top;
+            }
+
+            self.element.css(css);
         }
     };
 
@@ -2220,10 +2267,16 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
             var left = parseInt(self.element.css('left'), 10);
             var top = parseInt(self.element.css('top'), 10);
+            var width = parseInt(self.element.css('width'), 10);
+            var height = parseInt(self.element.css('height'), 10);
 
             self.drag_from = {
                 left: event.pageX - left,
-                top: event.pageY - top
+                right: (left+width) - event.pageX,
+                top: event.pageY - top,
+                bottom: (top+height) - event.pageY,
+                event: event,
+                padding: parseInt(self.element.css('padding-top'), 10)
             };
             fx.elements.wrapper.on('mousemove', self.mousemove_drag);
         }
