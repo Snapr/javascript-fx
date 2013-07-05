@@ -1954,6 +1954,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
     self.rendered = (fx.options.render_text !== false || fx.render_options.render_text || fx.render_options.output) && (!fx.render_options.editable || fx.options.disable_text_edit);
     self.spec = layer;
+    self.dragable = layer.position && layer.position.dragable;
     self.deferred = $.Deferred();
 
     self.canvas.set_size(fx.canvas.width, fx.canvas.height);
@@ -2264,96 +2265,99 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     // dragging
     // --------
 
-    // move
-    self.mousemove_drag = function(event){
-        if(!self.rendered){
-            var css = {};
+    if(self.dragable){
 
-            // set x position for text based on alignment
-            var max_width = self.bbox.right - self.bbox.left;
-            switch(self.text_style.textAlign){
-                case 'end':
-                case 'right':
-                    css.width =  Math.min(event.pageX + self.drag_from.right - self.bbox.left, max_width);
-                    break;
-                case 'center':
-                    var drag_center = (self.drag_from.right - self.drag_from.left) / 2;
-                    var new_center = event.pageX + drag_center + self.bbox.left;
+        // move
+        self.mousemove_drag = function(event){
+            if(!self.rendered){
+                var css = {};
 
-                    css.width = ((new_center - self.bbox.left) - self.bbox.left) * 2;
+                // set x position for text based on alignment
+                var max_width = self.bbox.right - self.bbox.left;
+                switch(self.text_style.textAlign){
+                    case 'end':
+                    case 'right':
+                        css.width =  Math.min(event.pageX + self.drag_from.right - self.bbox.left, max_width);
+                        break;
+                    case 'center':
+                        var drag_center = (self.drag_from.right - self.drag_from.left) / 2;
+                        var new_center = event.pageX + drag_center + self.bbox.left;
 
-                    if(css.width > max_width){
-                        css.left = self.bbox.left + (css.width - max_width);
-                        css.width = max_width - (css.left - self.bbox.left);
-                    }
-                    break;
-                default:  // left, start
-                    css.left = Math.max(self.bbox.left, event.pageX - self.drag_from.left);
-                    css.width =  self.bbox.right - css.left;
+                        css.width = ((new_center - self.bbox.left) - self.bbox.left) * 2;
 
+                        if(css.width > max_width){
+                            css.left = self.bbox.left + (css.width - max_width);
+                            css.width = max_width - (css.left - self.bbox.left);
+                        }
+                        break;
+                    default:  // left, start
+                        css.left = Math.max(self.bbox.left, event.pageX - self.drag_from.left);
+                        css.width =  self.bbox.right - css.left;
+
+                }
+
+                // set y bbox for text based on alignment
+                var max_height = self.bbox.bottom - self.bbox.top;
+                var current_height = self.text_element.innerHeight() - 18;
+                switch(self.text_style.textBaseline){
+                    case 'hanging':
+                    case 'alphabetic':
+                    case 'ideographic':
+                    case 'bottom':
+                        css.height =  Math.min(event.pageY + self.drag_from.bottom - self.bbox.top, max_height);
+                        break;
+                    case 'middle':
+                        var drag_center = (self.drag_from.bottom - self.drag_from.top) / 2;
+                        var new_center = event.pageY + drag_center + self.bbox.top;
+
+                        css.height = ((new_center - self.bbox.top) - self.bbox.top) * 2;
+
+                        if(css.height > max_height){
+                            css.top = self.bbox.top + (css.height - max_height);
+                            css.height = max_height - (css.top - self.bbox.top);
+                        }
+                        break;
+                    default:  // top
+                        css.top = Math.min(self.bbox.bottom - current_height, event.pageY - self.drag_from.top);
+                        css.top = Math.max(self.bbox.top, css.top);
+                        css.height = self.bbox.bottom - css.top;
+                }
+                css['line-height'] = css.height + 'px';
+
+                self.element.css(css);
+            }
+        };
+
+        // finish drag
+        self.mouseup = function(){
+            fx.elements.wrapper.off('mousemove', self.mousemove_drag);
+        };
+        fx.elements.wrapper.on('mouseup', self.mouseup);
+
+        // start drag
+        self.element.on('mousedown', function(event) {
+            if(!self.rendered){
+
+                var left = parseInt(self.element.css('left'), 10);
+                var top = parseInt(self.element.css('top'), 10);
+                var width = parseInt(self.element.css('width'), 10);
+                var height = parseInt(self.element.css('height'), 10);
+
+                self.drag_from = {
+                    left: event.pageX - left,
+                    right: (left+width) - event.pageX,
+                    top: event.pageY - top,
+                    bottom: (top+height) - event.pageY,
+                    event: event
+                };
+                fx.elements.wrapper.on('mousemove', self.mousemove_drag);
             }
 
-            // set y bbox for text based on alignment
-            var max_height = self.bbox.bottom - self.bbox.top;
-            var current_height = self.text_element.innerHeight() - 18;
-            switch(self.text_style.textBaseline){
-                case 'hanging':
-                case 'alphabetic':
-                case 'ideographic':
-                case 'bottom':
-                    css.height =  Math.min(event.pageY + self.drag_from.bottom - self.bbox.top, max_height);
-                    break;
-                case 'middle':
-                    var drag_center = (self.drag_from.bottom - self.drag_from.top) / 2;
-                    var new_center = event.pageY + drag_center + self.bbox.top;
-
-                    css.height = ((new_center - self.bbox.top) - self.bbox.top) * 2;
-
-                    if(css.height > max_height){
-                        css.top = self.bbox.top + (css.height - max_height);
-                        css.height = max_height - (css.top - self.bbox.top);
-                    }
-                    break;
-                default:  // top
-                    css.top = Math.min(self.bbox.bottom - current_height, event.pageY - self.drag_from.top);
-                    css.top = Math.max(self.bbox.top, css.top);
-                    css.height = self.bbox.bottom - css.top;
-            }
-            css['line-height'] = css.height + 'px';
-
-            self.element.css(css);
-        }
-    };
-
-    // finish drag
-    self.mouseup = function(){
-        fx.elements.wrapper.off('mousemove', self.mousemove_drag);
-    };
-    fx.elements.wrapper.on('mouseup', self.mouseup);
-
-    // start drag
-    self.element.on('mousedown', function(event) {
-        if(!self.rendered){
-
-            var left = parseInt(self.element.css('left'), 10);
-            var top = parseInt(self.element.css('top'), 10);
-            var width = parseInt(self.element.css('width'), 10);
-            var height = parseInt(self.element.css('height'), 10);
-
-            self.drag_from = {
-                left: event.pageX - left,
-                right: (left+width) - event.pageX,
-                top: event.pageY - top,
-                bottom: (top+height) - event.pageY,
-                event: event
-            };
-            fx.elements.wrapper.on('mousemove', self.mousemove_drag);
-        }
-
-        fx.elements.overlay
-            .addClass('fx-editing-text')
-            .removeClass('fx-editing-sticker');
-    });
+            fx.elements.overlay
+                .addClass('fx-editing-text')
+                .removeClass('fx-editing-sticker');
+        });
+    }
 
 
 
