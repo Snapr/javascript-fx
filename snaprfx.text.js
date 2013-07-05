@@ -153,7 +153,9 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     }
 
     var lines = word_wrap(self.text, max_width);
-    while(!lines || (lines.length - 1) * self.text_style.lineHeight + self.text_style.fontSize > max_height){
+    var finite = 1000;
+    while(finite && (!lines || (lines.length - 1) * self.text_style.lineHeight + self.text_style.fontSize > max_height)){
+        finite--;
 
 
         self.text_style.fontSize = self.text_style.fontSize * 0.8;
@@ -167,6 +169,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
         lines = word_wrap(self.text, max_width);
 
     }
+    if(!finite){ console.warn('render shrunk text 1000 times without success!'); }
 
 
     // positioning
@@ -538,7 +541,10 @@ SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
     self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10);
     self.text_style.lineHeight = parseInt(self.text_element.css('line-height'), 10);
 
-    while(self.text_element.width() > self.element.width() || self.text_element.height() > Math.round(self.element.height())){
+
+    var finite = 1000;
+    while(finite && (self.text_element.width() > self.element.width() || self.text_element.height() > Math.round(self.element.height()))){
+        finite--;
 
         self.text_style.fontSize = self.text_style.fontSize * 0.99;
         self.text_element.css('font-size', self.text_style.fontSize);
@@ -547,6 +553,7 @@ SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
         self.text_element.css('line-height', self.text_style.lineHeight+ 'px');
 
     }
+    if(!finite){ console.warn('check_size shrunk text 1000 times without success!'); }
 
 };
 
