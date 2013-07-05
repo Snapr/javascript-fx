@@ -1,5 +1,7 @@
 /*global SnaprFX: false */
 
+var debug_borders = true;
+
 SnaprFX.prototype.add_text = function(spec){  var self = this;
     spec.filter = new SnaprFX.filters.text(spec, self) ;
     self.filter_specs[self.current_filter].layers.push(spec);
@@ -18,16 +20,6 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     self.text = fx.options.text && fx.options.text[layer.slug] || layer.text.default_value;
 
     self.canvas = new SnaprFX.Canvas({width: fx.canvas.width, height: fx.canvas.height});
-
-    // debug
-    // -----
-    // draws bounding box
-    // self.canvas.context.strokeRect(
-    //     self.position.left,
-    //     self.position.top,
-    //     self.position.right - self.position.left,
-    //     self.position.bottom - self.position.top
-    // );
 
     self.update(layer, fx);
 
@@ -216,15 +208,18 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     if(self.slug !== fx.render_options.active_text && !layer.removed){
 
         for(var l=0; l < lines.length; l++){
-            self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight*self.render_scale, max_width);
 
-            // draws bounding box
-            // self.canvas.context.strokeRect(
-            //     self.position.left,
-            //     y+l*self.text_style.lineHeight,
-            //     max_width,
-            //     self.text_style.lineHeight
-            // );
+            if(debug_borders){
+                // draws bounding box
+                self.canvas.context.fillRect(
+                    self.position.left * self.x_scale_factor,
+                    y+l*self.text_style.lineHeight*self.render_scale,
+                    max_width,
+                    self.text_style.lineHeight
+                );
+            }
+
+            self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight*self.render_scale, max_width);
 
         }
 
