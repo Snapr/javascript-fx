@@ -398,6 +398,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             if(!self.rendered){
                 var css = {};
 
+                var drag_center, new_center;
+
                 // set x position for text based on alignment
                 var max_width = self.bbox.right - self.bbox.left;
                 switch(self.text_style.textAlign){
@@ -406,13 +408,14 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                         css.width =  Math.min(event.pageX + self.drag_from.right - self.bbox.left, max_width);
                         break;
                     case 'center':
-                        var drag_center = (self.drag_from.right - self.drag_from.left) / 2;
-                        var new_center = event.pageX + drag_center + self.bbox.left;
+                        drag_center = (self.drag_from.right - self.drag_from.left) / 2;
+                        new_center = event.pageX + drag_center + self.bbox.left;
 
                         css.width = ((new_center - self.bbox.left) - self.bbox.left) * 2;
 
                         if(css.width > max_width){
                             css.left = self.bbox.left + (css.width - max_width);
+                            css.left = Math.min(css.left, self.bbox.left + max_width);
                             css.width = max_width - (css.left - self.bbox.left);
                         }
                         break;
@@ -433,13 +436,20 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                         css.height =  Math.min(event.pageY + self.drag_from.bottom - self.bbox.top, max_height);
                         break;
                     case 'middle':
-                        var drag_center = (self.drag_from.bottom - self.drag_from.top) / 2;
-                        var new_center = event.pageY + drag_center + self.bbox.top;
+                        drag_center = (self.drag_from.bottom - self.drag_from.top) / 2;
+                        new_center = event.pageY + drag_center + self.bbox.top;
 
+                        // height  = distance  ((  from center   )   to top       ) * 2
                         css.height = ((new_center - self.bbox.top) - self.bbox.top) * 2;
 
+                        // if the new height it too tall the new center must
+                        // be closer to the bottom of the box than the top
                         if(css.height > max_height){
+                            // top is equal to the overflowing portion
                             css.top = self.bbox.top + (css.height - max_height);
+                            // top can't be so bit there is no room for text
+                            css.top = Math.min(css.top, self.bbox.top + max_height - self.text_style.lineHeight);
+                            // height takes up the rest of the bbox
                             css.height = max_height - (css.top - self.bbox.top);
                         }
                         break;
@@ -448,6 +458,9 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                         css.top = Math.max(self.bbox.top, css.top);
                         css.height = self.bbox.bottom - css.top;
                 }
+                // height must be more then lineHeight
+                css.height = Math.max(css.height, self.text_style.lineHeight);
+
                 css['line-height'] = css.height + 'px';
 
                 self.element.css(css);
