@@ -1908,17 +1908,30 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
 };
 
 SnaprFX.filters.text.prototype.calculate_position = function(layer, fx){  var self = this;
+
     self.x_scale_factor = self.canvas.width / fx.filter_specs[fx.current_filter].target_canvas.width;
     self.y_scale_factor = self.canvas.height / fx.filter_specs[fx.current_filter].target_canvas.height;
 
-    self.position = {
-        top: layer.position.bbox.top * self.y_scale_factor,
-        bottom: layer.position.bbox.bottom * self.y_scale_factor,
-        left: layer.position.bbox.left * self.x_scale_factor,
-        right: layer.position.bbox.right * self.x_scale_factor,
-        x: layer.position.x * self.x_scale_factor,
-        y: layer.position.y * self.y_scale_factor
-    };
+    if(layer.position && layer.position.bbox){
+        self.position = {
+            top: layer.position.bbox.top * self.y_scale_factor,
+            bottom: layer.position.bbox.bottom * self.y_scale_factor,
+            left: layer.position.bbox.left * self.x_scale_factor,
+            right: layer.position.bbox.right * self.x_scale_factor
+        };
+    }else{
+        self.position = {
+            top: 0,
+            bottom: self.canvas.height,
+            left: 0,
+            right: self.canvas.width
+        };
+    }
+
+    if(layer.position){
+        self.position.x = layer.position.x * self.x_scale_factor;
+        self.position.y = layer.position.y * self.y_scale_factor;
+    }
 
     self.bbox = {
         top: self.position.top,
