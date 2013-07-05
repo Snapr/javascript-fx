@@ -1,6 +1,6 @@
 /*global SnaprFX: false */
 
-var debug_borders = true;
+var debug_borders = false;
 
 SnaprFX.prototype.add_text = function(spec){  var self = this;
     spec.filter = new SnaprFX.filters.text(spec, self) ;
@@ -183,6 +183,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
             x = self.position.left;
 
     }
+    x = x * self.render_scale;
 
     // set y position for text based on alignment
     switch(self.text_style.textBaseline){
@@ -191,16 +192,17 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
         case 'ideographic':
         case 'bottom':
             // start No. of extra lines up from bottom
-            y = self.position.bottom - (self.text_style.lineHeight*self.render_scale * (lines.length - 1));
+            y = self.position.bottom - (self.text_style.lineHeight * (lines.length - 1));
             break;
         case 'middle':
-            y = (max_height / 2 + self.position.top) - ((self.text_style.lineHeight*self.render_scale * (lines.length - 1)) / 2);
+            y = (max_height / 2 + self.position.top) - ((self.text_style.lineHeight * (lines.length - 1)) / 2);
             break;
         default:  // top
             // start at top
             y = self.position.top;
 
     }
+    y = y * self.render_scale;
 
     // draw text
     // ---------
@@ -211,11 +213,11 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
             if(debug_borders){
                 // draws bounding box
-                self.canvas.context.fillRect(
-                    self.position.left * self.x_scale_factor,
+                self.canvas.context.strokeRect(
+                    self.position.left * self.x_scale_factor*self.render_scale,
                     y+l*self.text_style.lineHeight*self.render_scale,
-                    max_width,
-                    self.text_style.lineHeight
+                    max_width*self.render_scale,
+                    self.text_style.lineHeight*self.render_scale
                 );
             }
 
