@@ -139,12 +139,12 @@ fieldset {
   opacity: 0;
 }
 .fx-text .fx-text-wrapper {
+  pointer-events: auto;
   position: relative;
   display: inline-block;
   margin: -9px;
 }
 .fx-text .fx-text-inner {
-  pointer-events: auto;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
