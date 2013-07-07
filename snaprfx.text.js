@@ -378,7 +378,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         $('<a class="fx-render-layer fx-text-button">✔</a>')
             .css({
                 position: 'absolute',
-                bottom: 0,
+                top: 0,
                 right: 0
             })
             // trigger render
