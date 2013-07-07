@@ -160,6 +160,31 @@ fieldset {
 .fx-text .fx-text-button {
   display: none;
 }
+.fx-text .fx-text-edit-note {
+  display: none;
+  background: #fff;
+  color: #000;
+  position: absolute;
+  height: 12px;
+  top: 0px;
+  left: 10%;
+  right: 10%;
+}
+.fx-text .fx-text-edit-note .fx-text-edit-note-not-editing {
+  display: block;
+}
+.fx-text .fx-text-edit-note .fx-text-edit-note-editing {
+  display: none;
+}
+.fx-text.fx-editable .fx-text-edit-note-not-editing {
+  display: none;
+}
+.fx-text.fx-editable .fx-text-edit-note-editing {
+  display: block;
+}
+.fx-text.fx-active .fx-text-edit-note {
+  display: block;
+}
 .fx-text.fx-active .fx-text-inner {
   margin: -2px;
   border: solid rgba(240, 240, 240, 0.8) 2px;

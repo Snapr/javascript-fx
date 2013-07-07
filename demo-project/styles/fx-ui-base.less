@@ -179,7 +179,36 @@ fieldset{
         display: none;
     }
 
+    .fx-text-edit-note{
+        display:none;
+        background: #fff;
+        color: #000;
+        position: absolute;
+        height:12px;
+        top:0px;
+        left:10%;
+        right:10%;
+        .fx-text-edit-note-not-editing{
+            display:block;
+        }
+        .fx-text-edit-note-editing{
+            display:none;
+        }
+    }
+
+    &.fx-editable{
+        .fx-text-edit-note-not-editing{
+            display:none;
+        }
+        .fx-text-edit-note-editing{
+            display:block;
+        }
+    }
+
     &.fx-active{
+        .fx-text-edit-note{
+            display:block;
+        }
         .fx-text-inner{
             .fx-active-border;
         }
