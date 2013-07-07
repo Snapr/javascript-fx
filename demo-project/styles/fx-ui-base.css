@@ -211,10 +211,10 @@ fieldset {
   font-weight: bold;
 }
 .fx-text-disabled .fx-text {
-  display: none;
+  pointer-events: none;
 }
 .fx-stickers-disabled .fx-sticker {
-  display: none;
+  pointer-events: none;
 }
 .fx-editing-text .fx-text {
   z-index: 2;

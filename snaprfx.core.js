@@ -151,8 +151,8 @@ SnaprFX.prototype.set_options = function(options){  var self = this;
         self.apply_filter({render_text: true, editable:false});
     }
 
-    self.elements.overlay.toggleClass('fx-text-disabled', self.options.disable_text_edit);
-    self.elements.overlay.toggleClass('fx-stickers-disabled', self.options.disable_sticker_edit);
+    self.elements.overlay.toggleClass('fx-text-disabled', self.options.disable_text_edit === true);
+    self.elements.overlay.toggleClass('fx-stickers-disabled', self.options.disable_sticker_edit === true);
 };
 
 
