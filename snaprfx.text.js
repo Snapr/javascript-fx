@@ -352,7 +352,9 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     .on('dblclick', function(){
         self.editable = true;
         self.element.addClass('fx-editable');
-        self.text_element.attr('contenteditable', true);
+        self.text_element
+            .attr('contenteditable', true)
+            .focus();
     })
     .on('keyup', function(){
         self.check_size();
