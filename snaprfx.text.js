@@ -350,6 +350,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
     })
     .on('dblclick', function(){
+        self.editable = true;
         self.element.addClass('fx-editable');
         self.text_element.attr('contenteditable', true);
     })
@@ -395,7 +396,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
         // move
         self.mousemove_drag = function(event){
-            if(!self.rendered){
+            if(!self.rendered && !self.editable){
                 var css = {};
 
                 var drag_center, new_center;
@@ -572,6 +573,7 @@ SnaprFX.filters.text.prototype.deactivate = function(elements){  var self = this
         .trigger('deactivate')
         .find('.fx-text-inner')
             .attr('contenteditable', false);
+    self.editable = false;
 };
 
 SnaprFX.filters.text.prototype.process = function(i, rgb){  var self = this;
