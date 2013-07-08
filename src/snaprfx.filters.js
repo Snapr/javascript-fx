@@ -339,7 +339,6 @@ SnaprFX.filters.image = function(layer, fx){  var self = this;
     });
 };
 SnaprFX.filters.image.prototype.update = function(layer, fx){  var self = this;
-    console.log('updating', fx.canvas.width);
     self.width = fx.canvas.width;
     self.height = fx.canvas.height;
     self.deferred = $.Deferred();

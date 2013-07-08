@@ -11,6 +11,7 @@ SnaprFX.prototype.add_sticker = function(slug){  var self = this;
             .siblings('.fx-active').removeClass('fx-active');
     });
 
+    self.render_options.editable = true;
 
 };
 
