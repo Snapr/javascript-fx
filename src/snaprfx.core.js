@@ -1,12 +1,5 @@
 /*global define: false, JpegMeta: false */
 
-// ==ClosureCompiler==
-// @compilation_level ADVANCED_OPTIMIZATIONS
-// @output_file_name filters.min.js
-// @code_url http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js
-// ==/ClosureCompiler==
-
-
 // FX Overview
 // -----------
 
@@ -37,6 +30,7 @@ var R=0,G=1,B=2,O=3;
  * @expose
  */
 var SnaprFX = function(options){ return this.init(options); };
+window['SnaprFX'] = SnaprFX;
 
 // SnaprFX
 // -------
@@ -82,6 +76,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
         });
     });
 
+    /** @expose */
     self.load_filter_pack = $.Deferred();
     $.ajax({
         url: self.options.filter_pack + 'filter-pack.json',
@@ -93,6 +88,8 @@ SnaprFX.prototype.init = function(options){  var self = this;
             self.load_fonts();
         }
     });
+
+    /** @expose */
     self.load_sticker_pack = $.Deferred();
     $.ajax({
         url: self.options.sticker_pack + 'sticker-pack.json',

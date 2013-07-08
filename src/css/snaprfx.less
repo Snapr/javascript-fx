@@ -1,0 +1,156 @@
+.fx-active-border{
+    margin: -2px;  // account for border
+    border:solid rgba(240,240,240,.8) 2px;
+    border-radius: 4px;
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
+
+.fx-text{
+    pointer-events: none;
+    // border: 1px solid #090;
+    &.fx-text-rendered{  // hide when rendered
+        opacity: 0;
+    }
+
+    .fx-text-wrapper{  // wrapper holds buttons and text
+        pointer-events: auto;
+        // border: 1px solid #009;
+        position: relative;  // for button positioning
+        display: inline-block;  // shrink to text element
+        margin: -9px;
+    }
+
+    .fx-text-inner{
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        // border: 1px solid #900;
+        padding: 9px;
+        outline: none;  // no default outline when contenteditable=true
+        display: inline-block;  // shrink to text
+    }
+
+    &.fx-editable .fx-text-inner{
+        user-select: text;
+        -webkit-user-select: text;
+        -moz-user-select: text;
+    }
+
+    .fx-text-button{  // hide buttons normally
+        display: none;
+    }
+
+    .fx-text-edit-note{
+        display:none;
+        background: #fff;
+        color: #000;
+        position: absolute;
+        height:12px;
+        top:0px;
+        left:10%;
+        right:10%;
+        .fx-text-edit-note-not-editing{
+            display:block;
+        }
+        .fx-text-edit-note-editing{
+            display:none;
+        }
+    }
+
+    &.fx-editable{
+        .fx-text-edit-note-not-editing{
+            display:none;
+        }
+        .fx-text-edit-note-editing{
+            display:block;
+        }
+    }
+
+    &.fx-active{
+        .fx-text-edit-note{
+            display:block;
+        }
+        .fx-text-inner{
+            .fx-active-border;
+        }
+        .fx-text-button{
+            display: block;  // show buttons on active
+        }
+    }
+}
+
+.fx-sticker{
+    padding: .5em;
+    -webkit-user-select: none;
+
+    opacity: 1;
+    transition: 0;
+
+    .fx-sticker-image{
+        width:100%;
+        height:100%;
+    }
+
+    &.fx-sticker-rendered{  // hide when rendered
+        opacity: 0;
+        transition: opacity 0.4s linear;
+    }
+
+    .fx-sticker-handle{
+        display: none;  // hide buttons normally
+    }
+
+    &.fx-active{
+        .fx-active-border;
+        .fx-sticker-handle{
+            display: block;  // show buttons on active
+        }
+    }
+
+    .fx-remove-sticker{
+        top: 0;
+        left: 0;
+        background: black;
+        color: white;
+    }
+    .fx-render-sticker{
+        top: 0;
+        right: 0;
+    }
+    .fx-scale-sticker{
+        bottom: 0;
+        right: 0;
+        font-weight: bold;
+    }
+}
+
+.fx-text-disabled .fx-text{ pointer-events:none; }
+.fx-stickers-disabled .fx-sticker{ pointer-events:none; }
+
+.fx-editing-text .fx-text{ z-index:2; }
+.fx-editing-text .fx-text.fx-active{ z-index:3; }
+.fx-editing-sticker .fx-sticker{ z-index:2; }
+.fx-editing-sticker .fx-sticker.fx-active{ z-index:3; }
+
+.fx-text-button,
+.fx-sticker-handle{
+    background-color: yellow;
+    padding: 4px;
+    display: block;
+    min-width: 12px;
+    min-height: 12px;
+    border-radius: 20px;
+    border: white solid 2px;
+    font-size: 12px;
+    line-height: 12px;
+    text-align: center;
+    color: black;
+    margin: -12px;
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    position: absolute;
+}
+.fx-delete-layer{
+    background-color: black;
+    color: white;
+}

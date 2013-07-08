@@ -1,0 +1,12 @@
+{
+  "name": "snaprfx",
+  "version": "1",
+  "devDependencies": {
+        "grunt": "~0.4.1",
+        "grunt-contrib-cssmin": "~0.6.1",
+        "grunt-closure-compiler": "~0.0.18",
+        "grunt-contrib-clean": "~0.4.1",
+        "grunt-contrib-concat": "~0.3.0",
+        "grunt-contrib-less": "~0.6.3"
+  }
+}
