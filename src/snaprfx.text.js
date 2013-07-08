@@ -310,7 +310,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         color: self.text_style.fillStyle
     })
     .text(self.text)
-    .on('click', function(){
+    .on('mousedown', function(){
 
         if(fx.options.disable_text_edit){
             return;
