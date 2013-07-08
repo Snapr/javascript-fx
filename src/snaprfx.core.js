@@ -49,6 +49,11 @@ SnaprFX.prototype.init = function(options){  var self = this;
     self.deferred = $.Deferred();
 
     self.options = options;
+    self.render_options = {
+        editable: false,
+        width: self.options.width,
+        height: self.options.height
+    };
 
     // read EXIF first, it may have orientation
     // info needed for rendering the canvas
@@ -106,7 +111,8 @@ SnaprFX.prototype.init = function(options){  var self = this;
         }
     });
 
-    self.filter_specs = {};
+    self.current_filter = 'original';
+    self.filter_specs = { original: { name: "Original", slug: "original", layers: [] } };
     self.stickers = [];
     self.text = [];
 };
@@ -128,7 +134,7 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
 
         self.load_original(true).done(function(){
 
-            self.apply_filter({editable: self.render_options && self.render_options.editable});
+            self.apply_filter({editable: self.render_options.editable});
             deferred.resolve();
 
         });
@@ -238,7 +244,7 @@ SnaprFX.prototype.update_element = function(){  var self = this;
 // remove all filters
 /** @expose */
 SnaprFX.prototype.revert = function(){  var self = this;
-    self.current_filter = null;
+    self.current_filter = 'original';
 
     self.canvas.context.drawImage(self.original.canvas, 0, 0);
     self.update_element();
@@ -377,11 +383,6 @@ SnaprFX.prototype.output = function(options){  var self = this;
 SnaprFX.prototype.apply_next_layer = function(){  var self = this;
     // apply_next_layer allows processing to be deffered until something is ready (eg, loading mask image)
     // after this layer is finished apply_next_layer will be called again
-
-    if(!self.current_filter){
-        self.finish();
-        return;
-    }
 
     var filter_spec = self.filter_specs[self.current_filter];
 
