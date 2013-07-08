@@ -255,101 +255,104 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     $(document.body).addClass('fx-processing');
 
-    // defaults
-    options = $.extend({
-        filter: self.current_filter,
-        editable: false,
-        width: self.options.width,
-        height: self.options.height
-    }, options);
+    setTimeout(function(){
 
-    self.render_options = options;
+        // defaults
+        options = $.extend({
+            filter: self.current_filter,
+            editable: false,
+            width: self.options.width,
+            height: self.options.height
+        }, options);
 
-    self.deferred = $.Deferred();
+        self.render_options = options;
 
-    if(!options.editable){
-        self.deferred.done(function(){
-            if(self.options.render_text !== false || self.render_options.render_text){
-                $.each(self.text, function(i, text){
-                    text.rerender();
+        self.deferred = $.Deferred();
+
+        if(!options.editable){
+            self.deferred.done(function(){
+                if(self.options.render_text !== false || self.render_options.render_text){
+                    $.each(self.text, function(i, text){
+                        text.rerender();
+                    });
+                }
+
+                $.each(self.stickers, function(i, sticker){
+                    sticker.rerender();
+                });
+            });
+        }
+
+        // remove text frames from prev filter
+        if(options.filter != self.current_filter){
+            self.elements.overlay.find('.fx-text').remove();
+        }
+
+        if(debug_logging){ console.group(options.filter); }
+
+        self.current_filter = options.filter;
+
+        // the function that actually does the work
+        function apply(){
+
+            var filter_spec = self.filter_specs[self.current_filter];
+
+            if(filter_spec){
+                filter_spec.layer_index = -1;  // so first time we call 'next' layer it's 0
+            }
+
+            if(self.render_options.region){
+                if(debug_logging){ console.log('region', self.render_options.region); }
+                var r = self.render_options.region;
+                self.canvas.context.drawImage(
+                    self.original.canvas,
+                    r.left, r.top, r.width, r.height,
+                    r.left, r.top, r.width, r.height
+                );
+            }else{
+                var done = false;
+                function draw_original(){
+                    if(done){
+                        self.canvas.context.drawImage(self.original.canvas, 0, 0);
+                    }
+                    done = true;
+                }
+                self.canvas.set_size(self.render_options.width, self.render_options.height).done(draw_original);
+                self.original.set_size(self.render_options.width, self.render_options.height).done(draw_original);
+            }
+
+
+            var filter = function(){
+                self.pixels = self.canvas.get_data();
+                self.apply_next_layer();
+            };
+
+            if(!options.editable || self.options.disable_sticker_edit){
+                self.render_stickers().done(filter);
+            }else{
+                filter();
+            }
+
+        }
+
+        if(!options.filter){
+           setTimeout(apply, 4);
+        }else{
+            // run the above function, getting the spec first if not in cache
+            if(options.filter in self.filter_specs){
+                setTimeout(apply, 4);
+            }else{
+                $.ajax({
+                    url: self.filter_pack.base_path + 'filters/' + options.filter + '/filter.json',
+                    success: function(data){
+                        if(debug_logging){ console.log('loaded', options.filter); }
+                        self.filter_specs[options.filter] = data.filter;
+                        setTimeout(apply, 4);
+                    }
                 });
             }
-
-            $.each(self.stickers, function(i, sticker){
-                sticker.rerender();
-            });
-        });
-    }
-
-    // remove text frames from prev filter
-    if(options.filter != self.current_filter){
-        self.elements.overlay.find('.fx-text').remove();
-    }
-
-    if(debug_logging){ console.group(options.filter); }
-
-    self.current_filter = options.filter;
-
-    // the function that actually does the work
-    function apply(){
-
-        var filter_spec = self.filter_specs[self.current_filter];
-
-        if(filter_spec){
-            filter_spec.layer_index = -1;  // so first time we call 'next' layer it's 0
         }
-
-        if(self.render_options.region){
-            if(debug_logging){ console.log('region', self.render_options.region); }
-            var r = self.render_options.region;
-            self.canvas.context.drawImage(
-                self.original.canvas,
-                r.left, r.top, r.width, r.height,
-                r.left, r.top, r.width, r.height
-            );
-        }else{
-            var done = false;
-            function draw_original(){
-                if(done){
-                    self.canvas.context.drawImage(self.original.canvas, 0, 0);
-                }
-                done = true;
-            }
-            self.canvas.set_size(self.render_options.width, self.render_options.height).done(draw_original);
-            self.original.set_size(self.render_options.width, self.render_options.height).done(draw_original);
-        }
-
-
-        var filter = function(){
-            self.pixels = self.canvas.get_data();
-            self.apply_next_layer();
-        };
-
-        if(!options.editable || self.options.disable_sticker_edit){
-            self.render_stickers().done(filter);
-        }else{
-            filter();
-        }
-
-    }
-
-    if(!options.filter){
-       setTimeout(apply, 4);
-    }else{
-        // run the above function, getting the spec first if not in cache
-        if(options.filter in self.filter_specs){
-            setTimeout(apply, 4);
-        }else{
-            $.ajax({
-                url: self.filter_pack.base_path + 'filters/' + options.filter + '/filter.json',
-                success: function(data){
-                    if(debug_logging){ console.log('loaded', options.filter); }
-                    self.filter_specs[options.filter] = data.filter;
-                    setTimeout(apply, 4);
-                }
-            });
-        }
-    }
+    }, 4);
 
 };
 
