@@ -98,7 +98,6 @@ SnaprFX.prototype.init = function(options){  var self = this;
             self.sticker_pack.by_slug = {};
             self.sticker_pack.base_path = self.options.sticker_pack;
             $.each(self.sticker_pack.sections, function(i, section){
-                console.log(section);
                 $.each(section.stickers, function(i, sticker){
                     self.sticker_pack.by_slug[sticker.slug] = sticker;
                 });

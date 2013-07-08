@@ -27,8 +27,6 @@ SnaprFX.utils = {
     },
     /** @expose */
     preload_assets: function(options){
-        console.log('oop', options);
-        console.log('oo', options['filter_pack'] + 'filter-pack.json');
         var filter_pack, sticker_pack;
         $.ajax({
             url: options['filter_pack'] + 'filter-pack.json',
