@@ -390,17 +390,6 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 }
             })
     );
-    self.wrapper.append(
-        $('<span class="fx-text-edit-note"><span class="fx-text-edit-note-editing">Done editing</span><span class="fx-text-edit-note-not-editing">Double click to edit</span></span>')
-            // trigger render
-            .click(function(){
-                if(fx.options.render_text !== false || fx.render_options.render_text){
-                    fx.rerender_editables();
-                }else{
-                    self.deactivate();
-                }
-            })
-    );
 
     // dragging
     // --------
