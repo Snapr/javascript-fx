@@ -55,7 +55,7 @@
                 .click(function(){
                     $('.x-current-filter').removeClass('x-current-filter');
                     $(this).addClass('x-current-filter');
-                    image.revert();
+                    image.apply_filter({filter: '_original'});
                 })
             );
             $.each(pack.sections, function(i, section){

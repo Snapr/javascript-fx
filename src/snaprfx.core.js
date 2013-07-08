@@ -111,8 +111,8 @@ SnaprFX.prototype.init = function(options){  var self = this;
         }
     });
 
-    self.current_filter = 'original';
-    self.filter_specs = { original: { name: "Original", slug: "original", layers: [] } };
+    self.current_filter = '_original';
+    self.filter_specs = { _original: { name: "*Original*", slug: "_original", layers: [] } };
     self.stickers = [];
     self.text = [];
 };
@@ -239,16 +239,6 @@ SnaprFX.prototype.load_original = function(stickers){  var self = this;
 // sets the html element's src to our canvas data
 SnaprFX.prototype.update_element = function(){  var self = this;
     self.options.element.attr('src', self.canvas.get_data_url());
-};
-
-// remove all filters
-/** @expose */
-SnaprFX.prototype.revert = function(){  var self = this;
-    self.current_filter = 'original';
-
-    self.canvas.context.drawImage(self.original.canvas, 0, 0);
-    self.update_element();
-
 };
 
 /**
