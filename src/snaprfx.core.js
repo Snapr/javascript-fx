@@ -281,7 +281,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
         // remove text frames from prev filter
         if(options.filter != self.current_filter){
-            self.elements.overlay.find('.fx-text').remove();
+            self.elements.overlay.find('.fx-text').addClass('fx-text-old');
         }
 
         if(debug_logging){ console.group(options.filter); }
@@ -504,6 +504,8 @@ SnaprFX.prototype.finish = function(){  var self = this;
     // put px back in canvas
 
     if(debug_logging){ console.time('writing data back'); }
+
+    self.elements.overlay.find('.fx-text-old').remove();
 
     self.canvas.put_data(self.pixels);
     if(!self.render_options.output){
