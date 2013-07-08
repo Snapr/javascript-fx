@@ -121,6 +121,7 @@
         });
 
         var active_slug;
+        var line_height_multiplier;
         $('.fx-text').live('activate', function(e, data){
 
             active_slug = data.slug;
@@ -141,6 +142,7 @@
 
             $('.font-size').val(Math.round(data.text.style.fontSize));
             $('.line-height').val(Math.round(data.text.style.lineHeight));
+            line_height_multiplier = data.text.style.lineHeight/data.text.style.fontSize;
             $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
 
             if (data.text.style.fillStyle.search("rgb") == -1){
@@ -183,25 +185,37 @@
         $('.x-increase-text-size').click(function(event){
             event.preventDefault();
             $('.font-size').val(parseInt($('.font-size').val(), 10)+1);
+            $('.line-height').val(parseInt($('.font-size').val(), 10)*line_height_multiplier);
             update_style();
         });
         $('.x-decrease-text-size').click(function(event){
             event.preventDefault();
             $('.font-size').val(parseInt($('.font-size').val(), 10)-1);
+            $('.line-height').val(parseInt($('.font-size').val(), 10)*line_height_multiplier);
             update_style();
+        });
+
+        $('.font-size').on('change', function(){
+            $('.line-height').val(parseInt($('.font-size').val(), 10)*line_height_multiplier);
         });
 
         $('.x-increase-line-height').click(function(event){
             event.preventDefault();
             $('.line-height').val(parseInt($('.line-height').val(), 10)+1);
+            line_height_multiplier = parseInt($('.line-height').val()) / parseInt($('.font-size').val());
             update_style();
         });
 
         $('.x-decrease-line-height').click(function(event){
             event.preventDefault();
             $('.line-height').val(parseInt($('.line-height').val(), 10)-1);
+            line_height_multiplier = parseInt($('.line-height').val()) / parseInt($('.font-size').val());
             update_style();
         });
+
+        $('.line-height').on('change', function(){
+            line_height_multiplier = parseInt($('.line-height').val()) / parseInt($('.font-size').val());
+        })
 
         $('.x-change-font').on('change', update_style);
 
@@ -233,8 +247,6 @@
             lineheight = $('.line-height').val()+'px';
             weight = $('#x-text-bold').attr('checked') ? 'bold' : 'normal';
             style = $('#x-text-italic').attr('checked') ? 'italic' : 'normal';
-
-            console.log(style + ' ' + weight +' '+size+'/'+lineheight+' '+font);
 
             image.add_text({
                 "type": "text",
