@@ -140,6 +140,7 @@
             $('#x-text-italic').attr('checked', $(this).find('.fx-text-inner').css('font-style') == 'italic');
 
             $('.font-size').val(Math.round(data.text.style.fontSize));
+            $('.line-height').val(Math.round(data.text.style.lineHeight));
             $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
 
             if (data.text.style.fillStyle.search("rgb") == -1){
@@ -163,7 +164,7 @@
             image.active_text.change_style({
                 'font-family': $('.font').val(),
                 'font-size': $('.font-size').val()+'px',
-                'line-height': $('.font-size').val()*$('.fx-active .fx-text-inner').data('line-height-multiplier')+'px',
+                'line-height': $('.line-height').val()+'px',
                 'font-weight': $('#x-text-bold').attr('checked') ? 'bold' : 'normal',
                 'font-style': $('#x-text-italic').attr('checked') ? 'italic' : 'normal',
                 'color': $('.other-color').val(),
@@ -171,6 +172,7 @@
             });
 
             $('.font-size').val(image.active_text.text_style.fontSize);
+            $('.line-height').val(image.active_text.text_style.lineHeight);
         }
 
         $('.fx-text').live('deactivate', function(e, data){
@@ -186,6 +188,18 @@
         $('.x-decrease-text-size').click(function(event){
             event.preventDefault();
             $('.font-size').val(parseInt($('.font-size').val(), 10)-1);
+            update_style();
+        });
+
+        $('.x-increase-line-height').click(function(event){
+            event.preventDefault();
+            $('.line-height').val(parseInt($('.line-height').val(), 10)+1);
+            update_style();
+        });
+
+        $('.x-decrease-line-height').click(function(event){
+            event.preventDefault();
+            $('.line-height').val(parseInt($('.line-height').val(), 10)-1);
             update_style();
         });
 
@@ -216,7 +230,7 @@
 
             font = $('.font').val();
             size = $('.font-size').val()+'px';
-            lineheight = $('.font-size').val()*1.5+'px';
+            lineheight = $('.line-height').val()+'px';
             weight = $('#x-text-bold').attr('checked') ? 'bold' : 'normal';
             style = $('#x-text-italic').attr('checked') ? 'italic' : 'normal';
 
@@ -302,7 +316,7 @@
                                         <label for="x-text-bold">Bold</label>
                                         <input type="checkbox" id="x-text-italic" value="italic" name="x-text-italic" class="x-change-font"/>
                                         <label for="x-text-italic">Italic</label>
-                                   
+
 
                                 </fieldset>
                                  <fieldset>
@@ -310,13 +324,13 @@
                                          <button class="x-increase-text-size">+</button>
                                          <input type="text" class="font-size x-change-font" value="10">
                                          <button class="x-decrease-text-size">-</button>
-                                         
+
                                          <label>Line Height:</label>
                                               <button class="x-increase-line-height">+</button>
                                               <input type="text" class="line-height x-change-font" value="10">
                                               <button class="x-decrease-line-height">-</button>
 
-                                       
+
                                     </fieldset>
 
                                 <fieldset>
