@@ -102,7 +102,8 @@ fieldset {
   width: 56px;
   height: 56px;
 }
-.x-demo-area .x-settings .font-size {
+.x-demo-area .x-settings .font-size,
+.x-demo-area .x-settings .line-height {
   width: 3em;
 }
 .x-demo-area .x-output {
