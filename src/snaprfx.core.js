@@ -253,6 +253,8 @@ SnaprFX.prototype.revert = function(){  var self = this;
  */
 SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
+    self.deferred = $.Deferred();
+
     $(document.body).addClass('fx-processing');
 
     setTimeout(function(){
@@ -266,8 +268,6 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         }, options);
 
         self.render_options = options;
-
-        self.deferred = $.Deferred();
 
         if(!options.editable){
             self.deferred.done(function(){
