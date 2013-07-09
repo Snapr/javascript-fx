@@ -1,0 +1,17 @@
+{
+  "name": "snaprfx",
+  "version": "0.9.0",
+  "main": "build/snaprfx.min.js",
+  "ignore": [
+    "src",
+    "demo-project",
+    "filter-packs",
+    "sticker-packs",
+    "Gruntfile.js",
+    "package.json"
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}
