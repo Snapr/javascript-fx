@@ -282,6 +282,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         // remove text frames from prev filter
         if(options.filter != self.current_filter){
             self.elements.overlay.find('.fx-text').addClass('fx-text-old');
+            self.without_extras = null;
         }
 
         if(debug_logging){ console.group(options.filter); }
@@ -515,6 +516,10 @@ SnaprFX.prototype.finish = function(){  var self = this;
 
     $(document.body).removeClass('fx-processing');
 
+    if((self.options.render_text === false && !self.render_options.render_text && !self.render_options.output) || (self.render_options.editable && !self.options.disable_text_edit)){
+        self.without_extras = self.canvas.clone();
+    }
+
     if(debug_logging){ console.timeEnd('writing data back'); }
 
     if(debug_logging){ console.groupEnd(self.current_filter); }
@@ -535,10 +540,12 @@ SnaprFX.prototype.unrender_editables = function(){  var self = this;
         });
     }
 
-    // revert to orig with no stickers
-    //setTimeout(function(){  // timeout allows other thigs to update before this starts
+    if(self.without_extras){
+        self.canvas.context.drawImage(self.without_extras.canvas, 0, 0);
+        self.update_element();
+    }else{
         self.apply_filter({editable: true});
-    //}, 4);
+    }
 };
 
 // replaces stickers/text in render and hides their html overaly elements

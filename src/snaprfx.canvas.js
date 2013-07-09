@@ -157,5 +157,7 @@ SnaprFX.Canvas.prototype.set_size = function(width, height) {  var self = this;
 };
 
 SnaprFX.Canvas.prototype.clone = function(options) {  var self = this;
-    return new SnaprFX.Canvas($.extend({}, self.options, options));
+    var clone = new SnaprFX.Canvas($.extend({}, self.options, options));
+    clone.context.drawImage(self.canvas, 0, 0);
+    return clone;
 };
