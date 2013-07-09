@@ -29,243 +29,247 @@
 
 
     $(function(){
-        var img = $('.x-preview-image'),
-            orig = img.clone().hide().appendTo(document.body);
-            src = "images/a.jpg",
+        if(!SnaprFX.utils.compatible()){
+            $('#incompatible').show();
+        }else{
 
-            SnaprFX.utils.preload_assets({
-                filter_pack: filter_pack,
-                sticker_pack: sticker_pack
-            });
+            var img = $('.x-preview-image'),
+                orig = img.clone().hide().appendTo(document.body);
+                src = "images/a.jpg",
 
-            image = new SnaprFX({
-                url: src,
-                element: img,
-                width: 400,
-                height: Math.floor((40 / 56) * 750),
-                filter_pack: filter_pack,
-                sticker_pack: sticker_pack,
-                text: {},
-                render_text: false
-            });
+                SnaprFX.utils.preload_assets({
+                    filter_pack: filter_pack,
+                    sticker_pack: sticker_pack
+                });
 
-        image.load_filter_pack.done(function(pack){
-            $('.x-effects').append(
-                $('<fieldset><legend>No Filter</legend><a> <img src="'+pack.base_path+'original-thumb@2x.png">Original </a></fieldset>')
-                .click(function(){
-                    $('.x-current-filter').removeClass('x-current-filter');
-                    $(this).addClass('x-current-filter');
-                    image.apply_filter({filter: '_original'});
-                })
-            );
-            $.each(pack.sections, function(i, section){
-                var section_el = $('<fieldset>');
-                section_el.append($('<legend>'+section.name+'</legend>'));
-                $('.x-effects').append(section_el);
-                $.each(section.filters, function(i, filter){
-                    section_el.append(
-                        $('<a> <img src="'+pack.base_path+'filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
-                        .click(function(){
-                            if(image.current_filter == filter.slug){
-                                return;
-                            }
-                            $(document.body).addClass('x-processing');
-                            image.apply_filter({filter: filter.slug});
-                            $('.x-current-filter').removeClass('x-current-filter');
-                            $(this).addClass('x-current-filter');
-                            image.deferred.done(function(){
-                                $(document.body).removeClass('x-processing');
-                            });
-                        })
-                    );
+                image = new SnaprFX({
+                    url: src,
+                    element: img,
+                    width: 400,
+                    height: Math.floor((40 / 56) * 750),
+                    filter_pack: filter_pack,
+                    sticker_pack: sticker_pack,
+                    text: {},
+                    render_text: false
+                });
+
+            image.load_filter_pack.done(function(pack){
+                $('.x-effects').append(
+                    $('<fieldset><legend>No Filter</legend><a> <img src="'+pack.base_path+'original-thumb@2x.png">Original </a></fieldset>')
+                    .click(function(){
+                        $('.x-current-filter').removeClass('x-current-filter');
+                        $(this).addClass('x-current-filter');
+                        image.apply_filter({filter: '_original'});
+                    })
+                );
+                $.each(pack.sections, function(i, section){
+                    var section_el = $('<fieldset>');
+                    section_el.append($('<legend>'+section.name+'</legend>'));
+                    $('.x-effects').append(section_el);
+                    $.each(section.filters, function(i, filter){
+                        section_el.append(
+                            $('<a> <img src="'+pack.base_path+'filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
+                            .click(function(){
+                                if(image.current_filter == filter.slug){
+                                    return;
+                                }
+                                $(document.body).addClass('x-processing');
+                                image.apply_filter({filter: filter.slug});
+                                $('.x-current-filter').removeClass('x-current-filter');
+                                $(this).addClass('x-current-filter');
+                                image.deferred.done(function(){
+                                    $(document.body).removeClass('x-processing');
+                                });
+                            })
+                        );
+                    });
                 });
             });
-        });
 
-        image.load_sticker_pack.done(function(pack){
-            $.each(pack.sections, function(i, section){
-                var section_el = $('<fieldset>');
-                section_el.append($('<legend>'+section.name+'</legend>'));
-                $('.x-stickers').append(section_el);
-                $.each(section.stickers, function(i, sticker){
-                    section_el.append(
-                        $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'@2x.png">'+sticker.name+' </a>')
-                        .click(function(){
-                            image.add_sticker(sticker.slug);
-                        })
-                    );
+            image.load_sticker_pack.done(function(pack){
+                $.each(pack.sections, function(i, section){
+                    var section_el = $('<fieldset>');
+                    section_el.append($('<legend>'+section.name+'</legend>'));
+                    $('.x-stickers').append(section_el);
+                    $.each(section.stickers, function(i, sticker){
+                        section_el.append(
+                            $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'@2x.png">'+sticker.name+' </a>')
+                            .click(function(){
+                                image.add_sticker(sticker.slug);
+                            })
+                        );
+                    });
                 });
             });
-        });
 
-        $('.x-render-full').click(function(){
-            var output = image.output({
-                width: 560,
-                height: 750
+            $('.x-render-full').click(function(){
+                var output = image.output({
+                    width: 560,
+                    height: 750
+                });
+                output.done(function(url){
+                    $('.x-output-area img').attr('src', url);
+                });
             });
-            output.done(function(url){
-                $('.x-output-area img').attr('src', url);
+
+            $('.x-source-image img').click(function(){
+                src = $(this).attr('src');
+                image.set_url(src);
+                $('.x-current-image').removeClass('x-current-image');
+                $(this).addClass('x-current-image');
             });
-        });
 
-        $('.x-source-image img').click(function(){
-            src = $(this).attr('src');
-            image.set_url(src);
-            $('.x-current-image').removeClass('x-current-image');
-            $(this).addClass('x-current-image');
-        });
+            var active_slug;
+            var line_height_multiplier;
+            $('.fx-text').live('activate', function(e, data){
 
-        var active_slug;
-        var line_height_multiplier;
-        $('.fx-text').live('activate', function(e, data){
+                active_slug = data.slug;
 
-            active_slug = data.slug;
+                $('.x-text-active-layer-name').text(data.name);
 
-            $('.x-text-active-layer-name').text(data.name);
-
-            var font = $(this).find('.fx-text-inner').css('font-family').split(', ')[0];
-            var $font = $('.font');
-            $font.val(font);
-            // if the select hasn't change to the right font then we need to add it
-            if($font.val() != font){
-                $font.append($('<option value="'+font+'">'+font+'</option>'));
+                var font = $(this).find('.fx-text-inner').css('font-family').split(', ')[0];
+                var $font = $('.font');
                 $font.val(font);
-            }
-
-            $('#x-text-bold').attr('checked', $(this).find('.fx-text-inner').css('font-weight') == 'bold');
-            $('#x-text-italic').attr('checked', $(this).find('.fx-text-inner').css('font-style') == 'italic');
-
-            $('.font-size').val(Math.round(data.text.style.fontSize));
-            $('.line-height').val(Math.round(data.text.style.lineHeight));
-            line_height_multiplier = data.text.style.lineHeight/data.text.style.fontSize;
-            $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
-
-            if (data.text.style.fillStyle.search("rgb") == -1){
-                var hex_color = data.text.style.fillStyle;
-            }else{
-                var rgb = data.text.style.fillStyle.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-                function hex(x) {
-                    return ("0" + parseInt(x, 10).toString(16)).slice(-2);
+                // if the select hasn't change to the right font then we need to add it
+                if($font.val() != font){
+                    $font.append($('<option value="'+font+'">'+font+'</option>'));
+                    $font.val(font);
                 }
-                var hex_color = "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
-            }
-            $('.other-color').val(hex_color);
-            var checked = $('[name=x-text-color][value='+hex_color+']').attr('checked', true);
-            if(!checked.length){
-                $('[name=x-text-color][value=other]').attr('checked', true);
-            }
 
-        });
+                $('#x-text-bold').attr('checked', $(this).find('.fx-text-inner').css('font-weight') == 'bold');
+                $('#x-text-italic').attr('checked', $(this).find('.fx-text-inner').css('font-style') == 'italic');
 
-        function update_style(){
-            image.active_text.change_style({
-                'font-family': $('.font').val(),
-                'font-size': $('.font-size').val()+'px',
-                'line-height': $('.line-height').val()+'px',
-                'font-weight': $('#x-text-bold').attr('checked') ? 'bold' : 'normal',
-                'font-style': $('#x-text-italic').attr('checked') ? 'italic' : 'normal',
-                'color': $('.other-color').val(),
-                'text-align': $('[name=x-text-align]:checked').val()
-            });
+                $('.font-size').val(Math.round(data.text.style.fontSize));
+                $('.line-height').val(Math.round(data.text.style.lineHeight));
+                line_height_multiplier = data.text.style.lineHeight/data.text.style.fontSize;
+                $('[name=x-text-align][value='+data.text.style.textAlign+']').attr('checked', true);
 
-            $('.font-size').val(image.active_text.text_style.fontSize);
-            $('.line-height').val(image.active_text.text_style.lineHeight);
-        }
-
-        $('.fx-text').live('deactivate', function(e, data){
-            active_slug = null;
-            $('.x-text-active-layer-name').text('No layer selected');
-        });
-
-        $('.x-increase-text-size').click(function(event){
-            event.preventDefault();
-            $('.font-size').val(parseInt($('.font-size').val(), 10)+1);
-            $('.line-height').val(parseInt($('.font-size').val(), 10)*line_height_multiplier);
-            update_style();
-        });
-        $('.x-decrease-text-size').click(function(event){
-            event.preventDefault();
-            $('.font-size').val(parseInt($('.font-size').val(), 10)-1);
-            $('.line-height').val(parseInt($('.font-size').val(), 10)*line_height_multiplier);
-            update_style();
-        });
-
-        $('.font-size').on('change', function(){
-            $('.line-height').val(parseInt($('.font-size').val(), 10)*line_height_multiplier);
-        });
-
-        $('.x-increase-line-height').click(function(event){
-            event.preventDefault();
-            $('.line-height').val(parseInt($('.line-height').val(), 10)+1);
-            line_height_multiplier = parseInt($('.line-height').val()) / parseInt($('.font-size').val());
-            update_style();
-        });
-
-        $('.x-decrease-line-height').click(function(event){
-            event.preventDefault();
-            $('.line-height').val(parseInt($('.line-height').val(), 10)-1);
-            line_height_multiplier = parseInt($('.line-height').val()) / parseInt($('.font-size').val());
-            update_style();
-        });
-
-        $('.line-height').on('change', function(){
-            line_height_multiplier = parseInt($('.line-height').val()) / parseInt($('.font-size').val());
-        })
-
-        $('.x-change-font').on('change', update_style);
-
-        $('.x-change-color').on('change', function(){
-            $('.other-color').val($('[name=x-text-color]:checked').val());
-            update_style();
-        });
-
-        $('#x-text-edit').click(function(){
-            image.set_options({disable_text_edit: $(this).is(':checked')});
-        });
-        $('#x-sticker-edit').click(function(){
-            image.set_options({disable_sticker_edit: $(this).is(':checked')});
-        });
-
-        $('#x-render-text-while-working').click(function(){
-            image.set_options({render_text: $(this).is(':checked')});
-        });
-
-        $('.x-render-preview').click(function(){
-            image.apply_filter({render_text: true, editable:false});
-        })
-
-        $('.x-add-text').click(function(e){
-            e.preventDefault();
-
-            font = $('.font').val();
-            size = $('.font-size').val()+'px';
-            lineheight = $('.line-height').val()+'px';
-            weight = $('#x-text-bold').attr('checked') ? 'bold' : 'normal';
-            style = $('#x-text-italic').attr('checked') ? 'italic' : 'normal';
-
-            image.add_text({
-                "type": "text",
-                "slug": "custom",
-                "name": "Custom Text",
-                "opacity": 100,
-                "blending_mode": "normal",
-                "mask_image": false,
-                "text": {
-                    "default_value": "New Text",
-                    "style": {
-                        "font": style + ' ' + weight +' '+size+'/'+lineheight+' '+font,
-                        "textAlign": $('[name=x-text-align]:checked').val() || 'center',
-                        "fillStyle": $('.other-color').val() || '#000',
-                        "textBaseline": "middle"
+                if (data.text.style.fillStyle.search("rgb") == -1){
+                    var hex_color = data.text.style.fillStyle;
+                }else{
+                    var rgb = data.text.style.fillStyle.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                    function hex(x) {
+                        return ("0" + parseInt(x, 10).toString(16)).slice(-2);
                     }
-                },
-                "position": {
-                    "dragable": true
+                    var hex_color = "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
                 }
+                $('.other-color').val(hex_color);
+                var checked = $('[name=x-text-color][value='+hex_color+']').attr('checked', true);
+                if(!checked.length){
+                    $('[name=x-text-color][value=other]').attr('checked', true);
+                }
+
             });
-        })
 
+            function update_style(){
+                image.active_text.change_style({
+                    'font-family': $('.font').val(),
+                    'font-size': $('.font-size').val()+'px',
+                    'line-height': $('.line-height').val()+'px',
+                    'font-weight': $('#x-text-bold').attr('checked') ? 'bold' : 'normal',
+                    'font-style': $('#x-text-italic').attr('checked') ? 'italic' : 'normal',
+                    'color': $('.other-color').val(),
+                    'text-align': $('[name=x-text-align]:checked').val()
+                });
 
+                $('.font-size').val(image.active_text.text_style.fontSize);
+                $('.line-height').val(image.active_text.text_style.lineHeight);
+            }
+
+            $('.fx-text').live('deactivate', function(e, data){
+                active_slug = null;
+                $('.x-text-active-layer-name').text('No layer selected');
+            });
+
+            $('.x-increase-text-size').click(function(event){
+                event.preventDefault();
+                $('.font-size').val(parseInt($('.font-size').val(), 10)+1);
+                $('.line-height').val(parseInt($('.font-size').val(), 10)*line_height_multiplier);
+                update_style();
+            });
+            $('.x-decrease-text-size').click(function(event){
+                event.preventDefault();
+                $('.font-size').val(parseInt($('.font-size').val(), 10)-1);
+                $('.line-height').val(parseInt($('.font-size').val(), 10)*line_height_multiplier);
+                update_style();
+            });
+
+            $('.font-size').on('change', function(){
+                $('.line-height').val(parseInt($('.font-size').val(), 10)*line_height_multiplier);
+            });
+
+            $('.x-increase-line-height').click(function(event){
+                event.preventDefault();
+                $('.line-height').val(parseInt($('.line-height').val(), 10)+1);
+                line_height_multiplier = parseInt($('.line-height').val()) / parseInt($('.font-size').val());
+                update_style();
+            });
+
+            $('.x-decrease-line-height').click(function(event){
+                event.preventDefault();
+                $('.line-height').val(parseInt($('.line-height').val(), 10)-1);
+                line_height_multiplier = parseInt($('.line-height').val()) / parseInt($('.font-size').val());
+                update_style();
+            });
+
+            $('.line-height').on('change', function(){
+                line_height_multiplier = parseInt($('.line-height').val()) / parseInt($('.font-size').val());
+            })
+
+            $('.x-change-font').on('change', update_style);
+
+            $('.x-change-color').on('change', function(){
+                $('.other-color').val($('[name=x-text-color]:checked').val());
+                update_style();
+            });
+
+            $('#x-text-edit').click(function(){
+                image.set_options({disable_text_edit: $(this).is(':checked')});
+            });
+            $('#x-sticker-edit').click(function(){
+                image.set_options({disable_sticker_edit: $(this).is(':checked')});
+            });
+
+            $('#x-render-text-while-working').click(function(){
+                image.set_options({render_text: $(this).is(':checked')});
+            });
+
+            $('.x-render-preview').click(function(){
+                image.apply_filter({render_text: true, editable:false});
+            })
+
+            $('.x-add-text').click(function(e){
+                e.preventDefault();
+
+                font = $('.font').val();
+                size = $('.font-size').val()+'px';
+                lineheight = $('.line-height').val()+'px';
+                weight = $('#x-text-bold').attr('checked') ? 'bold' : 'normal';
+                style = $('#x-text-italic').attr('checked') ? 'italic' : 'normal';
+
+                image.add_text({
+                    "type": "text",
+                    "slug": "custom",
+                    "name": "Custom Text",
+                    "opacity": 100,
+                    "blending_mode": "normal",
+                    "mask_image": false,
+                    "text": {
+                        "default_value": "New Text",
+                        "style": {
+                            "font": style + ' ' + weight +' '+size+'/'+lineheight+' '+font,
+                            "textAlign": $('[name=x-text-align]:checked').val() || 'center',
+                            "fillStyle": $('.other-color').val() || '#000',
+                            "textBaseline": "middle"
+                        }
+                    },
+                    "position": {
+                        "dragable": true
+                    }
+                });
+            })
+
+        }
 
     });
     </script>
@@ -279,6 +283,9 @@
         <div class="x-preview">
             <h1>Preview:</h1>
             <div class="x-preview-image-area">
+                <div id="incompatible">
+                    Your browser doesn't support features needed by this project. Please try updating your browser to the latest version, or using <a href"http://www.google.com/chrome/‎">Google Chrome</a>.
+                </div>
                 <div class="x-activity-indicator">
                     <div class="x-spinner"></div>
                     Rendering..

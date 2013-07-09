@@ -127,3 +127,10 @@ fieldset {
   padding: 10px;
   border-radius: 5px;
 }
+#incompatible {
+  display: none;
+  background-color: rgba(200, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+}

@@ -2,6 +2,10 @@
 
 /** @expose */
 SnaprFX.utils = {
+    compatible: function(){
+        var elem = document.createElement('canvas');
+        return !!(elem.getContext && elem.getContext('2d'));
+    },
     rotated_dimensions: function(w,h,r){
         var width  = Math.abs(Math.cos(r)*w) + Math.abs(Math.sin(r)*h);
         var height = Math.abs(Math.sin(r)*w) + Math.abs(Math.cos(r)*h);
