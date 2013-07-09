@@ -109,13 +109,8 @@
         });
 
         $('.x-source-image img').click(function(){
-            $(document.body).addClass('x-processing');
             src = $(this).attr('src');
-            image.set_url(src).done(function(){
-                image.deferred.done(function(){
-                    $(document.body).removeClass('x-processing');
-                });
-            });
+            image.set_url(src);
             $('.x-current-image').removeClass('x-current-image');
             $(this).addClass('x-current-image');
         });
