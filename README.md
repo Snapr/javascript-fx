@@ -68,6 +68,9 @@ To output (uneditable) image, for example as final output or thumbnail
 
 Output ready:
 
+url is full image data as [Data URI Scheme](https://en.wikipedia.org/wiki/Data_URI_scheme)
+
+
     output.done(function(url){
         // display or use url
         ...
