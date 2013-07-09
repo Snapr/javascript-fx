@@ -47,7 +47,7 @@ THE SOFTWARE.
 var JpegMeta = function(){
 
 	if (this.JpegMeta) {
-		throw Error("Library included multiple times");
+		return;
 	}
 
 	var JpegMeta = this.JpegMeta = {};
@@ -728,10 +728,3 @@ var JpegMeta = function(){
 	}
 	return this.JpegMeta;
 }();
-
-// require.js module
-// -----------------
-
-if ( typeof define === "function" && define.amd ) {
-    define(function(){return JpegMeta;});
-}
