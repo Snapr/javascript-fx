@@ -265,7 +265,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
         self.render_options = options;
 
-        if(!options.editable){
+        if(!options.editable && !options.output){
             self.deferred.done(function(){
                 if(self.options.render_text !== false || self.render_options.render_text){
                     $.each(self.text, function(i, text){
