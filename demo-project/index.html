@@ -259,9 +259,9 @@
                     "default_value": "New Text",
                     "style": {
                         "font": style + ' ' + weight +' '+size+'/'+lineheight+' '+font,
-                        "textAlign": $('[name=x-text-align]:checked').val(),
-                        "fillStyle": $('.other-color').val(),
-                        "textBaseline": "top"
+                        "textAlign": $('[name=x-text-align]:checked').val() || 'center',
+                        "fillStyle": $('.other-color').val() || '#000',
+                        "textBaseline": "middle"
                     }
                 },
                 "position": {
