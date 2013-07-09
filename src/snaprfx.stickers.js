@@ -119,7 +119,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
         self.element.find('.fx-remove-sticker').on('click', function(){ self.remove(); });
 
         // click to unrender
-        self.element.on('click', function(){
+        self.element.on('mousedown', function(){
             if(self.parent.options.disable_sticker_edit){
                 return;
             }
