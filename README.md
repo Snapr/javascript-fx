@@ -1,5 +1,5 @@
 Preloading
--------------
+----------
 
 In order to speed up applying filters assets can be preloaded
 
@@ -9,8 +9,16 @@ In order to speed up applying filters assets can be preloaded
     });
 
 
+Browser compatiblity
+--------------------
+
+`SnaprFX.utils.compatible` returns true or false
+
+    if(!SnaprFX.utils.compatible()){ ... }
+
+
 Initialization
------------------
+--------------
 
     MyImageInstance = new SnaprFX(options);
 
