@@ -582,8 +582,8 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
         });
     self.elements.wrapper = $('<div class="fx-wrapper">').css({
         position: 'relative',
-        height: self.elements.image.height(),
-        width: self.elements.image.width()
+        height: self.options.height,
+        width: self.options.width
     });
 
     // put wrapper on page
