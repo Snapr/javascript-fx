@@ -349,7 +349,7 @@ SnaprFX.filters.image.prototype.update = function(layer, fx){  var self = this;
 };
 
 SnaprFX.filters.image.prototype.process = function(i, rgb){
-    return [this.pixels[i], this.pixels[i+1], this.pixels[i+2], this.pixels[i+3]];
+    return [this.pixels.data[i], this.pixels.data[i+1], this.pixels.data[i+2], this.pixels.data[i+3]];
 };
 
 

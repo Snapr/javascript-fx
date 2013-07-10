@@ -117,15 +117,11 @@ SnaprFX.Canvas.prototype.place_image = function() {  var self = this;
 };
 
 SnaprFX.Canvas.prototype.get_data = function(){
-    var image_data = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
-    // if you ever overwrite this it seems you can't write the px back to the canvas
-    this.data = image_data;
-    return image_data.data;
+    return this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
 };
 
 SnaprFX.Canvas.prototype.put_data = function(data) {
-    this.data.data = data;
-    this.context.putImageData(this.data, 0, 0);
+    this.context.putImageData(data, 0, 0);
     return this;
 };
 

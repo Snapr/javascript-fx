@@ -444,10 +444,10 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
                     if(layer.filter.whole_canvas){
                         // whole canvas has been processed by filter
                         // get relivent px
-                        rgb = [whole_canvas_result[i], whole_canvas_result[i+1], whole_canvas_result[i+2], whole_canvas_result[i+3]];
+                        rgb = [whole_canvas_result.data[i], whole_canvas_result.data[i+1], whole_canvas_result.data[i+2], whole_canvas_result.data[i+3]];
                     }else{
                         // process this px now
-                        rgb = layer.filter.process(i, [self.pixels[i], self.pixels[i+1], self.pixels[i+2]]);
+                        rgb = layer.filter.process(i, [self.pixels.data[i], self.pixels.data[i+1], self.pixels.data[i+2]]);
                     }
 
                     // start with opacity for px returned by filter
@@ -459,20 +459,20 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
                     }
                     // * opacity of this px from mask
                     if(layer.mask_image){
-                        opacity = opacity * (mask_pixels[i]/255);
+                        opacity = opacity * (mask_pixels.data[i]/255);
                     }
                     // * opacity of this whole layer
                     opacity = opacity * (layer.opacity/100);
 
                     // blend this layer with underlying
                     rgb = layer.blender.process(
-                        [self.pixels[i], self.pixels[i+1], self.pixels[i+2]],
+                        [self.pixels.data[i], self.pixels.data[i+1], self.pixels.data[i+2]],
                         [rgb[R], rgb[G], rgb[B]],
                         opacity
                     );
-                    self.pixels[i  ] = rgb[R];
-                    self.pixels[i+1] = rgb[G];
-                    self.pixels[i+2] = rgb[B];
+                    self.pixels.data[i  ] = rgb[R];
+                    self.pixels.data[i+1] = rgb[G];
+                    self.pixels.data[i+2] = rgb[B];
                 }
             }
 
