@@ -47,7 +47,7 @@ THE SOFTWARE.
 var JpegMeta = function(){
 
 	if (this.JpegMeta) {
-		return;
+		return this.JpegMeta;
 	}
 
 	var JpegMeta = this.JpegMeta = {};
