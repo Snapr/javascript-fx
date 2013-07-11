@@ -50,9 +50,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
 
     self.options = options;
     self.render_options = {
-        editable: false,
-        width: self.options.width,
-        height: self.options.height
+        editable: false
     };
 
     // read EXIF first, it may have orientation
@@ -62,6 +60,11 @@ SnaprFX.prototype.init = function(options){  var self = this;
         self.exif = exif;
 
         self.load_original(true).done(function(){
+
+            self.options.width = self.original.width;
+            self.options.height = self.original.height;
+            self.render_options.width = self.render_options.width || self.original.width;
+            self.render_options.height = self.render_options.height || self.original.height;
 
             self.canvas = new SnaprFX.Canvas({
                 width: self.original.width,
