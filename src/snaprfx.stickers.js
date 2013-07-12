@@ -1,3 +1,5 @@
+/*global SnaprFX: false */
+
 // create a new sticker
 /** @expose */
 SnaprFX.prototype.add_sticker = function(slug){  var self = this;
@@ -329,12 +331,13 @@ SnaprFX.sticker.prototype.remove = function(){  var self = this;
     self.parent.elements.wrapper.off('mousemove', self.mousemove).off('mouseup', self.mouseup);
 
     // remove from SnaprFX's list
-    $.each(self.parent.stickers, function(i, sticker){
+    self.parent.stickers.forEach( function(sticker, i){
         if(sticker == self){
             self.parent.stickers.splice(i, 1);
         }
     });
 };
+
 SnaprFX.sticker.prototype.get_dimensions = function(){  var self = this;
     return SnaprFX.utils.rotated_dimensions(self.element.width(), self.element.height(), -self.rotation);
 };

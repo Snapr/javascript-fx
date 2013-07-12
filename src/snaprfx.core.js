@@ -105,8 +105,8 @@ SnaprFX.prototype.init = function(options){  var self = this;
             self.sticker_pack = pack.sticker_pack;
             self.sticker_pack.by_slug = {};
             self.sticker_pack.base_path = self.options.sticker_pack;
-            $.each(self.sticker_pack.sections, function(i, section){
-                $.each(section.stickers, function(i, sticker){
+            self.sticker_pack.sections.forEach( function(section){
+                section.stickers.forEach( function(sticker){
                     self.sticker_pack.by_slug[sticker.slug] = sticker;
                 });
             });
@@ -168,8 +168,8 @@ SnaprFX.prototype.set_options = function(options){  var self = this;
  */
 SnaprFX.prototype.load_fonts = function(){  var self = this;
 
-    $.each(self.filter_pack.sections, function(i, section){
-        $.each(section.filters, function(i, filter){
+    self.filter_pack.sections.forEach( function(section){
+        section.filters.forEach( function(filter){
 
             var filter_path = self.filter_pack.base_path + 'filters/' + filter.slug + '/';
             // get filter details
@@ -181,7 +181,7 @@ SnaprFX.prototype.load_fonts = function(){  var self = this;
                     self.filter_specs[filter.slug] = data.filter;
 
                     if(data.filter.fonts){
-                        $.each(data.filter.fonts, function(i, font){
+                        data.filter.fonts.forEach( function(font){
 
                             var css = "@font-face {";
                             css += "font-family: '"+font['font-family']+"';";
@@ -280,12 +280,12 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         if(!options.editable && !options.output){
             self.deferred.done(function(){
                 if(self.options.render_text !== false || self.render_options.render_text){
-                    $.each(self.text, function(i, text){
+                    self.text.forEach( function(text){
                         text.rerender();
                     });
                 }
 
-                $.each(self.stickers, function(i, sticker){
+                self.stickers.forEach( function(sticker){
                     sticker.rerender();
                 });
             });
@@ -544,13 +544,13 @@ SnaprFX.prototype.finish = function(){  var self = this;
 SnaprFX.prototype.unrender_editables = function(){  var self = this;
 
     if(!self.options.disable_sticker_edit){
-        $.each(self.stickers, function(i, sticker){
+        self.stickers.forEach( function(sticker){
             sticker.unrender();
         });
     }
 
     if(!self.options.disable_text_edit){
-        $.each(self.text, function(i, text){
+        self.text.forEach( function(text){
             text.unrender();
         });
     }
