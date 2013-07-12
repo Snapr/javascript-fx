@@ -260,6 +260,8 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     setTimeout(function(){
 
+        options = options || {};
+
         // defaults
         var defaults = {
             filter: self.current_filter,
