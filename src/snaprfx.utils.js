@@ -1,5 +1,26 @@
 /*global SnaprFX: false, JpegMeta: false */
 
+function div(className){
+    var element = document.createElement('div');
+    element.className = className;
+    return element;
+}
+
+function addClass(element, className){
+    if(!element.className.match(RegExp('(^|\\s)' + className + '(\\s|$)'))){
+        element.className += ' ' + className;
+    }
+}
+function removeClass(element, className){
+    element.className = element.className.replace(RegExp('(^|\\s)' + className + '(\\s|$)'), ' ');
+}
+
+function setStyle(element, style){
+    for(var property in style){
+        element.style[property] = style[property];
+    }
+}
+
 /** @expose */
 SnaprFX.utils = {
     compatible: function(){
