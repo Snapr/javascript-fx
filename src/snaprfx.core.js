@@ -519,7 +519,10 @@ SnaprFX.prototype.finish = function(){  var self = this;
 
     $(document.body).removeClass('fx-processing');
 
-    if((self.options.render_text === false && !self.render_options.render_text && !self.render_options.output) || (self.render_options.editable && !self.options.disable_text_edit)){
+
+    var text_rendered = self.options.render_text !== false || self.render_options.render_text;
+    var stickers_rendered = self.stickers.length;
+    if(((!text_rendered && !stickers_rendered) || self.render_options.editable) && !self.render_options.output){
         self.without_extras = self.canvas.clone();
     }
 
