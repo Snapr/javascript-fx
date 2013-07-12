@@ -195,10 +195,19 @@ SnaprFX.prototype.load_fonts = function(){  var self = this;
                             if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
                             css += "}";
 
-                            $('<style>'+css+'</style>').appendTo(document.head);
+                            var style = document.createElement('style');
+                            style.type = 'text/css';
+                            if (style.styleSheet){
+                                style.styleSheet.cssText = css;
+                            }else{
+                                style.appendChild(document.createTextNode(css));
+                            }
+                            document.head.appendChild(style);
 
                             // use font on page so it's preloaded
-                            $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
+                            var span = document.createElement('span');
+                            span.style['font-family'] = font['font-family'];
+                            document.body.appendChild(span);
 
                         });
                     }
