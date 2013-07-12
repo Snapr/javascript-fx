@@ -17,8 +17,8 @@
 // put the px back on the canvas
 // update img element
 
-var debug_logging = false,
-    debug_canvas = false;
+var debug_logging = true,
+    debug_canvas = true;
 
 // used to address vaues in pixel arrays in a more human-readible way. pixel[R] == red value
 var R=0,G=1,B=2,O=3;
@@ -149,7 +149,9 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
 SnaprFX.prototype.set_options = function(options){  var self = this;
     var render_text = self.options.render_text;
 
-    $.extend(self.options, options);
+    for(var key in options){
+        self.options[key] = options[key];
+    }
 
     // if render_text just got turned on then render it
     if(!render_text && self.options.render_text){
@@ -259,12 +261,17 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
     setTimeout(function(){
 
         // defaults
-        options = $.extend({
+        var defaults = {
             filter: self.current_filter,
             editable: false,
             width: self.options.width,
             height: self.options.height
-        }, options);
+        };
+        for(var key in defaults){
+            if(!(key in options)){
+                options[key] = defaults[key];
+            }
+        }
 
         self.render_options = options;
 
