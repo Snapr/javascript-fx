@@ -1,4 +1,4 @@
-/*global SnaprFX: false */
+/*global SnaprFX: false, dom:false */
 
 var debug_borders = false;
 
@@ -100,7 +100,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     self.text_style.fillStyle = self.text_element.css('color');
     self.text_style.textAlign = self.element.css('text-align');
 
-    self.render_scale = self.canvas.height / fx.elements.overlay.height();
+    self.render_scale = self.canvas.height / fx.elements.overlay.offsetHeight;
 
     // set font properties on canvas
     self.set_canvas_font();
@@ -324,11 +324,17 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             rendered = self.element.hasClass('fx-text-rendered');
 
         // deactivate all other text layers
-        var to_deactivate = self.overlay.find('.fx-active')    // find active text
-            .not(self.element);   // not this one though
+        var to_deactivate_list = self.overlay.getElementsByClassName('fx-active fx-text');
+        var to_deactivate_array = [];
 
-        if(to_deactivate.length){
-            self.deactivate(to_deactivate);
+        for (var i = 0; i < to_deactivate_list.length; ++i) {
+            if(to_deactivate_list[i] !== self.element){
+                to_deactivate_array.push(to_deactivate_list[i]);
+            }
+        }
+
+        if(to_deactivate_array.length){
+            self.deactivate(to_deactivate_array);
             fx.active_text = null;
         }
 
@@ -343,9 +349,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             fx.active_text = self;
         }
 
-        fx.elements.overlay
-            .addClass('fx-editing-text')
-            .removeClass('fx-editing-sticker');
+        dom.addClass(fx.elements.overlay, ' fx-editing-text');
+        dom.removeClass(fx.elements.overlay, 'fx-editing-sticker');
 
         // remove text from rendered image
         if(rendered){
@@ -547,7 +552,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
 
 
-    self.overlay.append(self.element);
+    self.overlay.appendChild(self.element[0]);
 };
 
 SnaprFX.filters.text.prototype.change_style = function(css){  var self = this;
@@ -592,12 +597,22 @@ SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
 };
 
 SnaprFX.filters.text.prototype.deactivate = function(elements){  var self = this;
-    (elements || self.element)
-        .removeClass('fx-editable')
-        .removeClass('fx-active')      // make inactive...
-        .trigger('deactivate')
-        .find('.fx-text-inner')
-            .attr('contenteditable', false);
+
+    function deactivate(element){
+        dom.removeClass(element, 'fx-editable');
+        dom.removeClass(element, 'fx-active');
+        $(element).trigger('deactivate');
+        element.getElementsByClassName('fx-text-inner')[0].setAttribute('contenteditable', false);
+    }
+
+    if(elements){
+        for (var i = 0; i < elements.length; ++i) {
+            deactivate(elements[i]);
+        }
+    }else{
+        deactivate(self.element);
+    }
+
     self.editable = false;
 };
 

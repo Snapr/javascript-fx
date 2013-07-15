@@ -1,4 +1,4 @@
-/*global SnaprFX: false */
+/*global SnaprFX: false, dom:false */
 
 // create a new sticker
 /** @expose */
@@ -7,10 +7,12 @@ SnaprFX.prototype.add_sticker = function(slug){  var self = this;
     var sticker = new SnaprFX.sticker(slug, self);
     self.stickers.push(sticker);
     sticker.deferred.done(function(){
-        self.elements.overlay.append(sticker.element);
-        sticker.element
-            .addClass('fx-active')
-            .siblings('.fx-active').removeClass('fx-active');
+        self.elements.overlay.appendChild(sticker.element);
+        var active = self.elements.overlay.getElementsByClassName('fx-active');
+        for(var i=0; i < active.length; i++){
+            dom.removeClass(active[i], 'fx-active');
+        }
+        dom.addClass(sticker.element, 'fx-active');
     });
 
     self.render_options.editable = true;
@@ -25,7 +27,7 @@ SnaprFX.prototype.render_stickers = function(){  var self = this;
     // are placed after each on is done
     function check_stickers_resolved(){
         var done = true;
-        $.each(self.stickers, function(i, sticker){
+        self.stickers.forEach(function(sticker){
             if(sticker.deferred.state() == 'pending'){
                 done = false;
                 return false; // break each
@@ -45,8 +47,8 @@ SnaprFX.prototype.render_stickers = function(){  var self = this;
         }
 
         // place each sticker
-        $.each(self.stickers, function(i){
-            self.stickers[i].render(self.canvas).done(check_stickers_resolved);
+        self.stickers.forEach(function(sticker){
+            sticker.render(self.canvas).done(check_stickers_resolved);
         });
     });
 
@@ -78,13 +80,11 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
         // Build element
         // -------------
 
-        var html = '<div class="fx-sticker fx-sticker-rendered">';
-            html += '<a class="fx-remove-sticker fx-sticker-handle" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="e">✗</a>';
-            html += '<a class="fx-render-sticker fx-sticker-handle" data-role="button" data-icon="tick" data-iconpos="notext" data-theme="e">✔</a>';
-            html += '<a class="fx-scale-sticker fx-sticker-handle" data-role="button" data-icon="rotate" data-iconpos="notext" data-theme="e"> </a>';
+        self.element = dom.div('fx-sticker fx-sticker-rendered');
 
-            html += '<img class="fx-sticker-image" src="'+self.parent.sticker_pack.base_path+'assets/'+slug+'.png">';
-        html += '</div>';
+        var html = '<img class="fx-sticker-image" src="'+self.parent.sticker_pack.base_path+'assets/'+slug+'.png">';
+
+        self.element.innerHTML = html;
 
         var css = {
             position: 'absolute',
@@ -99,39 +99,56 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             css.left = parent.canvas.width/2 - css.width/2;
             css.top = parent.canvas.height/2 - css.height/2;
         }
-        self.element = $(html).css(css);
+
+        css.width += 'px';
+        css.height += 'px';
+        css.left += 'px';
+        css.top += 'px';
+
+        dom.setStyle(self.element, css);
 
         self.initial = css;
 
         if(!self.rendered){
-            self.element.removeClass('fx-sticker-rendered');
+            dom.removeClass(self.element, 'fx-sticker-rendered');
         }
 
         // events
         // ------
 
         // render button
-        self.element.find('.fx-render-sticker').on('click', function(event){
-            parent.rerender_editables();
-            // stop click porpegating up to sticker element and triggering unrender right after rerender
-            event.stopPropagation();
-        });
+        self.element.innerHTML += '<a class="fx-render-sticker fx-sticker-handle" data-role="button" data-icon="tick" data-iconpos="notext" data-theme="e">✔</a>';
+        setTimeout(function(){
+            self.element.getElementsByClassName('fx-render-sticker')[0].addEventListener('click', function(event){
+                parent.rerender_editables();
+                // stop click porpegating up to sticker element and triggering unrender right after rerender
+                event.stopPropagation();
+            });
+        }, 4);
 
         // delete button
-        self.element.find('.fx-remove-sticker').on('click', function(){ self.remove(); });
-
+        self.element.innerHTML += '<a class="dd fx-remove-sticker fx-sticker-handle" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="e">✗</a>';
+        setTimeout(function(){
+            self.element.getElementsByClassName('fx-remove-sticker')[0].addEventListener('click', function(){ self.remove(); });
+        }, 4);
         // click to unrender
-        self.element.on('mousedown', function(){
+        self.element.addEventListener('mousedown', function(){
             if(self.parent.options.disable_sticker_edit){
                 return;
             }
             if(self.rendered){
                 parent.unrender_editables();
             }
-            self.element
-                .addClass('fx-active')
-                .removeClass('fx-sticker-rendered')
-                .siblings('.fx-active').removeClass('fx-active');
+
+            // deactivate all other layers
+            var to_deactivate = parent.elements.overlay.getElementsByClassName('fx-active');
+
+            for (var i = 0; i < to_deactivate.length; ++i) {
+                dom.removeClass(self.element, 'fx-active');
+            }
+
+            dom.addClass(self.element, 'fx-active');
+            dom.removeClass(self.element, 'fx-sticker-rendered');
         });
 
         // dragging
@@ -140,96 +157,100 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
         // move
         self.mousemove_drag = function(event){
             if(!self.rendered){
-                self.element.css({
-                    left: event.pageX - self.drag_from.left,
-                    top: event.pageY - self.drag_from.top
+                dom.setStyle(self.element, {
+                    left: event.clientX - self.drag_from.left + 'px',
+                    top: event.clientY - self.drag_from.top + 'px'
                 });
             }
         };
 
         // finish drag
         self.mouseup = function(){
-            parent.elements.wrapper.off('mousemove', self.mousemove_drag);
-            parent.elements.wrapper.off('mousemove', self.mousemove_scale);
+
+            parent.elements.wrapper.removeEventListener('mousemove', self.mousemove_drag);
+            parent.elements.wrapper.removeEventListener('mousemove', self.mousemove_scale);
         };
-        parent.elements.wrapper.on('mouseup', self.mouseup);
+        parent.elements.wrapper.addEventListener('mouseup', self.mouseup);
 
         // start drag
-        self.element.on('mousedown', function(event) {
+        self.element.addEventListener('mousedown', function(event) {
             if(!self.rendered){
 
-                var left = parseInt(self.element.css('left'), 10);
-                var top = parseInt(self.element.css('top'), 10);
+                var left = parseInt(self.element.style.left, 10);
+                var top = parseInt(self.element.style.top, 10);
 
                 self.drag_from = {
-                    left: event.pageX - left,
-                    top: event.pageY - top,
+                    left: event.clientX - left,
+                    top: event.clientY - top,
                     event: event
                 };
-                parent.elements.wrapper.on('mousemove', self.mousemove_drag);
+                parent.elements.wrapper.addEventListener('mousemove', self.mousemove_drag);
             }
 
-            parent.elements.overlay
-                .addClass('fx-editing-sticker')
-                .removeClass('fx-editing-text');
+            dom.addClass(parent.elements.overlay, 'fx-editing-sticker');
+            dom.removeClass(parent.elements.overlay, 'fx-editing-text');
         });
 
         // Scaling
         // -------
-
         self.mousemove_scale = function(event){
+            window.eeee = event;
             event.stopPropagation();
             if(!self.rendered){
 
-                var distance = SnaprFX.utils.pythag(event.pageX-self.scale_from.x, event.pageY-self.scale_from.y);
+                var distance = SnaprFX.utils.pythag(event.clientX-self.scale_from.x, event.clientY-self.scale_from.y);
                 self.scale = distance/self.scale_from.size;
                 self.scale = Math.max(self.scale, 0.15);
 
-                var rotation = SnaprFX.utils.cart2polar(event.pageX-self.scale_from.x, event.pageY-self.scale_from.y);
+                var rotation = SnaprFX.utils.cart2polar(event.clientX-self.scale_from.x, event.clientY-self.scale_from.y);
 
                 self.rotation = -self.scale_from.rotation+rotation;
 
-                var width = self.initial.width * self.scale;
-                var height = self.initial.height * self.scale;
+                var width = parseInt(self.initial.width, 10) * self.scale;
+                var height = parseInt(self.initial.height, 10) * self.scale;
 
-                self.element.css({
-                    transform: 'rotate('+(self.rotation/(2*Math.PI) * 360)+'deg)',
-                    width: width,
-                    height: height,
-                    top: self.scale_from.y - height/2 - self.parent.elements.overlay.offset_cache.top,
-                    left: self.scale_from.x - width/2 - self.parent.elements.overlay.offset_cache.left
+                dom.setStyle(self.element, {
+                    webkitTransform: 'rotate('+Math.round(self.rotation/(2*Math.PI) * 360)+'deg)',
+                    transform: 'rotate('+Math.round(self.rotation/(2*Math.PI) * 360)+'deg)',
+                    width: width + 'px',
+                    height: height + 'px',
+                    top: self.scale_from.y - height/2 - self.parent.elements.overlay.offset_cache.top + 'px',
+                    left: self.scale_from.x - width/2 - self.parent.elements.overlay.offset_cache.left + 'px'
                 });
             }
         };
 
         // start scale
-        self.element.find('.fx-scale-sticker').on('mousedown', function(event) {
-            event.stopPropagation();
-            window.element=self.element;
-            if(!self.rendered){
-                var dimensions = self.get_dimensions();
-                var offset = self.element.find('.fx-sticker-image').offset();
-                //var position = self.element.position();
-                self.scale_from = {
+        self.element.innerHTML += '<a class="fx-scale-sticker fx-sticker-handle" data-role="button" data-icon="rotate" data-iconpos="notext" data-theme="e"> </a>';
+        setTimeout(function(){
+            self.element.getElementsByClassName('fx-scale-sticker')[0].addEventListener('mousedown', function(event) {
+                event.stopPropagation();
+                if(!self.rendered){
+                    var dimensions = self.get_dimensions();
+                    var image = self.element.getElementsByClassName('fx-sticker-image')[0];
+                    //var position = self.element.position();
+                    self.scale_from = {
 
-                    // remember where the center is, the change in mouse distance/angle from this is scale/rotation
-                    x: offset.left + dimensions.width / 2,
-                    y: offset.top + dimensions.height / 2,
-                    // remember distance from center to corner, change in this = change in scale
-                    size: SnaprFX.utils.pythag(self.element.height(), self.element.width()) / 2 / self.scale,
-                    // remember current scale so new scale can be proportional
-                    scale: self.scale
-                };
-                // remember current rotation to apply change in rotation on top of
-                self.scale_from.rotation = SnaprFX.utils.cart2polar(event.pageX-self.scale_from.x, event.pageY-self.scale_from.y) - self.rotation;
+                        // remember where the center is, the change in mouse distance/angle from this is scale/rotation
+                        x: event.clientX - dimensions.width / 2,
+                        y: event.clientY - dimensions.height / 2,
+                        // remember distance from center to corner, change in this = change in scale
+                        size: SnaprFX.utils.pythag(self.element.offsetHeight, self.element.offsetWidth) / 2 / self.scale,
+                        // remember current scale so new scale can be proportional
+                        scale: self.scale
+                    };
+                    console.log(self.scale_from.x, self.scale_from.y);
+                    // remember current rotation to apply change in rotation on top of
+                    self.scale_from.rotation = SnaprFX.utils.cart2polar(event.clientX-self.scale_from.x, event.clientY-self.scale_from.y) - self.rotation;
 
-                parent.elements.wrapper.on('mousemove', self.mousemove_scale);
-            }
-        });
+                    parent.elements.wrapper.addEventListener('mousemove', self.mousemove_scale);
+                }
+            });
+        }, 4);
 
 
         // prevent default drag (like drag image to desktop)
-        self.element.on('dragstart', function(event) { event.preventDefault(); });  // stop normal dragging of image
+        self.element.addEventListener('dragstart', function(event) { event.preventDefault(); });  // stop normal dragging of image
 
         self.deferred.resolve();
 
@@ -262,33 +283,33 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
 
     self.deferred = $.Deferred();
 
-    var sticker = self.element.find('.fx-sticker-image'),
-        offset = sticker.offset(),
-        layer = self.element.parent(),
-        layer_offset = layer.offset(),
+    var sticker = self.element.getElementsByClassName('fx-sticker-image')[0],
+        layer = self.element.parentNode,
 
-        x = (offset.left - layer_offset.left) / layer.width(),
-        y = (offset.top - layer_offset.top) / layer.height(),
-        w = sticker.width() / layer.width() * canvas.width,
-        h = sticker.height() / layer.height() * canvas.height;
+        x = (self.element.offsetLeft + sticker.offsetLeft - layer.offsetLeft) / layer.offsetWidth,
+        y = (self.element.offsetTop + sticker.offsetTop - layer.offsetTop) / layer.offsetHeight,
+        w = sticker.offsetWidth / layer.offsetWidth * canvas.width,
+        h = sticker.offsetHeight / layer.offsetHeight * canvas.height;
 
-        var r = self.rotation, PI = Math.PI;
-        if(r>2*PI){r-=2*PI;}
-        if(r<0){r+=2*PI;}
-        var sin = Math.sin(r);
-        var cos = Math.cos(r);
+    var r = self.rotation, PI = Math.PI;
+    if(r>2*PI){r-=2*PI;}
+    if(r<0){r+=2*PI;}
+    var sin = Math.sin(r);
+    var cos = Math.cos(r);
 
-        if(r < PI/2){  // < 90
-            x += sin*h / canvas.width;
-        }else if(r > PI*1.5){  // > 270
-            y += -sin*w / canvas.height;
-        }else if(r > PI/2 && r < PI){  // > 90
-            x += (sin*h + -cos*w) / canvas.width;
-            y += -cos*h / canvas.height;
-        }else{  // > 180
-            x += -cos*w / canvas.width;
-            y += (-cos*h - sin*w) / canvas.height;
-        }
+    if(r < PI/2){  // < 90
+        x += sin*h / canvas.width;
+    }else if(r > PI*1.5){  // > 270
+        y += -sin*w / canvas.height;
+    }else if(r > PI/2 && r < PI){  // > 90
+        x += (sin*h + -cos*w) / canvas.width;
+        y += -cos*h / canvas.height;
+    }else{  // > 180
+        x += -cos*w / canvas.width;
+        y += (-cos*h - sin*w) / canvas.height;
+    }
+
+    console.warn(x, y, x * canvas.width, y * canvas.height);
 
     self.load().done(function() {
         // place sticker
@@ -310,7 +331,7 @@ SnaprFX.sticker.prototype.unrender = function(){  var self = this;
     // track if it's rendered in image or html overlay
     self.rendered = false;
 
-    self.element.removeClass('fx-sticker-rendered');
+    dom.removeClass(self.element, 'fx-sticker-rendered');
 };
 
 
@@ -319,16 +340,17 @@ SnaprFX.sticker.prototype.rerender = function(){  var self = this;
     // track if it's rendered in image or html overlay
     self.rendered = true;
 
-    self.element.addClass('fx-sticker-rendered');
+    dom.addClass(self.element, 'fx-sticker-rendered');
 };
 
 SnaprFX.sticker.prototype.remove = function(){  var self = this;
 
     // remove html overlay
-    self.element.remove();
+    self.parent.elements.overlay.removeChild(self.element);
 
     // remove events
-    self.parent.elements.wrapper.off('mousemove', self.mousemove).off('mouseup', self.mouseup);
+    self.parent.elements.wrapper.removeEventListener('mousemove', self.mousemove);
+    self.parent.elements.wrapper.removeEventListener('mouseup', self.mouseup);
 
     // remove from SnaprFX's list
     self.parent.stickers.forEach( function(sticker, i){
@@ -339,5 +361,5 @@ SnaprFX.sticker.prototype.remove = function(){  var self = this;
 };
 
 SnaprFX.sticker.prototype.get_dimensions = function(){  var self = this;
-    return SnaprFX.utils.rotated_dimensions(self.element.width(), self.element.height(), -self.rotation);
+    return SnaprFX.utils.rotated_dimensions(self.element.offsetWidth, self.element.offsetHeight, -self.rotation);
 };

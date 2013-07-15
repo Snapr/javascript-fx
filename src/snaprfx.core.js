@@ -1,4 +1,4 @@
-/*global define: false, JpegMeta: false */
+/*global define: false, JpegMeta: false, dom:false */
 
 // FX Overview
 // -----------
@@ -252,7 +252,7 @@ SnaprFX.prototype.load_original = function(stickers){  var self = this;
 
 // sets the html element's src to our canvas data
 SnaprFX.prototype.update_element = function(){  var self = this;
-    self.options.element.attr('src', self.canvas.get_data_url());
+    self.options.element.setAttribute('src', self.canvas.get_data_url());
 };
 
 /**
@@ -302,7 +302,16 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
         // remove text frames from prev filter
         if(options.filter != self.current_filter){
-            self.elements.overlay.find('.fx-text').addClass('fx-text-old');
+
+            // remember current text as old
+            self.elements.old_text = [];
+            var current = self.elements.overlay.getElementsByClassName('fx-text');
+            // put it in an array to avoid live nodeList updating
+            for (var i = current.length - 1; i >= 0; i--) {
+                self.elements.old_text.push(current[i]);
+            };
+
+            // destroy rendered version with no text/stickers
             self.without_extras = null;
         }
 
@@ -527,7 +536,11 @@ SnaprFX.prototype.finish = function(){  var self = this;
 
     if(debug_logging){ console.time('writing data back'); }
 
-    self.elements.overlay.find('.fx-text-old').remove();
+    if(self.elements.old_text){
+        self.elements.old_text.forEach(function(element){
+            self.elements.overlay.removeChild(element);
+        });
+    }
 
     self.canvas.put_data(self.pixels);
     if(!self.render_options.output){
@@ -584,40 +597,45 @@ SnaprFX.prototype.rerender_editables = function(){  var self = this;
 SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
     // store actual image, sticker div and a wrapper for both
     self.elements = {image: self.options.element};
-    var full_size = {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        height: '100%',
-        width: '100%'
-    };
-    self.elements.overlay = $('<div class="fx-overlay-layer">')
-        .css(full_size)
-        .click(function(event){
-            if(!$(event.target).closest('.fx-text-wrapper').length){ // if click wasn't on a text el
+    var overlay = self.elements.overlay = dom.div('fx-overlay-layer');
+    dom.setStyle(overlay, {
+        position:  'absolute',
+        top:  0,
+        left:  0,
+        height:  '100%',
+        width:  '100%'
+    });
+    overlay.addEventListener('click', function(event){
 
-                if(self.render_options.editable && !$(event.target).closest('.fx-sticker').length){
-                    self.rerender_editables();
-                }
-                if(self.active_text){
-                    self.active_text.deactivate();
-                }
+        if(!$(event.target).closest('.fx-text-wrapper').length){ // if click wasn't on a text el
+
+            if(self.render_options.editable && !$(event.target).closest('.fx-sticker').length){
+                self.rerender_editables();
             }
-        });
-    self.elements.wrapper = $('<div class="fx-wrapper">').css({
+            if(self.active_text){
+                self.active_text.deactivate();
+            }
+        }
+    });
+    var wrapper = self.elements.wrapper = dom.div('fx-wrapper');
+    dom.setStyle(wrapper, {
         position: 'relative',
         height: self.options.height,
         width: self.options.width
     });
 
     // put wrapper on page
-    self.elements.wrapper.insertAfter(self.elements.image);
+    self.elements.image.parentNode.insertBefore(wrapper, self.elements.image.nextSibling);
 
     // put elements in wrapper
-    self.elements.image.appendTo(self.elements.wrapper);
-    self.elements.overlay.appendTo(self.elements.wrapper);
+    wrapper.appendChild(self.elements.image);
+    wrapper.appendChild(overlay);
 
-    self.elements.overlay.offset_cache = self.elements.overlay.offset();
+    var offset = overlay.getBoundingClientRect();
+    self.elements.overlay.offset_cache = {
+        left: offset.left + window.pageXOffset,
+        top: offset.top + window.pageYOffset
+    };
 };
 
 
