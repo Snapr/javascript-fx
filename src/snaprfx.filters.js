@@ -261,6 +261,37 @@ SnaprFX.filters.lightness.prototype.process = function(i, rgb){
 };
 
 /**
+ * Curves adjustment layer
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
+SnaprFX.filters.rgb_lut = function(layer){  var self = this;
+    self.chanels = layer.adjustment;
+    console.log(self.chanels);
+    self.blender = new SnaprFX.Blender('lighten');
+};
+SnaprFX.filters.rgb_lut.prototype.process = function(i, rgb){  var self = this.filter;
+
+    var pixel = [0,0,0];
+    pixel = self.blender.process(
+        pixel,
+        self.chanels.b,
+        rgb[B]/255
+    );
+    pixel = self.blender.process(
+        pixel,
+        self.chanels.g,
+        rgb[G]/255
+    );
+    pixel = self.blender.process(
+        pixel,
+        self.chanels.r,
+        rgb[R]/255
+    );
+    return pixel;
+};
+
+/**
  * Blur filter
  * Blurs image by scaling it down and back up a few times
  * based on http://www.pixastic.com/lib/git/pixastic/actions/blurfast.js
