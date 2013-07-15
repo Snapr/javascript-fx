@@ -603,5 +603,5 @@ SnaprFX.filters.text.prototype.deactivate = function(elements){  var self = this
 
 SnaprFX.filters.text.prototype.process = function(i, rgb){  var self = this;
     if(!self.rendered){ return [0,0,0,0]; }
-    return [self.pixels[i], self.pixels[i+1], self.pixels[i+2], self.pixels[i+3]];
+    return [self.pixels.data[i], self.pixels.data[i+1], self.pixels.data[i+2], self.pixels.data[i+3]];
 };

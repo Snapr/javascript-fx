@@ -17,8 +17,8 @@
 // put the px back on the canvas
 // update img element
 
-var debug_logging = false,
-    debug_canvas = false;
+var debug_logging = true,
+    debug_canvas = true;
 
 // used to address vaues in pixel arrays in a more human-readible way. pixel[R] == red value
 var R=0,G=1,B=2,O=3;
@@ -50,9 +50,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
 
     self.options = options;
     self.render_options = {
-        editable: false,
-        width: self.options.width,
-        height: self.options.height
+        editable: false
     };
 
     // read EXIF first, it may have orientation
@@ -62,6 +60,11 @@ SnaprFX.prototype.init = function(options){  var self = this;
         self.exif = exif;
 
         self.load_original(true).done(function(){
+
+            self.options.width = self.original.width;
+            self.options.height = self.original.height;
+            self.render_options.width = self.render_options.width || self.original.width;
+            self.render_options.height = self.render_options.height || self.original.height;
 
             self.canvas = new SnaprFX.Canvas({
                 width: self.original.width,
@@ -102,8 +105,8 @@ SnaprFX.prototype.init = function(options){  var self = this;
             self.sticker_pack = pack.sticker_pack;
             self.sticker_pack.by_slug = {};
             self.sticker_pack.base_path = self.options.sticker_pack;
-            $.each(self.sticker_pack.sections, function(i, section){
-                $.each(section.stickers, function(i, sticker){
+            self.sticker_pack.sections.forEach( function(section){
+                section.stickers.forEach( function(sticker){
                     self.sticker_pack.by_slug[sticker.slug] = sticker;
                 });
             });
@@ -146,7 +149,9 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
 SnaprFX.prototype.set_options = function(options){  var self = this;
     var render_text = self.options.render_text;
 
-    $.extend(self.options, options);
+    for(var key in options){
+        self.options[key] = options[key];
+    }
 
     // if render_text just got turned on then render it
     if(!render_text && self.options.render_text){
@@ -163,8 +168,8 @@ SnaprFX.prototype.set_options = function(options){  var self = this;
  */
 SnaprFX.prototype.load_fonts = function(){  var self = this;
 
-    $.each(self.filter_pack.sections, function(i, section){
-        $.each(section.filters, function(i, filter){
+    self.filter_pack.sections.forEach( function(section){
+        section.filters.forEach( function(filter){
 
             var filter_path = self.filter_pack.base_path + 'filters/' + filter.slug + '/';
             // get filter details
@@ -176,7 +181,7 @@ SnaprFX.prototype.load_fonts = function(){  var self = this;
                     self.filter_specs[filter.slug] = data.filter;
 
                     if(data.filter.fonts){
-                        $.each(data.filter.fonts, function(i, font){
+                        data.filter.fonts.forEach( function(font){
 
                             var css = "@font-face {";
                             css += "font-family: '"+font['font-family']+"';";
@@ -190,10 +195,19 @@ SnaprFX.prototype.load_fonts = function(){  var self = this;
                             if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
                             css += "}";
 
-                            $('<style>'+css+'</style>').appendTo(document.head);
+                            var style = document.createElement('style');
+                            style.type = 'text/css';
+                            if (style.styleSheet){
+                                style.styleSheet.cssText = css;
+                            }else{
+                                style.appendChild(document.createTextNode(css));
+                            }
+                            document.head.appendChild(style);
 
                             // use font on page so it's preloaded
-                            $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
+                            var span = document.createElement('span');
+                            span.style['font-family'] = font['font-family'];
+                            document.body.appendChild(span);
 
                         });
                     }
@@ -255,25 +269,32 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     setTimeout(function(){
 
+        options = options || {};
+
         // defaults
-        options = $.extend({
+        var defaults = {
             filter: self.current_filter,
             editable: false,
             width: self.options.width,
             height: self.options.height
-        }, options);
+        };
+        for(var key in defaults){
+            if(!(key in options)){
+                options[key] = defaults[key];
+            }
+        }
 
         self.render_options = options;
 
         if(!options.editable && !options.output){
             self.deferred.done(function(){
                 if(self.options.render_text !== false || self.render_options.render_text){
-                    $.each(self.text, function(i, text){
+                    self.text.forEach( function(text){
                         text.rerender();
                     });
                 }
 
-                $.each(self.stickers, function(i, sticker){
+                self.stickers.forEach( function(sticker){
                     sticker.rerender();
                 });
             });
@@ -444,10 +465,10 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
                     if(layer.filter.whole_canvas){
                         // whole canvas has been processed by filter
                         // get relivent px
-                        rgb = [whole_canvas_result[i], whole_canvas_result[i+1], whole_canvas_result[i+2], whole_canvas_result[i+3]];
+                        rgb = [whole_canvas_result.data[i], whole_canvas_result.data[i+1], whole_canvas_result.data[i+2], whole_canvas_result.data[i+3]];
                     }else{
                         // process this px now
-                        rgb = layer.filter.process(i, [self.pixels[i], self.pixels[i+1], self.pixels[i+2]]);
+                        rgb = layer.filter.process(i, [self.pixels.data[i], self.pixels.data[i+1], self.pixels.data[i+2]]);
                     }
 
                     // start with opacity for px returned by filter
@@ -459,20 +480,20 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
                     }
                     // * opacity of this px from mask
                     if(layer.mask_image){
-                        opacity = opacity * (mask_pixels[i]/255);
+                        opacity = opacity * (mask_pixels.data[i]/255);
                     }
                     // * opacity of this whole layer
                     opacity = opacity * (layer.opacity/100);
 
                     // blend this layer with underlying
                     rgb = layer.blender.process(
-                        [self.pixels[i], self.pixels[i+1], self.pixels[i+2]],
+                        [self.pixels.data[i], self.pixels.data[i+1], self.pixels.data[i+2]],
                         [rgb[R], rgb[G], rgb[B]],
                         opacity
                     );
-                    self.pixels[i  ] = rgb[R];
-                    self.pixels[i+1] = rgb[G];
-                    self.pixels[i+2] = rgb[B];
+                    self.pixels.data[i  ] = rgb[R];
+                    self.pixels.data[i+1] = rgb[G];
+                    self.pixels.data[i+2] = rgb[B];
                 }
             }
 
@@ -516,7 +537,10 @@ SnaprFX.prototype.finish = function(){  var self = this;
 
     $(document.body).removeClass('fx-processing');
 
-    if((self.options.render_text === false && !self.render_options.render_text && !self.render_options.output) || (self.render_options.editable && !self.options.disable_text_edit)){
+
+    var text_rendered = self.options.render_text !== false || self.render_options.render_text;
+    var stickers_rendered = self.stickers.length;
+    if(((!text_rendered && !stickers_rendered) || self.render_options.editable) && !self.render_options.output){
         self.without_extras = self.canvas.clone();
     }
 
@@ -529,13 +553,13 @@ SnaprFX.prototype.finish = function(){  var self = this;
 SnaprFX.prototype.unrender_editables = function(){  var self = this;
 
     if(!self.options.disable_sticker_edit){
-        $.each(self.stickers, function(i, sticker){
+        self.stickers.forEach( function(sticker){
             sticker.unrender();
         });
     }
 
     if(!self.options.disable_text_edit){
-        $.each(self.text, function(i, text){
+        self.text.forEach( function(text){
             text.unrender();
         });
     }
@@ -582,8 +606,8 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
         });
     self.elements.wrapper = $('<div class="fx-wrapper">').css({
         position: 'relative',
-        height: self.elements.image.height(),
-        width: self.elements.image.width()
+        height: self.options.height,
+        width: self.options.width
     });
 
     // put wrapper on page

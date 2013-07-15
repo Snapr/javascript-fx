@@ -28,7 +28,7 @@ SnaprFX.filters.curves = function(layer){
 
     var filter = this;
 
-    $.each(['rgb', 'red', 'green', 'blue'], function(i, channel){
+    ['rgb', 'red', 'green', 'blue'].forEach(function(channel){
 
         // if not specified return a dummy function
         if(filter.curves[channel].length === 0){
@@ -39,7 +39,7 @@ SnaprFX.filters.curves = function(layer){
         // convert from snapr currves spec format [[in1,out1],[in2,out2]]
         // to CubicSpline's input format [in1,in2], [out1,out2]
         var inputs = [], outputs = [];
-        $.each(filter.curves[channel], function(i, point){
+        filter.curves[channel].forEach( function(point){
             inputs.push(point[0]);
             outputs.push(point[1]);
         });
@@ -349,7 +349,7 @@ SnaprFX.filters.image.prototype.update = function(layer, fx){  var self = this;
 };
 
 SnaprFX.filters.image.prototype.process = function(i, rgb){
-    return [this.pixels[i], this.pixels[i+1], this.pixels[i+2], this.pixels[i+3]];
+    return [this.pixels.data[i], this.pixels.data[i+1], this.pixels.data[i+2], this.pixels.data[i+3]];
 };
 
 

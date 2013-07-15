@@ -1,5 +1,26 @@
 /*global SnaprFX: false, JpegMeta: false */
 
+function div(className){
+    var element = document.createElement('div');
+    element.className = className;
+    return element;
+}
+
+function addClass(element, className){
+    if(!element.className.match(RegExp('(^|\\s)' + className + '(\\s|$)'))){
+        element.className += ' ' + className;
+    }
+}
+function removeClass(element, className){
+    element.className = element.className.replace(RegExp('(^|\\s)' + className + '(\\s|$)'), ' ');
+}
+
+function setStyle(element, style){
+    for(var property in style){
+        element.style[property] = style[property];
+    }
+}
+
 /** @expose */
 SnaprFX.utils = {
     compatible: function(){
@@ -33,19 +54,19 @@ SnaprFX.utils = {
     preload_assets: function(options){
         var filter_pack, sticker_pack;
         $.ajax({
-            url: options['filter_pack'] + 'filter-pack.json',
+            url: options.filter_pack + 'filter-pack.json',
             success: function(pack){
-                $.each(pack.filter_pack.sections, function(i, section){
-                    $.each(section.filters, function(i, filter){
+                pack.filter_pack.sections.forEach( function(section){
+                    section.filters.forEach( function(filter){
 
-                        var filter_path = options['filter_pack']    + 'filters/' + filter.slug + '/';
+                        var filter_path = options.filter_pack    + 'filters/' + filter.slug + '/';
                         // get filter details
                         $.ajax({
                             url: filter_path + 'filter.json',
                             success: function(data){
 
                                 if(data.filter.fonts){
-                                    $.each(data.filter.fonts, function(i, font){
+                                    data.filter.fonts.forEach( function(font){
 
                                         var css = "@font-face {";
                                         css += "font-family: '"+font['font-family']+"';";
@@ -67,7 +88,7 @@ SnaprFX.utils = {
                                     });
                                 }
 
-                                $.each(data.filter.layers, function(i, layer){
+                                data.filter.layers.forEach( function(layer){
                                     if(layer.type == 'image'){
                                         var image = new Image();
                                         image.src = filter_path+layer.image.image;
@@ -80,12 +101,12 @@ SnaprFX.utils = {
             }
         });
         $.ajax({
-            url: options['sticker_pack'] + 'sticker-pack.json',
+            url: options.sticker_pack + 'sticker-pack.json',
             success: function(pack){
-                $.each(pack.sticker_pack.sections, function(i, section){
-                    $.each(section.stickers, function(i, sticker){
+                pack.sticker_pack.sections.forEach( function(section){
+                    section.stickers.forEach( function(sticker){
                         var image = new Image();
-                        image.src = options['sticker_pack']+'assets/'+sticker.slug+'.png';
+                        image.src = options.sticker_pack+'assets/'+sticker.slug+'.png';
                     });
                 });
             }
