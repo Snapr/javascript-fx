@@ -2,10 +2,25 @@ Snapr Javascript FX
 =====================
 
 1. [Overview](#1-overview)
+
 2. [API's](#2-APIs)
+ * 2.1 Preloading
+ * 2.2 Browser compatiblity
+ * 2.3 Initialization
+ * 2.4 Apply filters
+ * 2.5 Alternate Output Size
+ * 2.6 Change source image
+
 3. [Text](#3-Text)
+ * 3.1 Activation
+ * 3.2 Change Styles
+ * 3.3 Disable/enable text or sticker editing
+ * 3.4 Render Text While Working
 
-
+4.[How To](#4-How-To)
+ * 4.1 Apply a filter
+ * 4.2 Preview with text rendered when render_text = false
+ * 4.3 Show a render activity indicator
 
 1. Overview
 ----------------------
@@ -40,7 +55,7 @@ In order to speed up applying filters assets such as image layers, masks, and cu
 
 The library is written for modern browsers that have good support for the HTML 5 `<canvas>` element.
 
-To check compatibility: `SnaprFX.utils.compatible` returns true or false
+To check compatibility use: `SnaprFX.utils.compatible` (returns true or false)
 
     if(!SnaprFX.utils.compatible()){ ... }
 
@@ -64,7 +79,7 @@ To check compatibility: `SnaprFX.utils.compatible` returns true or false
 
 ##### Deferred
 
-Two deferred objects are available for callbacks
+Two deferred objects are available for callbacks:
 
     MyImageInstance.load_filter_pack
     MyImageInstance.load_sticker_pack
@@ -112,13 +127,13 @@ Use a different base image:
     
 
 
-
 3. Text
 ----------------------
 
 The library renders text into the image using `<canvas>` text.
 
-While editing text an editable CSS styled version of the text is made visible.
+While editing text an editable CSS styled version of the text is made visible 
+(and a version of the base image without editable elements is shown).
 
 ### 3.1 Activation
 
@@ -154,7 +169,7 @@ All optional
 
 ### 3.3 Disable/enable text or sticker editing
 
-Stop text or sticker elements being activates so that the user can edit the other
+Stop text or sticker elements being activate so that the user can edit the other
 type unhindered.
 
     MyImageInstance.set_options({disable_text_edit: bool});
@@ -163,28 +178,38 @@ type unhindered.
 
 ### 3.4 Render Text While Working
 
-It's
+By default text is not rendered into the `<canvas>` while working. This speeds up the UI.
+
+If your designs include text that is below other layers of the filter, or uses blend modes, 
+and you want accurate previews you can turn this option on.
 
     MyImageInstance.set_options({render_text: bool});
 
 
-### add text
+### 3.5 Add Text
 
 Add a text layer.
+
 options format matches text layers in filter json.
 
     MyImageInstance.add_text(options);
 
 
 
-How to
-------
+4. How To
+-------------------------
 
-Apply a filter
+### 4.1 Apply a filter
 
     MyImageInstance.apply_filter({filter: "slug"});
 
 
-Preview with rext rendered when render_text = false
+### 4.2 Preview with text rendered when render_text = false
 
     MyImageInstance.apply_filter({render_text: true, editable:false});
+    
+### 4.3 Show a render activity indicator
+
+A class `.fx-processing` will be added to the `<body>` of your page while any render activity is in progress.
+
+You can use this to show a render activity indicator.
