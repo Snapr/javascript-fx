@@ -55,7 +55,7 @@
 
             image.load_filter_pack.done(function(pack){
                 $('.x-effects').append(
-                    $('<fieldset><legend>No Filter</legend><a> <img src="'+pack.base_path+'original-thumb@2x.png">Original </a></fieldset>')
+                    $('<fieldset><legend>No Filter</legend><a> <img src="'+pack.base_path+'original-thumb.png">Original </a></fieldset>')
                     .click(function(){
                         $('.x-current-filter').removeClass('x-current-filter');
                         $(this).addClass('x-current-filter');
@@ -68,7 +68,7 @@
                     $('.x-effects').append(section_el);
                     $.each(section.filters, function(i, filter){
                         section_el.append(
-                            $('<a> <img src="'+pack.base_path+'filters/'+filter.slug+'/thumb@2x.png">'+filter.name+' </a>')
+                            $('<a> <img src="'+pack.base_path+'filters/'+filter.slug+'/thumb.png">'+filter.name+' </a>')
                             .click(function(){
                                 if(image.current_filter == filter.slug){
                                     return;
@@ -93,7 +93,7 @@
                     $('.x-stickers').append(section_el);
                     $.each(section.stickers, function(i, sticker){
                         section_el.append(
-                            $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'@2x.png">'+sticker.name+' </a>')
+                            $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'.png">'+sticker.name+' </a>')
                             .click(function(){
                                 image.add_sticker(sticker.slug);
                             })

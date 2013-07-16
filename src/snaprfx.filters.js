@@ -1,4 +1,4 @@
-/*global SnaprFX: false, debug_logging: false */
+/*global SnaprFX: false, debug_logging: false, R: false, G: false, B: false */
 
 SnaprFX.filters = {};
 
@@ -258,6 +258,36 @@ SnaprFX.filters.lightness.prototype.process = function(i, rgb){
         Math.min(rgb[G] * multiplier + increase, 255),
         Math.min(rgb[B] * multiplier + increase, 255)
     ];
+};
+
+/**
+ * Curves adjustment layer
+ * @constructor
+ * @param {Object} layer. Layer options.
+ */
+SnaprFX.filters.remap_channels = function(layer){  var self = this;
+    self.channels = layer.adjustment;
+    self.blender = new SnaprFX.Blender('lighten');
+};
+SnaprFX.filters.remap_channels.prototype.process = function(i, rgb){  var self = this.filter;
+
+    var pixel = self.channels.base || rgb;
+    pixel = self.blender.process(
+        pixel,
+        self.channels.b,
+        rgb[B]/255
+    );
+    pixel = self.blender.process(
+        pixel,
+        self.channels.g,
+        rgb[G]/255
+    );
+    pixel = self.blender.process(
+        pixel,
+        self.channels.r,
+        rgb[R]/255
+    );
+    return pixel;
 };
 
 /**
