@@ -1,7 +1,34 @@
-Preloading
-----------
+Snapr Javascript FX
+=====================
 
-In order to speed up applying filters assets can be preloaded
+1. [Overview](#1-overview)
+2. [API's](#2-APIs)
+3. [Text](#3-Text)
+
+
+
+1. Overview
+----------------------
+
+Snapr's Javascript FX Library renders photo filters & sticker packs on the web and mobile web. 
+
+Snapr has open source formats for defining both [filters](https://github.com/Snapr/filters/) and [stickers](https://github.com/Snapr/stickers).
+
+These formats can also be read by Snapr's native modules for iOS & Android which will be released to the public at a later date.
+
+The demo project illustrates how you can use the library to:
+
+* Create custom photo filters with advanced layering, blend modes, grading, & masking.
+* Include editable, fully styled, text in your designs.
+* Create stickers packs & build a UI for adding stickers to an image
+
+
+2. API's
+-----------------------
+
+### 2.1 Preloading
+
+In order to speed up applying filters assets such as image layers, masks, and custom fonts can be preloaded:
 
     SnaprFX.utils.preload_assets({
         filter_pack: "path/to/filter-pack-directory/",
@@ -9,16 +36,16 @@ In order to speed up applying filters assets can be preloaded
     });
 
 
-Browser compatiblity
---------------------
+### 2.2 Browser compatiblity
 
-`SnaprFX.utils.compatible` returns true or false
+The library is written for modern browsers that have good support for the HTML 5 `<canvas>` element.
+
+To check compatibility: `SnaprFX.utils.compatible` returns true or false
 
     if(!SnaprFX.utils.compatible()){ ... }
 
 
-Initialization
---------------
+### 2.3 Initialization
 
     MyImageInstance = new SnaprFX(options);
 
@@ -43,8 +70,7 @@ Two deferred objects are available for callbacks
     MyImageInstance.load_sticker_pack
 
 
-Apply filters
--------------
+### 2.4 Apply filters
 
     MyImageInstance.apply_filter({
         filter: "slug",
@@ -56,10 +82,11 @@ Apply filters
     });
 
 
-Alternate Output Size
----------------------
+### 2.5 Alternate Output Size
 
-To output (uneditable) image, for example as final output or thumbnail
+You can create an uneditable version of your image at any size.
+
+This could be used to create high resolution final output, or low resolution thumbnail previews.
 
     MyImageInstance.output({
         width: 560,
@@ -77,20 +104,27 @@ url is full image data as [Data URI Scheme](https://en.wikipedia.org/wiki/Data_U
     });
 
 
-Change source image
-----------------------
+### 2.6 Change source image
+
+Use a different base image:
 
     MyImageInstance.set_url(new_src);
+    
 
 
-Text
-----
 
-### Activation
+3. Text
+----------------------
+
+The library renders text into the image using `<canvas>` text.
+
+While editing text an editable CSS styled version of the text is made visible.
+
+### 3.1 Activation
 
 When the user clicks some text and it becomes active a custom event is fired on
 the text emement with details about the text. The data object format matches
-text layers in filter json.
+text layers in the filter json.
 
     $('.fx-text').live('activate', function(event, data){
         // data represents properties of activated text
@@ -98,7 +132,7 @@ text layers in filter json.
 
 
 
-### change styles
+### 3.2 Change Styles
 
 To update the style of the active text layer call change_style on it:
 
@@ -118,7 +152,7 @@ All optional
 
 
 
-### Disable/enable text or sticker editing
+### 3.3 Disable/enable text or sticker editing
 
 Stop text or sticker elements being activates so that the user can edit the other
 type unhindered.
@@ -127,7 +161,9 @@ type unhindered.
     MyImageInstance.set_options({disable_sticker_edit: bool});
 
 
-### render text while working
+### 3.4 Render Text While Working
+
+It's
 
     MyImageInstance.set_options({render_text: bool});
 
