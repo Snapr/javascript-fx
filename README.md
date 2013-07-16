@@ -2,22 +2,20 @@ Snapr Javascript FX
 =====================
 
 1. [Overview](#1-overview)
-
-2. [API's](#2-APIs)
+ * 1.1 Examples in the wild
+2. [API's](#2-apis)
  * 2.1 Preloading
  * 2.2 Browser compatiblity
  * 2.3 Initialization
  * 2.4 Apply filters
  * 2.5 Alternate Output Size
  * 2.6 Change source image
-
-3. [Text](#3-Text)
+3. [Text](#3-text)
  * 3.1 Activation
  * 3.2 Change Styles
  * 3.3 Disable/enable text or sticker editing
  * 3.4 Render Text While Working
-
-4.[How To](#4-How-To)
+4. [How To](#4-how-to)
  * 4.1 Apply a filter
  * 4.2 Preview with text rendered when render_text = false
  * 4.3 Show a render activity indicator
@@ -36,6 +34,11 @@ The demo project illustrates how you can use the library to:
 * Create custom photo filters with advanced layering, blend modes, grading, & masking.
 * Include editable, fully styled, text in your designs.
 * Create stickers packs & build a UI for adding stickers to an image
+
+
+### 1.1 Examples in the wild
+
+You can see a number of apps built off the Snapr platform at [apps.sna.pr](http://apps.sna.pr)
 
 
 2. API's
