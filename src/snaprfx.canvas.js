@@ -11,7 +11,7 @@ SnaprFX.Canvas = function(options){  var self = this;
 
     self.options = options;
 
-    self.deferred = $.Deferred();  // to notify when read to read
+    self.deferred = new Deferred();  // to notify when read to read
 
     // create canvas
     self.canvas = document.createElement('canvas');
@@ -61,7 +61,7 @@ SnaprFX.Canvas = function(options){  var self = this;
 
 SnaprFX.Canvas.prototype.place_image = function() {  var self = this;
 
-    var deferred = $.Deferred();
+    var deferred = new Deferred();
 
     self.image.aspect = self.image.width/self.image.height;
     var x1 = 0,
@@ -148,7 +148,7 @@ SnaprFX.Canvas.prototype.set_size = function(width, height) {  var self = this;
     if(self.image){
         return self.place_image();
     }else{
-        return $.Deferred().resolve();
+        return new Deferred().resolve();
     }
 };
 

@@ -23,6 +23,26 @@ dom.setStyle = function(element, style){
     }
 };
 
+function Deferred(){
+    this.callbacks = [];
+}
+Deferred.prototype.resolve = function(data){
+    this.resolved = true;
+    this.data = data;
+    this.callbacks.forEach(function(callback){
+        callback(data);
+    });
+    return this;
+};
+Deferred.prototype.done = function(callback){
+    if(this.resolved){
+        callback(this.data);
+    }else{
+        this.callbacks.push(callback);
+    }
+    return this;
+};
+
 /** @expose */
 SnaprFX.utils = {
     compatible: function(){
@@ -119,7 +139,7 @@ SnaprFX.utils = {
     // Returns Deferred which resolves with selected EXIF properties
     read_exif: function(url){
 
-        var deferred = $.Deferred();
+        var deferred = new Deferred();
 
         // use XHR to turn url (may be blob/file) into arraybuffer
         var xhr = new XMLHttpRequest();

@@ -14,7 +14,7 @@ SnaprFX.filters.adjustment = function(layer){
     this.filter = new SnaprFX.filters[layer.adjustment.type](layer);
     this.whole_canvas = this.filter.whole_canvas;
     this.process = this.filter.process;
-    this.deferred = $.Deferred().resolve();
+    this.deferred = new Deferred().resolve();
 };
 
 /**
@@ -345,7 +345,7 @@ SnaprFX.filters.blur.prototype.process = function(canvas){
 SnaprFX.filters.color = function(layer){
     // TODO: if mask == false we can use canvas.context.fillRect to do this more efficiently
     this.color = layer.color.rgb;
-    this.deferred = $.Deferred().resolve();
+    this.deferred = new Deferred().resolve();
 };
 SnaprFX.filters.color.prototype.process = function(i, rgb){ return this.color; };
 
@@ -362,7 +362,7 @@ SnaprFX.filters.image = function(layer, fx){  var self = this;
     self.width = fx.canvas.width;
     self.height = fx.canvas.height;
     self.canvas = new SnaprFX.Canvas({url: fx.filter_pack.base_path + 'filters/' + fx.current_filter+'/'+self.url, width: self.width, height: self.height});
-    self.deferred = $.Deferred();
+    self.deferred = new Deferred();
     self.canvas.deferred.done(function(){
         self.pixels = self.canvas.get_data();
         self.deferred.resolve();
@@ -371,7 +371,7 @@ SnaprFX.filters.image = function(layer, fx){  var self = this;
 SnaprFX.filters.image.prototype.update = function(layer, fx){  var self = this;
     self.width = fx.canvas.width;
     self.height = fx.canvas.height;
-    self.deferred = $.Deferred();
+    self.deferred = new Deferred();
     self.canvas.set_size(self.width, self.height).done(function(){
         self.pixels = self.canvas.get_data();
         self.deferred.resolve();

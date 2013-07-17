@@ -21,14 +21,14 @@ SnaprFX.prototype.add_sticker = function(slug){  var self = this;
 
 SnaprFX.prototype.render_stickers = function(){  var self = this;
 
-    var deferred = $.Deferred();
+    var deferred = new Deferred();
 
     // function to check if all other stickers
     // are placed after each on is done
     function check_stickers_resolved(){
         var done = true;
         self.stickers.forEach(function(sticker){
-            if(sticker.deferred.state() == 'pending'){
+            if(!sticker.deferred.resolved){
                 done = false;
                 return false; // break each
             }
@@ -71,7 +71,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
 
     self.spec = parent.sticker_pack.by_slug[slug];
 
-    self.deferred = $.Deferred();
+    self.deferred = new Deferred();
 
     self.load().done(function(){
 
@@ -264,7 +264,7 @@ SnaprFX.sticker.prototype.load = function(){  var self = this;
         return self.load_deferred;
     }
 
-    self.load_deferred = $.Deferred();
+    self.load_deferred = new Deferred();
 
     // get image
     self.image = new Image();
@@ -281,7 +281,7 @@ SnaprFX.sticker.prototype.load = function(){  var self = this;
 // render sticker into actual image
 SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
 
-    self.deferred = $.Deferred();
+    self.deferred = new Deferred();
 
     var sticker = self.element.getElementsByClassName('fx-sticker-image')[0],
         layer = self.element.parentNode,

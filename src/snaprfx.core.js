@@ -46,7 +46,7 @@ SnaprFX.prototype.deferred = null;
 // }
 SnaprFX.prototype.init = function(options){  var self = this;
 
-    self.deferred = $.Deferred();
+    self.deferred = new Deferred();
 
     self.options = options;
     self.render_options = {
@@ -85,7 +85,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
     });
 
     /** @expose */
-    self.load_filter_pack = $.Deferred();
+    self.load_filter_pack = new Deferred();
     var filter_request = new XMLHttpRequest();
     filter_request.onload = function(){
         self.filter_pack = JSON.parse(filter_request.response).filter_pack;
@@ -98,7 +98,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
     filter_request.send();
 
     /** @expose */
-    self.load_sticker_pack = $.Deferred();
+    self.load_sticker_pack = new Deferred();
     var sticker_request = new XMLHttpRequest();
     sticker_request.onload = function(){
         self.sticker_pack = JSON.parse(sticker_request.response).sticker_pack;
@@ -127,7 +127,7 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
 
     this.options.url = url;
 
-    var deferred = $.Deferred();
+    var deferred = new Deferred();
 
     // read EXIF first, it may have orientation
     // info needed for rendering the canvas
@@ -220,7 +220,7 @@ SnaprFX.prototype.load_fonts = function(){  var self = this;
 // includes any stickers unless 'stickers' === false
 SnaprFX.prototype.load_original = function(stickers){  var self = this;
 
-    var deferred = $.Deferred();
+    var deferred = new Deferred();
 
     // TODO: do we need to create a new canvas each time?
     self.original = new SnaprFX.Canvas({
@@ -262,7 +262,7 @@ SnaprFX.prototype.update_element = function(){  var self = this;
  */
 SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
-    self.deferred = $.Deferred();
+    self.deferred = new Deferred();
 
     $(document.body).addClass('fx-processing');
 
@@ -385,7 +385,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
 SnaprFX.prototype.output = function(options){  var self = this;
 
-    var deferred = $.Deferred();
+    var deferred = new Deferred();
 
     self.apply_filter({
         output: true,
