@@ -17,7 +17,7 @@ SnaprFX.Canvas = function(options){  var self = this;
     self.canvas = document.createElement('canvas');
     self.context = self.canvas.getContext('2d');
 
-    if(debug_canvas){
+    if($ && debug_canvas){
         $(document.body).append(self.canvas);
         $(self.canvas).css({border: '1px solid #f00', width: 200});
     }
