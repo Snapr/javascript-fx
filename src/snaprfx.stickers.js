@@ -82,6 +82,17 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
 
         self.element = dom.div('fx-sticker fx-sticker-rendered');
 
+        self.element.addEventListener('click', function(event){
+
+            // stop clicks inside the sticker bubbling up and trigering a click 'outside' the sticker, deactivating it
+            event.stopPropagation();
+
+            if(parent.active_text){
+                parent.active_text.deactivate();
+            }
+
+        });
+
         var html = '<img class="fx-sticker-image" src="'+self.parent.sticker_pack.base_path+'assets/'+slug+'.png">';
 
         self.element.innerHTML = html;

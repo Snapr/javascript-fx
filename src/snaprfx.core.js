@@ -590,6 +590,7 @@ SnaprFX.prototype.unrender_editables = function(){  var self = this;
     if(self.without_extras){
         self.canvas.context.drawImage(self.without_extras.canvas, 0, 0);
         self.update_element();
+        self.render_options.editable = true;
     }else{
         self.apply_filter({editable: true});
     }
@@ -616,15 +617,8 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
         width:  '100%'
     });
     overlay.addEventListener('click', function(event){
-
-        if(!$(event.target).closest('.fx-text-wrapper').length){ // if click wasn't on a text el
-
-            if(self.render_options.editable && !$(event.target).closest('.fx-sticker').length){
-                self.rerender_editables();
-            }
-            if(self.active_text){
-                self.active_text.deactivate();
-            }
+        if(self.render_options.editable){
+            self.rerender_editables();
         }
     });
     var wrapper = self.elements.wrapper = dom.div('fx-wrapper');

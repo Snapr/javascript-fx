@@ -313,6 +313,9 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     self.wrapper = dom.div('fx-text-wrapper');
     dom.setStyle(self.wrapper, {'lineHeight': 'normal', 'vertical-align': self.text_style.textBaseline});
 
+    // stop clicks inside the text bubbling up and trigering a click 'outside' the text, deactivating it
+    self.wrapper.addEventListener('click', function(event){ event.stopPropagation(); });
+
     self.text_element = dom.div('fx-text-inner');
     self.text_element.setAttribute("data-layer", self.slug);
     dom.setStyle(self.text_element, {
