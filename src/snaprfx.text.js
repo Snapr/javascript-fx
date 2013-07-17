@@ -65,11 +65,11 @@ SnaprFX.filters.text.prototype.calculate_position = function(layer, fx){  var se
 
 
 SnaprFX.filters.text.prototype.set_canvas_font = function(){  var self = this;
-    self.text_element.css('font-size', parseInt(self.text_element.css('font-size'), 10) * self.render_scale);
-    self.text_element.css('line-height', parseInt(self.text_element.css('line-height'), 10) * self.render_scale + 'px');
-    self.canvas.context.font = self.text_element.css('font');
-    self.text_element.css('font-size', parseInt(self.text_element.css('font-size'), 10) / self.render_scale);
-    self.text_element.css('line-height', parseInt(self.text_element.css('line-height'), 10) / self.render_scale + 'px');
+    self.text_element.style.fontSize = parseInt(self.text_element.style.fontSize, 10) * self.render_scale;
+    self.text_element.style.lineHeight = parseInt(self.text_element.style.lineHeight, 10) * self.render_scale + 'px';
+    self.canvas.context.font = self.text_element.style.font;
+    self.text_element.style.fontSize = parseInt(self.text_element.style.fontSize, 10) / self.render_scale;
+    self.text_element.style.lineHeight = parseInt(self.text_element.style.lineHeight, 10) / self.render_scale + 'px';
 };
 
 SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
@@ -89,16 +89,16 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     // update text from overlay
 
     // strip HTML, replace <br> with newlines
-    self.text = self.text_element.html()
+    self.text = self.text_element.innerHTML
         .replace(/<br\/?>/g, '\n')  // <br> to newline
         .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
         .replace(/<.*?>/g, '');  // strip html tags
 
     // but back stripped text with <br>s for newlines
-    self.text_element.html(self.text.replace(/\n/g, '<br>'));
+    self.text_element.innerHTML = self.text.replace(/\n/g, '<br>');
 
-    self.text_style.fillStyle = self.text_element.css('color');
-    self.text_style.textAlign = self.element.css('text-align');
+    self.text_style.fillStyle = self.text_element.style.color;
+    self.text_style.textAlign = self.element.style.textAlign;
 
     self.render_scale = self.canvas.height / fx.elements.overlay.offsetHeight;
 
@@ -108,17 +108,20 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     self.canvas.context.textBaseline = self.text_style.textBaseline || 'top';
     self.canvas.context.fillStyle = self.text_style.fillStyle;
 
-    self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10);
-    self.text_style.lineHeight = parseInt(self.text_element.css('line-height'), 10);
+    self.text_style.fontSize = parseInt(self.text_element.style.fontSize, 10);
+    self.text_style.lineHeight = parseInt(self.text_element.style.lineHeight, 10);
 
     // wrapping
     // --------
 
-    var position = self.element.position();
-    self.position.left = position.left;
-    self.position.top = position.top;
-    self.position.right = position.left + self.element.width();
-    self.position.bottom = position.top + self.element.height();
+    var position = self.element.getBoundingClientRect();
+    var overlay_position = fx.elements.overlay.getBoundingClientRect();
+    console.log(position);
+    console.log(overlay_position);
+    self.position.left = parseInt(position.left, 10) - parseInt(overlay_position.left, 10);
+    self.position.top = parseInt(position.top, 10) - parseInt(overlay_position.top, 10);
+    self.position.right = self.position.left + parseInt(position.width, 10);
+    self.position.bottom = self.position.top + parseInt(position.height, 10);
 
     var max_width = self.position.right - self.position.left,
         max_height = Math.round(self.position.bottom - self.position.top);
@@ -155,10 +158,10 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
 
         self.text_style.fontSize = self.text_style.fontSize * 0.8;
-        self.text_element.css('font-size', self.text_style.fontSize);
+        self.text_element.css('fontSize', self.text_style.fontSize);
 
         self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
-        self.text_element.css('line-height', self.text_style.lineHeight+ 'px');
+        self.text_element.css('lineHeight', self.text_style.lineHeight+ 'px');
 
         self.set_canvas_font();
 
@@ -225,6 +228,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
                 );
             }
 
+            console.log(x, y+l*self.text_style.lineHeight*self.render_scale, max_width);
             self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight*self.render_scale, max_width);
 
         }
@@ -237,7 +241,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self = this;
 
     // stop if element already exists and is in dom
-    if(self.element && jQuery.contains(document.documentElement, self.element[0])){
+    if(self.element && self.element.fxNode){
         return;
     }
 
@@ -245,10 +249,10 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
     var css = {
         position: 'absolute',
-        left: self.position.left,
-        top: self.position.top,
-        width: self.position.right - self.position.left,
-        height: self.position.bottom - self.position.top,
+        left: self.position.left + 'px',
+        top: self.position.top + 'px',
+        width: self.position.right - self.position.left + 'px',
+        height: self.position.bottom - self.position.top + 'px',
         'text-align': self.text_style.textAlign
     };
 
@@ -256,20 +260,20 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         switch(self.text_style.textAlign){
             case 'end':
             case 'right':
-                css.width = self.position.x;
+                css.width = self.position.x + 'px';
                 break;
             case 'center':
                 // if text is centered closer to left than right
                 if(self.position.right - self.position.x < self.position.x - self.position.left){
-                    css.width = (self.position.right - self.position.x) * 2;
-                    css.left = self.position.right - css.width;
+                    css.width = (self.position.right - self.position.x) * 2 + 'px';
+                    css.left = self.position.right - css.width + 'px';
                 }else{
-                    css.width = (self.position.x - self.position.left) * 2;
+                    css.width = (self.position.x - self.position.left) * 2 + 'px';
                 }
                 break;
             default:  // left, start
-                css.left = self.position.x;
-                css.width = self.position.right - self.position.x;
+                css.left = self.position.x + 'px';
+                css.width = self.position.right - self.position.x + 'px';
         }
     }
 
@@ -279,49 +283,51 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             case 'alphabetic':
             case 'ideographic':
             case 'bottom':
-                css.height = self.position.y;
+                css.height = self.position.y + 'px';
                 break;
             case 'middle':
                 // if text is centered closer to top than bottom
                 if(self.position.bottom - self.position.y < self.position.y - self.position.top){
-                    css.height = (self.position.bottom - self.position.y) * 2;
-                    css.top = self.position.bottom - css.height;
+                    css.height = (self.position.bottom - self.position.y) * 2 + 'px';
+                    css.top = self.position.bottom - css.height + 'px';
                 }else{
-                    css.height = (self.position.y - self.position.top) * 2;
+                    css.height = (self.position.y - self.position.top) * 2 + 'px';
                 }
                 break;
             default:  // top
-                css.top = self.position.y;
-                css.height = self.bbox.bottom - css.top;
+                css.top = self.position.y + 'px';
+                css.height = self.bbox.bottom - css.top + 'px';
         }
     }
 
-    css['line-height'] = css.height + 'px';
+    css.lineHeight = css.height + 'px';
 
 
-    self.element  = $('<div class="fx-text">')
-    .css(css);
+    self.element  = dom.div('fx-text');
+    dom.setStyle(self.element, css);
 
     if(self.rendered && (fx.options.render_text !== false || fx.render_options.render_text)){
-        self.element.addClass('fx-text-rendered');
+        dom.addClass(self.element, 'fx-text-rendered');
     }
 
-    self.wrapper = $('<div class="fx-text-wrapper">').css({'line-height': 'normal', 'vertical-align': self.text_style.textBaseline});
+    self.wrapper = dom.div('fx-text-wrapper');
+    dom.setStyle(self.wrapper, {'lineHeight': 'normal', 'vertical-align': self.text_style.textBaseline});
 
-    self.text_element  = $('<div class="fx-text-inner" data-layer="'+self.slug+'">')
-    .css({
+    self.text_element = dom.div('fx-text-inner');
+    self.text_element.setAttribute("data-layer", self.slug);
+    dom.setStyle(self.text_element, {
         font: self.text_style.font,
         color: self.text_style.fillStyle
-    })
-    .text(self.text)
-    .on('mousedown', function(){
+    });
+    self.text_element.innerText = self.text;
+    self.text_element.addEventListener('mousedown', function(){
 
         if(fx.options.disable_text_edit){
             return;
         }
 
-        var active = self.element.hasClass('fx-active'),
-            rendered = self.element.hasClass('fx-text-rendered');
+        var active = dom.hasClass(self.element, 'fx-active'),
+            rendered = dom.hasClass(self.element, 'fx-text-rendered');
 
         // deactivate all other text layers
         var to_deactivate_list = self.overlay.getElementsByClassName('fx-active fx-text');
@@ -341,10 +347,9 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
         // activate if not already active
         if(!active){
-            self.element
-                .addClass('fx-active')
-                .removeClass('fx-text-rendered')
-                .trigger('activate', layer);
+            dom.addClass(self.element, 'fx-active');
+            dom.removeClass(self.element, 'fx-text-rendered');
+            $(self.element).trigger('activate', layer);
 
             fx.active_text = self;
         }
@@ -357,8 +362,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             fx.unrender_editables();
         }
 
-    })
-    .on('dblclick', function(){
+    });
+    self.text_element.addEventListener('dblclick', function(){
         self.editable = true;
         self.element.addClass('fx-editable');
         self.text_element
@@ -384,15 +389,15 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         }
 
     })
-    .on('keyup', function(){
+    self.text_element.addEventListener('keyup', function(){
         self.check_size();
     });
 
-    self.element.append(self.wrapper);
+    self.element.appendChild(self.wrapper);
 
-    self.wrapper.append(self.text_element);
+    self.wrapper.appendChild(self.text_element);
 
-    self.wrapper.append(
+    self.wrapper.appendChild(
         $('<a class="fx-delete-layer fx-text-button">✗</a>')
             .css({
                 position: 'absolute',
@@ -400,9 +405,9 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 left: 0
             })
             // trigger removal
-            .click(function(){ self.remove(); })
+            .click(function(){ self.remove(); })[0]
     );
-    self.wrapper.append(
+    self.wrapper.appendChild(
         $('<a class="fx-render-layer fx-text-button">✔</a>')
             .css({
                 position: 'absolute',
@@ -416,7 +421,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 }else{
                     self.deactivate();
                 }
-            })
+            })[0]
     );
 
     // dragging
@@ -458,7 +463,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
                 // set y bbox for text based on alignment
                 var max_height = self.bbox.bottom - self.bbox.top;
-                var current_height = self.text_element.innerHeight() - 18;
+                var current_height = self.text_element.offsetHeight - 18;
                 switch(self.text_style.textBaseline){
                     case 'hanging':
                     case 'alphabetic':
@@ -492,26 +497,31 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 // height must be more then lineHeight
                 css.height = Math.max(css.height, self.text_style.lineHeight);
 
-                css['line-height'] = css.height + 'px';
+                css.lineHeight = css.height + 'px';
 
-                self.element.css(css);
+                css.height += 'px';
+                css.width += 'px';
+                css.top += 'px';
+                css.left += 'px';
+
+                dom.setStyle(self.element, css);
             }
         };
 
         // finish drag
         self.mouseup = function(){
-            fx.elements.wrapper.off('mousemove', self.mousemove_drag);
+            fx.elements.wrapper.removeEventListener('mousemove', self.mousemove_drag);
         };
-        fx.elements.wrapper.on('mouseup', self.mouseup);
+        fx.elements.wrapper.addEventListener('mouseup', self.mouseup);
 
         // start drag
-        self.element.on('mousedown', function(event) {
+        self.element.addEventListener('mousedown', function(event) {
             if(!self.rendered){
 
-                var left = parseInt(self.element.css('left'), 10);
-                var top = parseInt(self.element.css('top'), 10);
-                var width = parseInt(self.element.css('width'), 10);
-                var height = parseInt(self.element.css('height'), 10);
+                var left = parseInt(self.element.style.left, 10);
+                var top = parseInt(self.element.style.top, 10);
+                var width = parseInt(self.element.style.width, 10);
+                var height = parseInt(self.element.style.height, 10);
 
                 self.drag_from = {
                     left: event.pageX - left,
@@ -520,12 +530,11 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                     bottom: (top+height) - event.pageY,
                     event: event
                 };
-                fx.elements.wrapper.on('mousemove', self.mousemove_drag);
+                fx.elements.wrapper.addEventListener('mousemove', self.mousemove_drag);
             }
 
-            fx.elements.overlay
-                .addClass('fx-editing-text')
-                .removeClass('fx-editing-sticker');
+            dom.addClass(fx.elements.overlay, 'fx-editing-text');
+            dom.removeClass(fx.elements.overlay, 'fx-editing-sticker');
         });
     }
 
@@ -535,30 +544,27 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     // ----------
 
     // apply scale factor to font size
-    self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10) * self.y_scale_factor;
-    self.text_element.css('font-size', self.text_style.fontSize);
+    self.text_style.fontSize = parseInt(self.text_element.style.fontSize, 10) * self.y_scale_factor;
+    self.text_element.style.fontSize = self.text_style.fontSize + 'px';
 
     // apply scale factor to line height
     // if line hight is % then convert it to px now
-    self.text_style.lineHeight = self.text_element.css('line-height');
+    self.text_style.lineHeight = self.text_element.style.lineHeight;
     if(self.text_style.lineHeight.substr(-1) == '%'){
         self.text_style.lineHeight = (parseInt(self.text_style.lineHeight, 10) / 100) * self.text_style.fontSize;
     }else{
         self.text_style.lineHeight = parseInt(self.text_style.lineHeight, 10) * self.y_scale_factor;
     }
-    self.text_element
-        .css('line-height', self.text_style.lineHeight + 'px')
-        .data('line-height-multiplier', self.text_style.lineHeight / self.text_style.fontSize);
+    self.text_element.style.lineHeight = self.text_style.lineHeight + 'px';
+    self.text_element.setAttribute('data-lineHeight-multiplier', self.text_style.lineHeight / self.text_style.fontSize);
 
-
-
-    self.overlay.appendChild(self.element[0]);
+    self.overlay.appendChild(self.element);
 };
 
 SnaprFX.filters.text.prototype.change_style = function(css){  var self = this;
-    self.text_element.css(css);
+    dom.setStyle(self.text_element, css);
     if('text-align' in css){
-        self.element.css('text-align', css['text-align']);
+        self.element.style.textAlign = css['text-align'];
     }
 
     self.check_size();
@@ -566,19 +572,19 @@ SnaprFX.filters.text.prototype.change_style = function(css){  var self = this;
 };
 SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
 
-    self.text_style.fontSize = parseInt(self.text_element.css('font-size'), 10);
-    self.text_style.lineHeight = parseInt(self.text_element.css('line-height'), 10);
+    self.text_style.fontSize = parseInt(self.text_element.style.fontSize, 10);
+    self.text_style.lineHeight = parseInt(self.text_element.style.lineHeight, 10);
 
 
     var finite = 1000;
-    while(finite && (self.text_element.width() > self.element.width() || self.text_element.height() > Math.round(self.element.height()))){
+    while(finite && (self.text_element.offsetWidth > self.element.offsetWidth || self.text_element.offsetHeight > Math.round(self.element.offsetHeight))){
         finite--;
 
         self.text_style.fontSize = self.text_style.fontSize * 0.99;
-        self.text_element.css('font-size', self.text_style.fontSize);
+        self.text_element.style.fontSize = self.text_style.fontSize + 'px';
 
         self.text_style.lineHeight = self.text_style.lineHeight * 0.99;
-        self.text_element.css('line-height', self.text_style.lineHeight+ 'px');
+        self.text_element.style.lineHeight = self.text_style.lineHeight + 'px';
 
     }
     if(!finite){ console.warn('check_size shrunk text 1000 times without success!'); }
@@ -586,14 +592,14 @@ SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
 };
 
 SnaprFX.filters.text.prototype.remove = function(){  var self = this;
-    self.element.hide();
+    self.element.style.display = 'none';
     self.spec.removed = true;
 };
 SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
-    self.element.removeClass('fx-text-rendered');
+    dom.removeClass(self.element, 'fx-text-rendered');
 };
 SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
-    self.element.addClass('fx-text-rendered');
+    dom.addClass(self.element, 'fx-text-rendered');
 };
 
 SnaprFX.filters.text.prototype.deactivate = function(elements){  var self = this;

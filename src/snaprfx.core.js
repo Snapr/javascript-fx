@@ -538,7 +538,9 @@ SnaprFX.prototype.finish = function(){  var self = this;
 
     if(self.elements.old_text){
         self.elements.old_text.forEach(function(element){
-            self.elements.overlay.removeChild(element);
+            if(element.parentNode){
+                self.elements.overlay.removeChild(element);
+            }
         });
     }
 

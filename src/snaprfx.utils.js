@@ -8,8 +8,12 @@ dom.div = function(className){
     return element;
 };
 
+
+dom.hasClass = function(element, className){
+    return element.className.match(RegExp('(^|\\s)' + className + '(\\s|$)'))
+};
 dom.addClass = function(element, className){
-    if(!element.className.match(RegExp('(^|\\s)' + className + '(\\s|$)'))){
+    if(!dom.hasClass(element, className)){
         element.className += ' ' + className;
     }
 };
