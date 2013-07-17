@@ -21,6 +21,7 @@ SnaprFX.filters.text = function(layer, fx){  var self = this;
     self.parent = fx;
 
     fx.text.push(self);
+    if(!layer.slug){ layer.slug = 'layer-' + fx.text.length; }
     self.slug = layer.slug;
     self.text_style = layer.text.style;
     self.text = fx.options.text && fx.options.text[layer.slug] || layer.text.default_value;

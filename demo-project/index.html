@@ -125,7 +125,7 @@
 
                 active_slug = data.slug;
 
-                $('.x-text-active-layer-name').text(data.name);
+                $('.x-text-active-layer-name').text(data.name || data.slug);
 
                 var font = $(this).find('.fx-text-inner').css('font-family').split(', ')[0];
                 var $font = $('.font');
@@ -268,11 +268,11 @@
                     }
                 });
             })
-            
+
             $('.collapsible .toggle-section').click(function(e){
-               $(this).parent().toggleClass('closed');   
+               $(this).parent().toggleClass('closed');
             })
-            
+
 
         }
 
@@ -305,7 +305,7 @@
                     <li class="collapsible">
                        <a class="toggle-section">
                         <h2>Render</h2>
-                        </a>                   
+                        </a>
                         <div class="x-render section-content">
                             <button class="x-render-preview">Update Preview</button>
                              <input type="checkbox" id="x-render-text-while-working" value="bold" name="x-render-text-while-working" class="x-render-settings"/>
@@ -325,24 +325,24 @@
                              <label for="x-sticker-edit">Disable sticker editing</label>
                         </div>
                     </li>
-                    
+
                     <li class="collapsible">
                         <a class="toggle-section">
                         <h2>Source</h2>
                         </a>
-                        
+
                         <div class="x-source section-content">
                             <a class="x-source-image"><img class="kitten" src="images/a.jpg" style="width:56px;height:75px"></a>
                              <a class="x-source-image"><img class="kitten" src="images/b.jpg" style="width:56px;height:75px"></a>
                              <a class="x-source-image"><img class="kitten" src="images/c.jpg" style="width:56px;height:75px"></a>
                         </div>
                     </li>
-                    
+
                     <li class="collapsible">
                         <a class="toggle-section">
                             <h2>Effects</h2>
                         </a>
-                        
+
                         <div class="x-effects section-content">
                         </div>
                     </li>
@@ -351,7 +351,7 @@
                         <a class="toggle-section">
                             <h2>Text</h2>
                         </a>
-                        
+
                         <div class="x-text section-content">
                         <h3>Selected: <span class="x-text-active-layer-name"></span>
                             <form>
@@ -428,7 +428,7 @@
                         <a class="toggle-section">
                             <h2>Stickers</h2>
                         </a>
-                        
+
                         <div class="x-stickers section-content">
                         </div>
                     </li>
