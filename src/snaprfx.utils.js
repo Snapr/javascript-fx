@@ -55,64 +55,64 @@ SnaprFX.utils = {
     /** @expose */
     preload_assets: function(options){
         var filter_pack, sticker_pack;
-        $.ajax({
-            url: options.filter_pack + 'filter-pack.json',
-            success: function(pack){
-                pack.filter_pack.sections.forEach( function(section){
-                    section.filters.forEach( function(filter){
+        var filter_pack_request = new XMLHttpRequest();
+        filter_pack_request.onload = function(){
+            JSON.parse(filter_pack_request.response).filter_pack.sections.forEach( function(section){
+                section.filters.forEach( function(filter){
 
-                        var filter_path = options.filter_pack    + 'filters/' + filter.slug + '/';
-                        // get filter details
-                        $.ajax({
-                            url: filter_path + 'filter.json',
-                            success: function(data){
+                    var filter_path = options.filter_pack    + 'filters/' + filter.slug + '/';
+                    // get filter details
+                    var filter_request = new XMLHttpRequest();
+                    filter_request.onload = function(){
+                        var data = JSON.parse(filter_request.response);
+                        if(data.filter.fonts){
+                            data.filter.fonts.forEach( function(font){
 
-                                if(data.filter.fonts){
-                                    data.filter.fonts.forEach( function(font){
+                                var css = "@font-face {";
+                                css += "font-family: '"+font['font-family']+"';";
+                                if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
+                                if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
+                                if(font.eot){ css += "src: url('"+filter_path + 'fonts/'+font.eot+"');"; }
+                                css += "src:";
+                                if(font.eot){ css += "url('"+filter_path + 'fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
+                                if(font.woff){ css += "url('"+filter_path + 'fonts/'+font.woff+"') format('woff'),"; }
+                                if(font.ttf){ css += "url('"+filter_path + 'fonts/'+font.ttf+"') format('truetype'),"; }
+                                if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
+                                css += "}";
 
-                                        var css = "@font-face {";
-                                        css += "font-family: '"+font['font-family']+"';";
-                                        if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
-                                        if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
-                                        if(font.eot){ css += "src: url('"+filter_path + 'fonts/'+font.eot+"');"; }
-                                        css += "src:";
-                                        if(font.eot){ css += "url('"+filter_path + 'fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
-                                        if(font.woff){ css += "url('"+filter_path + 'fonts/'+font.woff+"') format('woff'),"; }
-                                        if(font.ttf){ css += "url('"+filter_path + 'fonts/'+font.ttf+"') format('truetype'),"; }
-                                        if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
-                                        css += "}";
+                                $('<style>'+css+'</style>').appendTo(document.head);
 
-                                        $('<style>'+css+'</style>').appendTo(document.head);
+                                // use font on page so it's preloaded
+                                $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
 
-                                        // use font on page so it's preloaded
-                                        $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
+                            });
+                        }
 
-                                    });
-                                }
-
-                                data.filter.layers.forEach( function(layer){
-                                    if(layer.type == 'image'){
-                                        var image = new Image();
-                                        image.src = filter_path+layer.image.image;
-                                    }
-                                });
+                        data.filter.layers.forEach( function(layer){
+                            if(layer.type == 'image'){
+                                var image = new Image();
+                                image.src = filter_path+layer.image.image;
                             }
                         });
-                    });
+                    };
+                    filter_request.open("get", filter_path + 'filter.json', true);
+                    filter_request.send();
                 });
-            }
-        });
-        $.ajax({
-            url: options.sticker_pack + 'sticker-pack.json',
-            success: function(pack){
-                pack.sticker_pack.sections.forEach( function(section){
-                    section.stickers.forEach( function(sticker){
-                        var image = new Image();
-                        image.src = options.sticker_pack+'assets/'+sticker.slug+'.png';
-                    });
+            });
+        };
+        filter_pack_request.open("get", options.filter_pack + 'filter-pack.json', true);
+        filter_pack_request.send();
+        var sticker_request = new XMLHttpRequest();
+        sticker_request.onload = function(){
+            JSON.parse(sticker_request.response).sticker_pack.sections.forEach( function(section){
+                section.stickers.forEach( function(sticker){
+                    var image = new Image();
+                    image.src = options.sticker_pack+'assets/'+sticker.slug+'.png';
                 });
-            }
-        });
+            });
+        };
+        sticker_request.open("get", options.sticker_pack + 'sticker-pack.json', true);
+        sticker_request.send();
     },
 
     // Reads EXIF from a file identified by 'url'

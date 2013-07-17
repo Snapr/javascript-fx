@@ -86,33 +86,33 @@ SnaprFX.prototype.init = function(options){  var self = this;
 
     /** @expose */
     self.load_filter_pack = $.Deferred();
-    $.ajax({
-        url: self.options.filter_pack + 'filter-pack.json',
-        success: function(pack){
-            self.filter_pack = pack.filter_pack;
-            self.filter_pack.base_path = self.options.filter_pack;
-            self.load_filter_pack.resolve(self.filter_pack);
+    var filter_request = new XMLHttpRequest();
+    filter_request.onload = function(){
+        self.filter_pack = JSON.parse(filter_request.response).filter_pack;
+        self.filter_pack.base_path = self.options.filter_pack;
+        self.load_filter_pack.resolve(self.filter_pack);
 
-            self.load_fonts();
-        }
-    });
+        self.load_fonts();
+    };
+    filter_request.open("get", self.options.filter_pack + 'filter-pack.json', true);
+    filter_request.send();
 
     /** @expose */
     self.load_sticker_pack = $.Deferred();
-    $.ajax({
-        url: self.options.sticker_pack + 'sticker-pack.json',
-        success: function(pack){
-            self.sticker_pack = pack.sticker_pack;
-            self.sticker_pack.by_slug = {};
-            self.sticker_pack.base_path = self.options.sticker_pack;
-            self.sticker_pack.sections.forEach( function(section){
-                section.stickers.forEach( function(sticker){
-                    self.sticker_pack.by_slug[sticker.slug] = sticker;
-                });
+    var sticker_request = new XMLHttpRequest();
+    sticker_request.onload = function(){
+        self.sticker_pack = JSON.parse(sticker_request.response).sticker_pack;
+        self.sticker_pack.by_slug = {};
+        self.sticker_pack.base_path = self.options.sticker_pack;
+        self.sticker_pack.sections.forEach( function(section){
+            section.stickers.forEach( function(sticker){
+                self.sticker_pack.by_slug[sticker.slug] = sticker;
             });
-            self.load_sticker_pack.resolve(self.sticker_pack);
-        }
-    });
+        });
+        self.load_sticker_pack.resolve(self.sticker_pack);
+    };
+    sticker_request.open("get", self.options.sticker_pack + 'sticker-pack.json', true);
+    sticker_request.send();
 
     self.current_filter = '_original';
     self.filter_specs = { _original: { name: "*Original*", slug: "_original", layers: [] } };
@@ -173,46 +173,45 @@ SnaprFX.prototype.load_fonts = function(){  var self = this;
 
             var filter_path = self.filter_pack.base_path + 'filters/' + filter.slug + '/';
             // get filter details
-            $.ajax({
-                url: filter_path + 'filter.json',
-                success: function(data){
+            var filter_request = new XMLHttpRequest();
+            filter_request.onload = function(){
+                // cache
+                self.filter_specs[filter.slug] = JSON.parse(filter_request.response).filter;
 
-                    // cache
-                    self.filter_specs[filter.slug] = data.filter;
+                if(self.filter_specs[filter.slug].fonts){
+                    self.filter_specs[filter.slug].fonts.forEach( function(font){
 
-                    if(data.filter.fonts){
-                        data.filter.fonts.forEach( function(font){
+                        var css = "@font-face {";
+                        css += "font-family: '"+font['font-family']+"';";
+                        if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
+                        if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
+                        if(font.eot){ css += "src: url('"+filter_path + 'fonts/'+font.eot+"');"; }
+                        css += "src:";
+                        if(font.eot){ css += "url('"+filter_path + 'fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
+                        if(font.woff){ css += "url('"+filter_path + 'fonts/'+font.woff+"') format('woff'),"; }
+                        if(font.ttf){ css += "url('"+filter_path + 'fonts/'+font.ttf+"') format('truetype'),"; }
+                        if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
+                        css += "}";
 
-                            var css = "@font-face {";
-                            css += "font-family: '"+font['font-family']+"';";
-                            if(font['font-weight']){ css += "font-weight: "+font['font-weight']+";"; }
-                            if(font['font-style']){ css += "font-style: "+font['font-style']+";"; }
-                            if(font.eot){ css += "src: url('"+filter_path + 'fonts/'+font.eot+"');"; }
-                            css += "src:";
-                            if(font.eot){ css += "url('"+filter_path + 'fonts/'+font.eot+"?#iefix') format('embedded-opentype'),"; }
-                            if(font.woff){ css += "url('"+filter_path + 'fonts/'+font.woff+"') format('woff'),"; }
-                            if(font.ttf){ css += "url('"+filter_path + 'fonts/'+font.ttf+"') format('truetype'),"; }
-                            if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
-                            css += "}";
+                        var style = document.createElement('style');
+                        style.type = 'text/css';
+                        if (style.styleSheet){
+                            style.styleSheet.cssText = css;
+                        }else{
+                            style.appendChild(document.createTextNode(css));
+                        }
+                        document.head.appendChild(style);
 
-                            var style = document.createElement('style');
-                            style.type = 'text/css';
-                            if (style.styleSheet){
-                                style.styleSheet.cssText = css;
-                            }else{
-                                style.appendChild(document.createTextNode(css));
-                            }
-                            document.head.appendChild(style);
+                        // use font on page so it's preloaded
+                        var span = document.createElement('span');
+                        span.style['font-family'] = font['font-family'];
+                        document.body.appendChild(span);
 
-                            // use font on page so it's preloaded
-                            var span = document.createElement('span');
-                            span.style['font-family'] = font['font-family'];
-                            document.body.appendChild(span);
-
-                        });
-                    }
+                    });
                 }
-            });
+            };
+            filter_request.open("get", filter_path + 'filter.json', true);
+            filter_request.send();
         });
     });
 };
@@ -369,14 +368,15 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             if(options.filter in self.filter_specs){
                 setTimeout(apply, 4);
             }else{
-                $.ajax({
-                    url: self.filter_pack.base_path + 'filters/' + options.filter + '/filter.json',
-                    success: function(data){
-                        if(debug_logging){ console.log('loaded', options.filter); }
-                        self.filter_specs[options.filter] = data.filter;
-                        setTimeout(apply, 4);
-                    }
-                });
+                var filter_request = new XMLHttpRequest();
+                filter_request.onload = function(){
+                    // cache
+                    if(debug_logging){ console.log('loaded', options.filter); }
+                    self.filter_specs[options.filter] = JSON.parse(filter_request.response).filter;
+                    setTimeout(apply, 4);
+                };
+                filter_request.open("get", self.filter_pack.base_path + 'filters/' + options.filter + '/filter.json', true);
+                filter_request.send();
             }
         }
     }, 4);
