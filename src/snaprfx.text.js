@@ -583,9 +583,10 @@ SnaprFX.filters.text.prototype.check_size = function(css){  var self = this;
     self.text_style.fontSize = parseInt(self.text_element.style.fontSize, 10);
     self.text_style.lineHeight = parseInt(self.text_element.style.lineHeight, 10);
 
+    var style = window.getComputedStyle(self.text_element, null);
 
     var finite = 1000;
-    while(finite && (self.text_element.offsetWidth > self.element.offsetWidth || self.text_element.offsetHeight > Math.round(self.element.offsetHeight))){
+    while(finite && (parseInt(style.width, 10) > self.element.offsetWidth || parseInt(style.height, 10) > Math.round(self.element.offsetHeight))){
         finite--;
 
         self.text_style.fontSize = self.text_style.fontSize * 0.99;
