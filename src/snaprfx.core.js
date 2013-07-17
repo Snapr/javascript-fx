@@ -108,6 +108,9 @@ SnaprFX.prototype.init = function(options){  var self = this;
     var sticker_request = new XMLHttpRequest();
     sticker_request.onload = function(){
         self.sticker_pack = JSON.parse(sticker_request.response).sticker_pack;
+        if(!self.sticker_pack.target_canvas){
+            self.sticker_pack.target_canvas = {width:800, height:800};
+        }
         self.sticker_pack.by_slug = {};
         self.sticker_pack.base_path = self.options.sticker_pack;
         self.sticker_pack.sections.forEach( function(section){
@@ -187,10 +190,7 @@ SnaprFX.prototype.load_fonts = function(){  var self = this;
 
             var filter_path = self.filter_pack.base_path + 'filters/' + filter.slug + '/';
             // get filter details
-            var filter_request = new XMLHttpRequest();
-            filter_request.onload = function(){
-                // cache
-                self.filter_specs[filter.slug] = JSON.parse(filter_request.response).filter;
+            self.load_filter(filter.slug).done(function(){
 
                 if(self.filter_specs[filter.slug].fonts){
                     self.filter_specs[filter.slug].fonts.forEach( function(font){
@@ -223,9 +223,7 @@ SnaprFX.prototype.load_fonts = function(){  var self = this;
 
                     });
                 }
-            };
-            filter_request.open("get", filter_path + 'filter.json', true);
-            filter_request.send();
+            });
         });
     });
 };
@@ -382,19 +380,31 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             if(options.filter in self.filter_specs){
                 setTimeout(apply, 4);
             }else{
-                var filter_request = new XMLHttpRequest();
-                filter_request.onload = function(){
-                    // cache
-                    if(debug_logging){ console.log('loaded', options.filter); }
-                    self.filter_specs[options.filter] = JSON.parse(filter_request.response).filter;
+                self.load_filter(options.filter).done(function(){
                     setTimeout(apply, 4);
-                };
-                filter_request.open("get", self.filter_pack.base_path + 'filters/' + options.filter + '/filter.json', true);
-                filter_request.send();
+                });
             }
         }
     }, 4);
 
+};
+
+SnaprFX.prototype.load_filter = function(filter){  var self = this;
+    var deferred = new Deferred();
+    var filter_request = new XMLHttpRequest();
+    filter_request.onload = function(){
+        // cache
+        if(debug_logging){ console.log('loaded', filter); }
+        self.filter_specs[filter] = JSON.parse(filter_request.response).filter;
+        if(!self.filter_specs[filter].target_canvas){
+            self.filter_specs[filter].target_canvas = {width:800, height:800};
+        }
+        deferred.resolve();
+    };
+    filter_request.open("get", self.filter_pack.base_path + 'filters/' + filter + '/filter.json', true);
+    filter_request.send();
+
+    return deferred;
 };
 
 SnaprFX.prototype.output = function(options){  var self = this;
