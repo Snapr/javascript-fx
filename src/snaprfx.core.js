@@ -516,7 +516,7 @@ SnaprFX.prototype.apply_next_layer = function(){  var self = this;
                         opacity = opacity * (mask_pixels.data[i]/255);
                     }
                     // * opacity of this whole layer
-                    opacity = opacity * (layer.opacity/100);
+                    opacity = opacity * ((layer.opacity || 100)/100);
 
                     // blend this layer with underlying
                     rgb = layer.blender.process(
