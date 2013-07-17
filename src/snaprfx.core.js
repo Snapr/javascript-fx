@@ -53,6 +53,8 @@ SnaprFX.prototype.init = function(options){  var self = this;
         editable: false
     };
 
+    self.handlers = {};
+
     // read EXIF first, it may have orientation
     // info needed for rendering the canvas
     SnaprFX.utils.read_exif(self.options.url).done(function(exif){
@@ -642,6 +644,19 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
     };
 };
 
+SnaprFX.prototype.on = function(event, handler){  var self = this;
+    if(!self.handlers[event]){
+        self.handlers[event] = [];
+    }
+    self.handlers[event].push(handler);
+};
+SnaprFX.prototype.trigger = function(event, element, data){  var self = this;
+    if(self.handlers[event]){
+       self.handlers[event].forEach(function(handler){
+           handler.call(element, data);
+       });
+    }
+};
 
 // require.js module
 // -----------------

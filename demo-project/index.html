@@ -121,7 +121,7 @@
 
             var active_slug;
             var line_height_multiplier;
-            $('.fx-text').live('activate', function(e, data){
+            image.on('activate_text', function(data){
 
                 active_slug = data.slug;
 
@@ -176,7 +176,7 @@
                 $('.line-height').val(image.active_text.text_style.lineHeight);
             }
 
-            $('.fx-text').live('deactivate', function(e, data){
+            image.on('deactivate_text', function(){
                 active_slug = null;
                 $('.x-text-active-layer-name').text('No layer selected');
             });

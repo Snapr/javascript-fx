@@ -14,6 +14,8 @@ SnaprFX.prototype.add_text = function(spec){  var self = this;
  */
 SnaprFX.filters.text = function(layer, fx){  var self = this;
 
+    self.parent = fx;
+
     fx.text.push(self);
     self.slug = layer.slug;
     self.text_style = layer.text.style;
@@ -352,7 +354,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         if(!active){
             dom.addClass(self.element, 'fx-active');
             dom.removeClass(self.element, 'fx-text-rendered');
-            $(self.element).trigger('activate', layer);
+            fx.trigger('activate_text', self.element, layer);
 
             fx.active_text = self;
         }
@@ -618,7 +620,7 @@ SnaprFX.filters.text.prototype.deactivate = function(elements){  var self = this
         var inner = element.getElementsByClassName('fx-text-inner')[0];
         if(inner){
             dom.removeClass(element, 'fx-editable');
-            $(element).trigger('deactivate');
+            self.parent.trigger('deactivate_text', self.element);
             inner.setAttribute('contenteditable', false);
         }
     }
