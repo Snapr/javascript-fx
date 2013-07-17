@@ -79,6 +79,7 @@ fieldset {
   display: block;
   margin: 0 .25em 0 0;
   border: solid #000 1px;
+  width: 56px;
 }
 .x-demo-area .x-settings .x-source fieldset a img.x-current-image,
 .x-demo-area .x-settings .x-effects fieldset a img.x-current-image,
@@ -107,7 +108,8 @@ fieldset {
   width: 3em;
 }
 .x-demo-area .x-output {
-  width: 560px;
+  width: 800px;
+  padding-right: 20px;
 }
 .x-activity-indicator {
   display: none;
