@@ -241,7 +241,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self = this;
 
     // stop if element already exists and is in dom
-    if(self.element && self.element.fxNode){
+    if(self.element && self.element.parentNode){
         return;
     }
 
