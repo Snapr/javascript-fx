@@ -333,7 +333,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             rendered = dom.hasClass(self.element, 'fx-text-rendered');
 
         // deactivate all other text layers
-        var to_deactivate_list = self.overlay.getElementsByClassName('fx-active fx-text');
+        var to_deactivate_list = self.overlay.getElementsByClassName('fx-active');
         var to_deactivate_array = [];
 
         for (var i = 0; i < to_deactivate_list.length; ++i) {
@@ -612,10 +612,15 @@ SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
 SnaprFX.filters.text.prototype.deactivate = function(elements){  var self = this;
 
     function deactivate(element){
-        dom.removeClass(element, 'fx-editable');
         dom.removeClass(element, 'fx-active');
-        $(element).trigger('deactivate');
-        element.getElementsByClassName('fx-text-inner')[0].setAttribute('contenteditable', false);
+
+        // only text has inner and needs extra attention
+        var inner = element.getElementsByClassName('fx-text-inner')[0];
+        if(inner){
+            dom.removeClass(element, 'fx-editable');
+            $(element).trigger('deactivate');
+            inner.setAttribute('contenteditable', false);
+        }
     }
 
     if(elements){
