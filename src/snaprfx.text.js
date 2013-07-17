@@ -96,10 +96,12 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     // update text from overlay
 
     // strip HTML, replace <br> with newlines
-    self.text = self.text_element.innerHTML
-        .replace(/<br\/?>/g, '\n')  // <br> to newline
-        .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
-        .replace(/<.*?>/g, '');  // strip html tags
+    self.text = self.text_element.innerText;
+    // self.text = self.text_element.innerHTML
+    //     .replace(/<br\/?>/g, '\n')  // <br> to newline
+    //     .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
+    //     .replace(/&amp;/g, '&')  // non-breking space to normal space
+    //     .replace(/<.*?>/g, '');  // strip html tags
 
     // but back stripped text with <br>s for newlines
     self.text_element.innerHTML = self.text.replace(/\n/g, '<br>');
