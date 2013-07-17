@@ -397,32 +397,36 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
 
     self.wrapper.appendChild(self.text_element);
 
-    self.wrapper.appendChild(
-        $('<a class="fx-delete-layer fx-text-button">✗</a>')
-            .css({
-                position: 'absolute',
-                top: 0,
-                left: 0
-            })
-            // trigger removal
-            .click(function(){ self.remove(); })[0]
-    );
-    self.wrapper.appendChild(
-        $('<a class="fx-render-layer fx-text-button">✔</a>')
-            .css({
-                position: 'absolute',
-                top: 0,
-                right: 0
-            })
-            // trigger render
-            .click(function(){
-                if(fx.options.render_text !== false || fx.render_options.render_text){
-                    fx.rerender_editables();
-                }else{
-                    self.deactivate();
-                }
-            })[0]
-    );
+
+    var delete_button = document.createElement('a');
+    delete_button.className = 'fx-delete-layer fx-text-button';
+    delete_button.innerText = '✗';
+    dom.setStyle(delete_button, {
+        position: 'absolute',
+        top: 0,
+        left: 0
+    });
+    // trigger removal
+    delete_button.addEventListener('click', function(){ self.remove(); });
+    self.wrapper.appendChild(delete_button);
+
+    var render_button = document.createElement('a');
+    render_button.className = 'fx-render-layer fx-text-button';
+    render_button.innerText = '✔';
+    dom.setStyle(render_button, {
+        position: 'absolute',
+        top: 0,
+        right: 0
+    });
+    // trigger render
+    render_button.addEventListener('click', function(){
+        if(fx.options.render_text !== false || fx.render_options.render_text){
+            fx.rerender_editables();
+        }else{
+            self.deactivate();
+        }
+    });
+    self.wrapper.appendChild(render_button);
 
     // dragging
     // --------
