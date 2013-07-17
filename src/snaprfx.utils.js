@@ -104,10 +104,14 @@ SnaprFX.utils = {
                                 if(font.svg){ css += "url('"+filter_path + 'fonts/'+font.svg+"#"+font['font-family']+"') format('svg');"; }
                                 css += "}";
 
-                                $('<style>'+css+'</style>').appendTo(document.head);
+                                var style = document.createElement('style');
+                                style.innerHTML = css;
+                                document.body.appendChild(style);
 
                                 // use font on page so it's preloaded
-                                $('<span style="font-family: '+font['font-family']+'"></span>').appendTo(document.body);
+                                var font_span = document.createElement('span');
+                                font_span.style.fontFamily = font['font-family'];
+                                document.body.appendChild(font_span);
 
                             });
                         }
