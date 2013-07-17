@@ -619,6 +619,9 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
         width:  '100%'
     });
     overlay.addEventListener('click', function(event){
+        if(self.active_text){
+            self.active_text.deactivate();
+        }
         if(self.render_options.editable){
             self.rerender_editables();
         }
