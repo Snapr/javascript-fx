@@ -370,16 +370,15 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     });
     self.text_element.addEventListener('dblclick', function(){
         self.editable = true;
-        self.element.addClass('fx-editable');
-        self.text_element
-            .attr('contenteditable', true)
-            .focus();
+        dom.addClass(self.element, 'fx-editable');
+        self.text_element.setAttribute('contenteditable', true);
+        self.text_element.focus();
 
         var range,selection;
         if(document.createRange)//Firefox, Chrome, Opera, Safari, IE 9+
         {
             range = document.createRange();//Create a range (a range is a like the selection but invisible)
-            range.selectNodeContents(self.text_element.get(0));//Select the entire contents of the element with the range
+            range.selectNodeContents(self.text_element);//Select the entire contents of the element with the range
             range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
             selection = window.getSelection();//get the selection object (allows you to change selection)
             selection.removeAllRanges();//remove any selections already made
@@ -388,12 +387,12 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
         else if(document.selection)//IE 8 and lower
         {
             range = document.body.createTextRange();//Create a range (a range is a like the selection but invisible)
-            range.moveToElementText(self.text_element.get(0));//Select the entire contents of the element with the range
+            range.moveToElementText(self.text_element);//Select the entire contents of the element with the range
             range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
             range.select();//Select the range (make it the visible selection
         }
 
-    })
+    });
     self.text_element.addEventListener('keyup', function(){
         self.check_size();
     });
