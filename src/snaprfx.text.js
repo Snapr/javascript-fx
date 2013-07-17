@@ -82,7 +82,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
     self.rendered = (fx.options.render_text !== false || fx.render_options.render_text || fx.render_options.output) && (!fx.render_options.editable || fx.options.disable_text_edit);
     self.spec = layer;
-    self.dragable = layer.position && layer.position.dragable;
+    self.draggable = layer.position && layer.position.draggable;
     self.deferred = new Deferred();
 
     self.canvas.set_size(fx.canvas.width, fx.canvas.height);
@@ -438,7 +438,7 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     // dragging
     // --------
 
-    if(self.dragable){
+    if(self.draggable){
 
         // move
         self.mousemove_drag = function(event){
