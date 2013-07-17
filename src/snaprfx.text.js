@@ -158,10 +158,10 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
 
         self.text_style.fontSize = self.text_style.fontSize * 0.8;
-        self.text_element.css('fontSize', self.text_style.fontSize);
+        self.text_element.style.fontSize = self.text_style.fontSize + 'px';
 
         self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
-        self.text_element.css('lineHeight', self.text_style.lineHeight+ 'px');
+        self.text_element.style.lineHeight = self.text_style.lineHeight + 'px';
 
         self.set_canvas_font();
 
@@ -283,24 +283,24 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
             case 'alphabetic':
             case 'ideographic':
             case 'bottom':
-                css.height = self.position.y + 'px';
+                css.height = self.position.y;
                 break;
             case 'middle':
                 // if text is centered closer to top than bottom
                 if(self.position.bottom - self.position.y < self.position.y - self.position.top){
-                    css.height = (self.position.bottom - self.position.y) * 2 + 'px';
+                    css.height = (self.position.bottom - self.position.y) * 2;
                     css.top = self.position.bottom - css.height + 'px';
                 }else{
-                    css.height = (self.position.y - self.position.top) * 2 + 'px';
+                    css.height = (self.position.y - self.position.top) * 2;
                 }
                 break;
             default:  // top
                 css.top = self.position.y + 'px';
-                css.height = self.bbox.bottom - css.top + 'px';
+                css.height = self.bbox.bottom - css.top;
         }
     }
 
-    css.lineHeight = css.height + 'px';
+    css.lineHeight = css.height;
 
 
     self.element  = dom.div('fx-text');
