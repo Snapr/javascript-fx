@@ -1,5 +1,9 @@
 /*global SnaprFX: false, debug_logging: false, debug_canvas: false */
 
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 /**
  * gets an image file and reads its pixels
  * based on http://matthewruddy.github.com/jQuery-filter.me/

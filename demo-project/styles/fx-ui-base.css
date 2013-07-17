@@ -1,7 +1,8 @@
 body {
   font-family: Helvetica, Arial, Sans-serif;
   font-size: 60%;
-  color: #a0a0a0;
+  color: #dbdbdb;
+  text-transform: lowercase;
   background-color: #262626;
   padding: 1em;
   -webkit-user-select: none;
@@ -34,9 +35,10 @@ ul li {
   margin: 1em 0;
 }
 fieldset {
-  border: solid #000 1px ;
+  border: none;
   margin: .5em 0;
   padding: .5em;
+  background: rgba(0, 0, 0, 0.1);
 }
 .x-demo-area {
   white-space: nowrap;
@@ -60,38 +62,45 @@ fieldset {
 .x-demo-area .x-settings .x-stickers {
   white-space: nowrap;
   overflow-x: scroll;
-  padding-bottom: 20px;
+  padding: 1px 0;
 }
 .x-demo-area .x-settings .x-source fieldset,
 .x-demo-area .x-settings .x-effects fieldset,
 .x-demo-area .x-settings .x-stickers fieldset {
   display: inline-block;
+  padding: 0;
+  margin: 0 1px 0 0;
+}
+.x-demo-area .x-settings .x-source fieldset h3,
+.x-demo-area .x-settings .x-effects fieldset h3,
+.x-demo-area .x-settings .x-stickers fieldset h3 {
+  background-color: rgba(0, 0, 0, 0.1);
+  margin: 0;
+  padding: .25em .5em;
 }
 .x-demo-area .x-settings .x-source fieldset a,
 .x-demo-area .x-settings .x-effects fieldset a,
 .x-demo-area .x-settings .x-stickers fieldset a {
   text-align: center;
   display: inline-block;
+  margin: 1em .5em;
+  padding-bottom: 1em;
+  border-bottom: solid #262626 1px;
 }
 .x-demo-area .x-settings .x-source fieldset a img,
 .x-demo-area .x-settings .x-effects fieldset a img,
 .x-demo-area .x-settings .x-stickers fieldset a img {
   display: block;
   margin: 0 .25em 0 0;
-  border: solid #000 1px;
+  width: 56px;
 }
-.x-demo-area .x-settings .x-source fieldset a img.x-current-image,
-.x-demo-area .x-settings .x-effects fieldset a img.x-current-image,
-.x-demo-area .x-settings .x-stickers fieldset a img.x-current-image {
-  border: solid #ffff00 1px;
-}
-.x-demo-area .x-settings .x-source fieldset a:hover img,
-.x-demo-area .x-settings .x-effects fieldset a:hover img,
-.x-demo-area .x-settings .x-stickers fieldset a:hover img,
-.x-demo-area .x-settings .x-source fieldset a.x-current-filter img,
-.x-demo-area .x-settings .x-effects fieldset a.x-current-filter img,
-.x-demo-area .x-settings .x-stickers fieldset a.x-current-filter img {
-  border: solid #ffff00 1px;
+.x-demo-area .x-settings .x-source fieldset a:hover,
+.x-demo-area .x-settings .x-effects fieldset a:hover,
+.x-demo-area .x-settings .x-stickers fieldset a:hover,
+.x-demo-area .x-settings .x-source fieldset a.x-current-filter,
+.x-demo-area .x-settings .x-effects fieldset a.x-current-filter,
+.x-demo-area .x-settings .x-stickers fieldset a.x-current-filter {
+  border-bottom: solid #ffff00 1px;
 }
 .x-demo-area .x-settings .x-stickers a {
   width: 60px;
@@ -107,7 +116,8 @@ fieldset {
   width: 3em;
 }
 .x-demo-area .x-output {
-  width: 560px;
+  width: 800px;
+  padding-right: 20px;
 }
 .x-activity-indicator {
   display: none;
@@ -126,6 +136,56 @@ fieldset {
   margin-left: -40px;
   padding: 10px;
   border-radius: 5px;
+}
+.collapsible .toggle-section {
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 5px 5px 0 0;
+  display: block;
+  padding: 1em;
+  position: relative;
+}
+.collapsible .toggle-section:after {
+  width: 0;
+  height: 0;
+  display: inline-block;
+  content: "&uarr;";
+  text-indent: -99999px;
+  vertical-align: top;
+  margin-top: 0;
+  margin-left: -10px;
+  border-left: 0.5em solid transparent;
+  border-right: 0.5em solid transparent;
+  border-bottom: 0.5em solid rgba(255, 255, 255, 0.5);
+  position: absolute;
+  bottom: 1em;
+  right: 1em;
+}
+.collapsible .toggle-section h2 {
+  margin: 0;
+}
+.collapsible .toggle-section:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+.collapsible .section-content {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: .5em;
+  margin-bottom: 1em;
+}
+.collapsible.closed .toggle-section {
+  border-radius: 5px;
+  margin-bottom: 1em;
+}
+.collapsible.closed .toggle-section:after {
+  content: "&darr;";
+  text-indent: -99999px;
+  border-left: 0.5em solid transparent;
+  border-right: 0.5em solid transparent;
+  border-bottom: 0.5em solid transparent;
+  border-top: 0.5em solid rgba(255, 255, 255, 0.5);
+}
+.collapsible.closed .section-content {
+  display: none;
 }
 #incompatible {
   display: none;
