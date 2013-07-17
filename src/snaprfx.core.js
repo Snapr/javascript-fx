@@ -264,7 +264,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     self.deferred = new Deferred();
 
-    $(document.body).addClass('fx-processing');
+    dom.addClass(document.body, 'fx-processing');
 
     setTimeout(function(){
 
@@ -550,7 +550,7 @@ SnaprFX.prototype.finish = function(){  var self = this;
     }
     self.deferred.resolve();
 
-    $(document.body).removeClass('fx-processing');
+    dom.removeClass(document.body, 'fx-processing');
 
 
     var text_rendered = self.options.render_text !== false || self.render_options.render_text;
