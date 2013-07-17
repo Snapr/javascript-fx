@@ -296,11 +296,13 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
 
     var sticker = self.element.getElementsByClassName('fx-sticker-image')[0],
         layer = self.element.parentNode,
+        sticker_bounds = self.element.getElementsByClassName('fx-sticker-image')[0].getBoundingClientRect(),
+        layer_bounds = self.element.parentNode.getBoundingClientRect(),
 
-        x = (self.element.offsetLeft + sticker.offsetLeft - layer.offsetLeft) / layer.offsetWidth,
-        y = (self.element.offsetTop + sticker.offsetTop - layer.offsetTop) / layer.offsetHeight,
-        w = sticker.offsetWidth / layer.offsetWidth * canvas.width,
-        h = sticker.offsetHeight / layer.offsetHeight * canvas.height;
+        x = (sticker_bounds.left - layer_bounds.left) / layer_bounds.width,
+        y = (sticker_bounds.top - layer_bounds.top) / layer_bounds.height,
+        w = sticker.offsetWidth / layer_bounds.width * canvas.width,
+        h = sticker.offsetHeight / layer_bounds.height * canvas.height;
 
     var r = self.rotation, PI = Math.PI;
     if(r>2*PI){r-=2*PI;}
@@ -308,6 +310,7 @@ SnaprFX.sticker.prototype.render = function(canvas){  var self = this;
     var sin = Math.sin(r);
     var cos = Math.cos(r);
 
+    // account for rotation
     if(r < PI/2){  // < 90
         x += sin*h / canvas.width;
     }else if(r > PI*1.5){  // > 270
