@@ -55,7 +55,7 @@
 
             image.load_filter_pack.done(function(pack){
                 $('.x-effects').append(
-                    $('<fieldset><legend>No Filter</legend><a> <img src="'+pack.base_path+'original-thumb.png">Original </a></fieldset>')
+                    $('<fieldset><h3>No Filter</h3><a> <img src="'+pack.base_path+'original-thumb.png">Original </a></fieldset>')
                     .click(function(){
                         $('.x-current-filter').removeClass('x-current-filter');
                         $(this).addClass('x-current-filter');
@@ -64,7 +64,7 @@
                 );
                 $.each(pack.sections, function(i, section){
                     var section_el = $('<fieldset>');
-                    section_el.append($('<legend>'+section.name+'</legend>'));
+                    section_el.append($('<h3>'+section.name+'</h3>'));
                     $('.x-effects').append(section_el);
                     $.each(section.filters, function(i, filter){
                         section_el.append(
@@ -89,7 +89,7 @@
             image.load_sticker_pack.done(function(pack){
                 $.each(pack.sections, function(i, section){
                     var section_el = $('<fieldset>');
-                    section_el.append($('<legend>'+section.name+'</legend>'));
+                    section_el.append($('<h3>'+section.name+'</h3>'));
                     $('.x-stickers').append(section_el);
                     $.each(section.stickers, function(i, sticker){
                         section_el.append(
@@ -268,6 +268,11 @@
                     }
                 });
             })
+            
+            $('.collapsible .toggle-section').click(function(e){
+               $(this).parent().toggleClass('closed');   
+            })
+            
 
         }
 
@@ -296,12 +301,12 @@
 
         <div class="x-settings">
             <h1>Settings:</h1>
-            <ul>
-
-                   <li>
-                        <h2>Render:</h2>
-
-                        <div class="x-render">
+                <ul>
+                    <li class="collapsible">
+                       <a class="toggle-section">
+                        <h2>Render</h2>
+                        </a>                   
+                        <div class="x-render section-content">
                             <button class="x-render-preview">Update Preview</button>
                              <input type="checkbox" id="x-render-text-while-working" value="bold" name="x-render-text-while-working" class="x-render-settings"/>
                              <label for="x-render-text-while-working">Render Text While Working</label>
@@ -309,39 +314,45 @@
                         </div>
                     </li>
 
-                   <li>
-                        <h2>Edit mode:</h2>
-
-                        <div>
+                    <li class="collapsible closed">
+                        <a class="toggle-section">
+                            <h2>Edit mode</h2>
+                        </a>
+                        <div class="section-content">
                              <input type="checkbox" id="x-text-edit"/>
                              <label for="x-text-edit">Disable text editing</label>
                              <input type="checkbox" id="x-sticker-edit"/>
                              <label for="x-sticker-edit">Disable sticker editing</label>
                         </div>
                     </li>
+                    
+                    <li class="collapsible">
+                        <a class="toggle-section">
+                        <h2>Source</h2>
+                        </a>
+                        
+                        <div class="x-source section-content">
+                            <a class="x-source-image"><img class="kitten" src="images/a.jpg" style="width:56px;height:75px"></a>
+                             <a class="x-source-image"><img class="kitten" src="images/b.jpg" style="width:56px;height:75px"></a>
+                             <a class="x-source-image"><img class="kitten" src="images/c.jpg" style="width:56px;height:75px"></a>
+                        </div>
+                    </li>
+                    
+                    <li class="collapsible">
+                        <a class="toggle-section">
+                            <h2>Effects</h2>
+                        </a>
+                        
+                        <div class="x-effects section-content">
+                        </div>
+                    </li>
 
-
-
-
-                <li>
-                    <h2>Source:</h2>
-                    <div class="x-source">
-                        <a class="x-source-image"><img class="kitten" src="images/a.jpg" style="width:56px;height:75px"></a>
-                         <a class="x-source-image"><img class="kitten" src="images/b.jpg" style="width:56px;height:75px"></a>
-                         <a class="x-source-image"><img class="kitten" src="images/c.jpg" style="width:56px;height:75px"></a>
-                    </div>
-                </li>
-
-                <li>
-                    <h2>Effects:</h2>
-                    <div class="x-effects">
-                    </div>
-                </li>
-
-                <li>
-                    <h2>Text:</h2>
-
-                    <div class="x-text">
+                    <li class="collapsible closed">
+                        <a class="toggle-section">
+                            <h2>Text</h2>
+                        </a>
+                        
+                        <div class="x-text section-content">
                         <h3>Selected: <span class="x-text-active-layer-name"></span>
                             <form>
                                 <fieldset>
@@ -413,13 +424,14 @@
                         </div>
                     </li>
 
-                     <li>
-                            <h2>Stickers:</h2>
-                            <div class="x-stickers">
-                            </div>
-                        </li>
-
-
+                    <li class="collapsible closed">
+                        <a class="toggle-section">
+                            <h2>Stickers</h2>
+                        </a>
+                        
+                        <div class="x-stickers section-content">
+                        </div>
+                    </li>
 
                 </ul>
 
