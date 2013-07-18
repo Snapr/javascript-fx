@@ -125,8 +125,6 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
     var position = self.element.getBoundingClientRect();
     var overlay_position = fx.elements.overlay.getBoundingClientRect();
-    console.log(position);
-    console.log(overlay_position);
     self.position.left = parseInt(position.left, 10) - parseInt(overlay_position.left, 10);
     self.position.top = parseInt(position.top, 10) - parseInt(overlay_position.top, 10);
     self.position.right = self.position.left + parseInt(position.width, 10);
