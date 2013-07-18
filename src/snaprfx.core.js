@@ -659,6 +659,8 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
         left: offset.left + window.pageXOffset,
         top: offset.top + window.pageYOffset
     };
+
+    if(debug_canvas){ dom.addClass(overlay, 'fx-debug'); }
 };
 
 SnaprFX.prototype.on = function(event, handler){  var self = this;
