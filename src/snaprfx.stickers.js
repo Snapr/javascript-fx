@@ -209,7 +209,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
         // Scaling
         // -------
         self.mousemove_scale = function(event){
-            window.eeee = event;
+            // stop event propagating and causeing the sticker to drag too
             event.stopPropagation();
             if(!self.rendered){
 
@@ -241,20 +241,19 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             self.element.getElementsByClassName('fx-scale-sticker')[0].addEventListener('mousedown', function(event) {
                 event.stopPropagation();
                 if(!self.rendered){
-                    var dimensions = self.get_dimensions();
-                    var image = self.element.getElementsByClassName('fx-sticker-image')[0];
-                    //var position = self.element.position();
+                    var image = self.element.getElementsByClassName('fx-sticker-image')[0],
+                        bounds = image.getBoundingClientRect();
+
                     self.scale_from = {
 
                         // remember where the center is, the change in mouse distance/angle from this is scale/rotation
-                        x: event.clientX - dimensions.width / 2,
-                        y: event.clientY - dimensions.height / 2,
+                        x: bounds.left + bounds.width / 2 - 5,
+                        y: bounds.top + bounds.height / 2 - 5,
                         // remember distance from center to corner, change in this = change in scale
                         size: SnaprFX.utils.pythag(self.element.offsetHeight, self.element.offsetWidth) / 2 / self.scale,
                         // remember current scale so new scale can be proportional
                         scale: self.scale
                     };
-                    console.log(self.scale_from.x, self.scale_from.y);
                     // remember current rotation to apply change in rotation on top of
                     self.scale_from.rotation = SnaprFX.utils.cart2polar(event.clientX-self.scale_from.x, event.clientY-self.scale_from.y) - self.rotation;
 
