@@ -21,8 +21,8 @@
 // put the px back on the canvas
 // update img element
 
-var debug_logging = true,
-    debug_canvas = true;
+var debug_logging = false,
+    debug_canvas = false;
 
 // used to address vaues in pixel arrays in a more human-readible way. pixel[R] == red value
 var R=0,G=1,B=2,O=3;
