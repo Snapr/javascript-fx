@@ -303,8 +303,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
                 }
                 break;
             default:  // top
+                css.height = self.bbox.bottom - self.position.y;
                 css.top = self.position.y + 'px';
-                css.height = self.bbox.bottom - css.top;
         }
     }
 
