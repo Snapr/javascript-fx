@@ -23,7 +23,7 @@ Snapr Javascript FX
 1. Overview
 ----------------------
 
-Snapr's Javascript FX Library renders photo filters & sticker packs on the web and mobile web. 
+Snapr's Javascript FX Library renders photo filters & sticker packs on the web and mobile web.
 
 Snapr has open source formats for defining both [filters](https://github.com/Snapr/filters/) and [stickers](https://github.com/Snapr/stickers).
 
@@ -72,8 +72,13 @@ To check compatibility use: `SnaprFX.utils.compatible` (returns true or false)
 
 - url: path to original image
 - element: img element to output to
-- width: output width
-- height: output height
+
+- width: output width - force image to this width (stretch)
+- height: output height - force image to this height (stretch)
+
+- size: output width - force longest dimension to this size (maintaining aspect)
+- aspect: output height - used with size, crop image to this aspect then scale
+
 - filter_pack: path/to/filter-pack-directory/
 - sticker_pack: path/to/sticker-pack-directory/
 - text: initial values for text fields. eg. `{ title: "The Sneeches", author: "Dr Seuss" }`
@@ -127,7 +132,7 @@ url is full image data as [Data URI Scheme](https://en.wikipedia.org/wiki/Data_U
 Use a different base image:
 
     MyImageInstance.set_url(new_src);
-    
+
 
 
 3. Text
@@ -135,7 +140,7 @@ Use a different base image:
 
 The library renders text into the image using `<canvas>` text.
 
-While editing text an editable CSS styled version of the text is made visible 
+While editing text an editable CSS styled version of the text is made visible
 (and a version of the base image without editable elements is shown).
 
 ### 3.1 Activation
@@ -183,7 +188,7 @@ type unhindered.
 
 By default text is not rendered into the `<canvas>` while working. This speeds up the UI.
 
-If your designs include text that is below other layers of the filter, or uses blend modes, 
+If your designs include text that is below other layers of the filter, or uses blend modes,
 and you want accurate previews you can turn this option on.
 
     MyImageInstance.set_options({render_text: bool});
@@ -210,7 +215,7 @@ options format matches text layers in filter json.
 ### 4.2 Preview with text rendered when render_text = false
 
     MyImageInstance.apply_filter({render_text: true, editable:false});
-    
+
 ### 4.3 Show a render activity indicator
 
 A class `.fx-processing` will be added to the `<body>` of your page while any render activity is in progress.
