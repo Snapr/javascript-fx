@@ -72,11 +72,13 @@ SnaprFX.filters.text.prototype.calculate_position = function(layer, fx){  var se
 
 
 SnaprFX.filters.text.prototype.set_canvas_font = function(){  var self = this;
+    var old_fontSize = self.text_element.style.fontSize;
+    var old_lineHeight = self.text_element.style.lineHeight;
     self.text_element.style.fontSize = parseInt(self.text_element.style.fontSize, 10) * self.render_scale + 'px';
     self.text_element.style.lineHeight = parseInt(self.text_element.style.lineHeight, 10) * self.render_scale + 'px';
     self.canvas.context.font = self.text_element.style.font;
-    self.text_element.style.fontSize = parseInt(self.text_element.style.fontSize, 10) / self.render_scale + 'px';
-    self.text_element.style.lineHeight = parseInt(self.text_element.style.lineHeight, 10) / self.render_scale + 'px';
+    self.text_element.style.fontSize = old_fontSize;
+    self.text_element.style.lineHeight = old_lineHeight;
 };
 
 SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
