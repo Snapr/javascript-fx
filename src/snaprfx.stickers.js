@@ -159,7 +159,7 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             var to_deactivate = parent.elements.overlay.getElementsByClassName('fx-active');
 
             for (var i = 0; i < to_deactivate.length; ++i) {
-                dom.removeClass(self.element, 'fx-active');
+                dom.removeClass(to_deactivate[i], 'fx-active');
             }
 
             dom.addClass(self.element, 'fx-active');
