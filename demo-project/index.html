@@ -104,8 +104,7 @@
 
             $('.x-render-full').click(function(){
                 var output = image.output({
-                    width: 800,
-                    height: 800
+                    size: 800
                 });
                 output.done(function(url){
                     $('.x-output-area img').attr('src', url);

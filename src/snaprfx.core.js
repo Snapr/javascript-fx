@@ -348,27 +348,24 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
                     r.left, r.top, r.width, r.height
                 );
             }else{
-                var done = false;
-                function draw_original(){
-                    if(done){
-                        self.canvas.context.drawImage(self.original.canvas, 0, 0);
+                var draw_original = function(){
+                    self.canvas.context.drawImage(self.original.canvas, 0, 0);
+
+                    var filter = function(){
+                        self.pixels = self.canvas.get_data();
+                        self.apply_next_layer();
+                    };
+
+                    if(!options.editable || self.options.disable_sticker_edit){
+                        self.render_stickers().done(filter);
+                    }else{
+                        filter();
                     }
-                    done = true;
-                }
-                self.canvas.set_size(self.render_options.width, self.render_options.height).done(draw_original);
-                self.original.set_size(self.render_options.width, self.render_options.height).done(draw_original);
-            }
+                };
+                self.original.set_size(self.render_options).done(function(){
 
-
-            var filter = function(){
-                self.pixels = self.canvas.get_data();
-                self.apply_next_layer();
-            };
-
-            if(!options.editable || self.options.disable_sticker_edit){
-                self.render_stickers().done(filter);
-            }else{
-                filter();
+                    self.canvas.set_size({width:self.original.width, height:self.original.height}).done(draw_original);
+                });
             }
 
         }
@@ -411,13 +408,18 @@ SnaprFX.prototype.output = function(options){  var self = this;
 
     var deferred = new Deferred();
 
+    self.current_options = self.options;
+
     self.apply_filter({
         output: true,
         width: options.width,
-        height: options.height
+        height: options.height,
+        size: options.size
     });
     self.deferred.done(function(){
         deferred.resolve(self.canvas.get_data_url());
+
+        self.render_options = self.current_options;
     });
 
     return deferred;

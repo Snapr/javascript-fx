@@ -88,163 +88,175 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     self.draggable = layer.position && layer.position.draggable;
     self.deferred = new Deferred();
 
-    self.canvas.set_size(fx.canvas.width, fx.canvas.height);
-    self.canvas.clear();
+    self.canvas.set_size({height:fx.canvas.width, width:fx.canvas.height}).done(function(){
+        self.canvas.clear();
 
-    self.calculate_position(layer, fx);
+        self.calculate_position(layer, fx);
 
-    self.create_overlay(layer, fx);
+        self.create_overlay(layer, fx);
 
-    // update text from overlay
+        // update text from overlay
 
-    // strip HTML, replace <br> with newlines
-    self.text = self.text_element.innerText;
-    // self.text = self.text_element.innerHTML
-    //     .replace(/<br\/?>/g, '\n')  // <br> to newline
-    //     .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
-    //     .replace(/&amp;/g, '&')  // non-breking space to normal space
-    //     .replace(/<.*?>/g, '');  // strip html tags
+        // strip HTML, replace <br> with newlines
+        self.text = self.text_element.innerText;
+        // self.text = self.text_element.innerHTML
+        //     .replace(/<br\/?>/g, '\n')  // <br> to newline
+        //     .replace(/&nbsp;/g, ' ')  // non-breking space to normal space
+        //     .replace(/&amp;/g, '&')  // non-breking space to normal space
+        //     .replace(/<.*?>/g, '');  // strip html tags
 
-    // but back stripped text with <br>s for newlines
-    self.text_element.innerHTML = self.text.replace(/\n/g, '<br>');
+        // but back stripped text with <br>s for newlines
+        self.text_element.innerHTML = self.text.replace(/\n/g, '<br>');
 
-    self.text_style.fillStyle = self.text_element.style.color;
-    self.text_style.textAlign = self.element.style.textAlign;
+        self.text_style.fillStyle = self.text_element.style.color;
+        self.text_style.textAlign = self.element.style.textAlign;
 
-    self.render_scale = self.canvas.height / fx.elements.overlay.offsetHeight;
+        self.render_scale = self.canvas.height / fx.elements.overlay.offsetHeight;
 
-    // set font properties on canvas
-    self.set_canvas_font();
-    self.canvas.context.textAlign = self.text_style.textAlign || 'left';
-    self.canvas.context.textBaseline = self.text_style.textBaseline || 'top';
-    self.canvas.context.fillStyle = self.text_style.fillStyle;
-
-    self.text_style.fontSize = parseInt(self.text_element.style.fontSize, 10);
-    self.text_style.lineHeight = parseInt(self.text_element.style.lineHeight, 10);
-
-    // wrapping
-    // --------
-
-    var position = self.element.getBoundingClientRect();
-    var overlay_position = fx.elements.overlay.getBoundingClientRect();
-    self.position.left = parseInt(position.left, 10) - parseInt(overlay_position.left, 10);
-    self.position.top = parseInt(position.top, 10) - parseInt(overlay_position.top, 10);
-    self.position.right = self.position.left + parseInt(position.width, 10);
-    self.position.bottom = self.position.top + parseInt(position.height, 10);
-
-    var max_width = self.position.right - self.position.left,
-        max_height = Math.round(self.position.bottom - self.position.top);
-
-    function word_wrap(text, max_width){
-        var orig_lines = text.split('\n'),
-            lines = [],
-            line_index = 0;
-
-        for(var l=0; l < orig_lines.length; l++){
-            var words = orig_lines[l].split(' ');
-            lines[line_index] = words[0];
-
-            for(var w=1; w < words.length; w++){
-                var next_line_length = self.canvas.context.measureText(lines[line_index] + ' ' + words[w]).width;
-                // if adding the next word would be too long then put the text in as it is
-                if(next_line_length > max_width){
-                    line_index++;
-                    lines[line_index] = words[w];
-                }else{
-                    lines[line_index] = lines[line_index]  + ' ' + words[w];
-                }
-            }
-            line_index++;
-        }
-
-        return lines;
-    }
-
-    var lines = word_wrap(self.text, max_width);
-    var finite = 1000;
-    while(finite && (!lines || (lines.length - 1) * self.text_style.lineHeight + self.text_style.fontSize > max_height)){
-        finite--;
-
-
-        self.text_style.fontSize = self.text_style.fontSize * 0.8;
-        self.text_element.style.fontSize = self.text_style.fontSize + 'px';
-
-        self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
-        self.text_element.style.lineHeight = self.text_style.lineHeight + 'px';
-
+        // set font properties on canvas
         self.set_canvas_font();
+        self.canvas.context.textAlign = self.text_style.textAlign || 'left';
+        self.canvas.context.textBaseline = self.text_style.textBaseline || 'top';
+        self.canvas.context.fillStyle = self.text_style.fillStyle;
 
-        lines = word_wrap(self.text, max_width);
+        self.text_style.fontSize = parseInt(self.text_element.style.fontSize, 10);
+        self.text_style.lineHeight = parseInt(self.text_element.style.lineHeight, 10);
 
-    }
-    if(!finite){ console.warn('render shrunk text 1000 times without success!'); }
+        // wrapping
+        // --------
 
+        var position = self.element.getBoundingClientRect();
+        var overlay_position = fx.elements.overlay.getBoundingClientRect();
+        self.position.left = parseInt(position.left, 10) - parseInt(overlay_position.left, 10);
+        self.position.top = parseInt(position.top, 10) - parseInt(overlay_position.top, 10);
+        self.position.right = self.position.left + parseInt(position.width, 10);
+        self.position.bottom = self.position.top + parseInt(position.height, 10);
 
-    // positioning
-    // -----------
+        var max_width = self.position.right - self.position.left,
+            max_height = Math.round(self.position.bottom - self.position.top);
 
-    var x,
-        y;
+        function word_wrap(text, max_width){
+            var orig_lines = text.split('\n'),
+                lines = [],
+                line_index = 0;
 
-    // set x position for text based on alignment
-    switch(self.text_style.textAlign){
-        case 'end':
-        case 'right':
-            x = self.position.right;
-            break;
-        case 'center':
-            x = max_width / 2 + self.position.left;
-            break;
-        default:  // left, start
-            x = self.position.left;
+                console.log(orig_lines);
 
-    }
-    x = x * self.render_scale;
+            for(var l=0; l < orig_lines.length; l++){
+                var words = orig_lines[l].split(' ');
+                lines[line_index] = words[0];
 
-    // set y position for text based on alignment
-    switch(self.text_style.textBaseline){
-        case 'hanging':
-        case 'alphabetic':
-        case 'ideographic':
-        case 'bottom':
-            // start No. of extra lines up from bottom
-            y = self.position.bottom - (self.text_style.lineHeight * (lines.length - 1));
-            break;
-        case 'middle':
-            y = (max_height / 2 + self.position.top) - ((self.text_style.lineHeight * (lines.length - 1)) / 2);
-            break;
-        default:  // top
-            // start at top
-            y = self.position.top;
-
-    }
-    y = y * self.render_scale;
-
-    // draw text
-    // ---------
-
-    if(self.slug !== fx.render_options.active_text && !layer.removed){
-
-        for(var l=0; l < lines.length; l++){
-
-            if(debug_borders){
-                // draws bounding box
-                self.canvas.context.strokeRect(
-                    self.position.left * self.x_scale_factor*self.render_scale,
-                    y+l*self.text_style.lineHeight*self.render_scale,
-                    max_width*self.render_scale,
-                    self.text_style.lineHeight*self.render_scale
-                );
+                for(var w=1; w < words.length; w++){
+                    if(!words[w]){ continue; }
+                    var next_line_length = self.canvas.context.measureText(lines[line_index] + ' ' + words[w]).width;
+                    // if adding the next word would be too long then put the text in as it is
+                    if(next_line_length > max_width){
+                        line_index++;
+                        lines[line_index] = words[w];
+                        console.log(lines);
+                    }else{
+                        lines[line_index] = lines[line_index]  + ' ' + words[w];
+                        console.log(lines);
+                    }
+                }
+                line_index++;
             }
 
-            self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight*self.render_scale, max_width);
+            return lines;
+        }
+
+        console.log(self.text);
+        var lines = word_wrap(self.text, max_width);
+        var finite = 1000;
+        while(finite && (!lines || (lines.length - 1) * self.text_style.lineHeight + self.text_style.fontSize > max_height)){
+            finite--;
+
+
+            self.text_style.fontSize = self.text_style.fontSize * 0.8;
+            self.text_element.style.fontSize = self.text_style.fontSize + 'px';
+
+            self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
+            self.text_element.style.lineHeight = self.text_style.lineHeight + 'px';
+
+            self.set_canvas_font();
+
+            lines = word_wrap(self.text, max_width);
+
+        }
+        if(!finite){ console.warn('render shrunk text 1000 times without success!'); }
+
+
+        // positioning
+        // -----------
+
+        var x,
+            y;
+
+        // set x position for text based on alignment
+        switch(self.text_style.textAlign){
+            case 'end':
+            case 'right':
+                x = self.position.right;
+                break;
+            case 'center':
+                x = max_width / 2 + self.position.left;
+                break;
+            default:  // left, start
+                x = self.position.left;
+
+        }
+        x = x * self.render_scale;
+
+        // set y position for text based on alignment
+        switch(self.text_style.textBaseline){
+            case 'alphabetic':
+            case 'ideographic':
+            case 'bottom':
+                // start No. of extra lines up from bottom
+                y = self.position.bottom - (self.text_style.lineHeight * (lines.length - 1));
+                break;
+            case 'middle':
+                y = (max_height / 2 + self.position.top) - ((self.text_style.lineHeight * (lines.length - 1)) / 2);
+                break;
+            default:  // top, hanging
+                // start at top
+                y = self.position.top;
+
+        }
+        y = y * self.render_scale;
+
+        // draw text
+        // ---------
+
+        if(self.slug !== fx.render_options.active_text && !layer.removed){
+
+            for(var l=0; l < lines.length; l++){
+
+
+                if(debug_borders){
+
+                    self.canvas.context.strokeStyle = '#ff0000';
+                    // draws bounding box
+                    self.canvas.context.strokeRect(
+                        l*5+self.position.left * self.x_scale_factor*self.render_scale,
+                        y+l*self.text_style.lineHeight*self.render_scale,
+                        max_width*self.render_scale,
+                        self.text_style.lineHeight*self.render_scale
+                    );
+                }
+
+                if( debug_logging ){ console.log('drawing text', lines[l], x, y+l*self.text_style.lineHeight*self.render_scale, max_width*self.render_scale); }
+
+                self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight*self.render_scale, max_width*self.render_scale);
+
+            }
 
         }
 
-    }
+        self.pixels = self.canvas.get_data();
+        self.deferred.resolve();
+    });
 
-    self.pixels = self.canvas.get_data();
-    self.deferred.resolve();
 };
 SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self = this;
 

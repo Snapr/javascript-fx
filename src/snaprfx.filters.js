@@ -376,7 +376,7 @@ SnaprFX.filters.image.prototype.update = function(layer, fx){  var self = this;
     self.width = fx.canvas.width;
     self.height = fx.canvas.height;
     self.deferred = new Deferred();
-    self.canvas.set_size(self.width, self.height).done(function(){
+    self.canvas.set_size({width: self.width, height: self.height}).done(function(){
         self.pixels = self.canvas.get_data();
         self.deferred.resolve();
     });

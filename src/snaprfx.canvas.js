@@ -138,16 +138,20 @@ SnaprFX.Canvas.prototype.clear = function() {
     this.canvas.width = this.canvas.width;
 };
 
-SnaprFX.Canvas.prototype.set_size = function(width, height) {  var self = this;
-    if(self.canvas.width != width){
-        self.width = width;
-        self.options.width = width;
-        self.canvas.width = width;
-    }
-    if(self.canvas.height != height){
-        self.height = height;
-        self.options.height = height;
-        self.canvas.height = height;
+SnaprFX.Canvas.prototype.set_size = function(options) {  var self = this;
+    if(options.width){
+        if(self.canvas.width != options.width){
+            self.width = options.width;
+            self.options.width = options.width;
+            self.canvas.width = options.width;
+        }
+        if(self.canvas.height != options.height){
+            self.height = options.height;
+            self.options.height = options.height;
+            self.canvas.height = options.height;
+        }
+    }else{
+        self.options.size = options.size;
     }
     if(self.image){
         return self.place_image();
