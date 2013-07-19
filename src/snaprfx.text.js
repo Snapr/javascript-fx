@@ -140,8 +140,6 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
                 lines = [],
                 line_index = 0;
 
-                console.log(orig_lines);
-
             for(var l=0; l < orig_lines.length; l++){
                 var words = orig_lines[l].split(' ');
                 lines[line_index] = words[0];
@@ -153,10 +151,8 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
                     if(next_line_length > max_width){
                         line_index++;
                         lines[line_index] = words[w];
-                        console.log(lines);
                     }else{
                         lines[line_index] = lines[line_index]  + ' ' + words[w];
-                        console.log(lines);
                     }
                 }
                 line_index++;
@@ -624,9 +620,11 @@ SnaprFX.filters.text.prototype.remove = function(){  var self = this;
 };
 SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
     dom.removeClass(self.element, 'fx-text-rendered');
+    self.rendered = false;
 };
 SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
     dom.addClass(self.element, 'fx-text-rendered');
+    self.rendered = true;
 };
 
 SnaprFX.filters.text.prototype.deactivate = function(elements){  var self = this;
