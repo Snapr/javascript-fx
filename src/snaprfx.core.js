@@ -103,25 +103,27 @@ SnaprFX.prototype.init = function(options){  var self = this;
     filter_request.open("get", self.options.filter_pack + 'filter-pack.json', true);
     filter_request.send();
 
-    /** @expose */
-    self.load_sticker_pack = new Deferred();
-    var sticker_request = new XMLHttpRequest();
-    sticker_request.onload = function(){
-        self.sticker_pack = JSON.parse(sticker_request.response).sticker_pack;
-        if(!self.sticker_pack.target_canvas){
-            self.sticker_pack.target_canvas = {width:800, height:800};
-        }
-        self.sticker_pack.by_slug = {};
-        self.sticker_pack.base_path = self.options.sticker_pack;
-        self.sticker_pack.sections.forEach( function(section){
-            section.stickers.forEach( function(sticker){
-                self.sticker_pack.by_slug[sticker.slug] = sticker;
+    if(self.options.sticker_pack){
+        /** @expose */
+        self.load_sticker_pack = new Deferred();
+        var sticker_request = new XMLHttpRequest();
+        sticker_request.onload = function(){
+            self.sticker_pack = JSON.parse(sticker_request.response).sticker_pack;
+            if(!self.sticker_pack.target_canvas){
+                self.sticker_pack.target_canvas = {width:800, height:800};
+            }
+            self.sticker_pack.by_slug = {};
+            self.sticker_pack.base_path = self.options.sticker_pack;
+            self.sticker_pack.sections.forEach( function(section){
+                section.stickers.forEach( function(sticker){
+                    self.sticker_pack.by_slug[sticker.slug] = sticker;
+                });
             });
-        });
-        self.load_sticker_pack.resolve(self.sticker_pack);
-    };
-    sticker_request.open("get", self.options.sticker_pack + 'sticker-pack.json', true);
-    sticker_request.send();
+            self.load_sticker_pack.resolve(self.sticker_pack);
+        };
+        sticker_request.open("get", self.options.sticker_pack + 'sticker-pack.json', true);
+        sticker_request.send();
+    }
 
     self.current_filter = '_original';
     self.filter_specs = { _original: { name: "*Original*", slug: "_original", layers: [] } };
