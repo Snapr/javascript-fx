@@ -581,6 +581,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     self.text_element.setAttribute('data-lineHeight-multiplier', self.text_style.lineHeight / self.text_style.fontSize);
 
     self.overlay.appendChild(self.element);
+
+    self.check_size();
 };
 
 SnaprFX.filters.text.prototype.change_style = function(css){  var self = this;
