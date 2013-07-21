@@ -287,7 +287,8 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             filter: self.current_filter,
             editable: false,
             width: self.options.width,
-            height: self.options.height
+            height: self.options.height,
+            size: self.options.size
         };
         for(var key in defaults){
             if(!(key in options)){
@@ -408,8 +409,6 @@ SnaprFX.prototype.output = function(options){  var self = this;
 
     var deferred = new Deferred();
 
-    self.current_options = self.options;
-
     self.apply_filter({
         output: true,
         width: options.width,
@@ -418,8 +417,6 @@ SnaprFX.prototype.output = function(options){  var self = this;
     });
     self.deferred.done(function(){
         deferred.resolve(self.canvas.get_data_url());
-
-        self.render_options = self.current_options;
     });
 
     return deferred;
