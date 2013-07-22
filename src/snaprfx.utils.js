@@ -125,6 +125,10 @@ SnaprFX.utils = {
                                 var image = new Image();
                                 image.src = filter_path+layer.image.image;
                             }
+                            if(layer.mask_image){
+                                var image = new Image();
+                                image.src = filter_path+layer.mask_image;
+                            }
                         });
                     };
                     filter_request.open("get", filter_path + 'filter.json', true);
