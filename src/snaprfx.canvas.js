@@ -150,7 +150,8 @@ SnaprFX.Canvas.prototype.set_size = function(options) {  var self = this;
             self.options.height = options.height;
             self.canvas.height = options.height;
         }
-    }else{
+    }
+    if(self.options.size){
         self.options.size = options.size;
     }
     if(self.image){

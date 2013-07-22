@@ -140,8 +140,6 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
                 lines = [],
                 line_index = 0;
 
-                console.log(orig_lines);
-
             for(var l=0; l < orig_lines.length; l++){
                 var words = orig_lines[l].split(' ');
                 lines[line_index] = words[0];
@@ -153,10 +151,8 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
                     if(next_line_length > max_width){
                         line_index++;
                         lines[line_index] = words[w];
-                        console.log(lines);
                     }else{
                         lines[line_index] = lines[line_index]  + ' ' + words[w];
-                        console.log(lines);
                     }
                 }
                 line_index++;
@@ -238,7 +234,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
                     self.canvas.context.strokeStyle = '#ff0000';
                     // draws bounding box
                     self.canvas.context.strokeRect(
-                        l*5+self.position.left * self.x_scale_factor*self.render_scale,
+                        x,
                         y+l*self.text_style.lineHeight*self.render_scale,
                         max_width*self.render_scale,
                         self.text_style.lineHeight*self.render_scale
@@ -585,6 +581,8 @@ SnaprFX.filters.text.prototype.create_overlay = function(layer, fx){  var self =
     self.text_element.setAttribute('data-lineHeight-multiplier', self.text_style.lineHeight / self.text_style.fontSize);
 
     self.overlay.appendChild(self.element);
+
+    self.check_size();
 };
 
 SnaprFX.filters.text.prototype.change_style = function(css){  var self = this;
@@ -624,9 +622,11 @@ SnaprFX.filters.text.prototype.remove = function(){  var self = this;
 };
 SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
     dom.removeClass(self.element, 'fx-text-rendered');
+    self.rendered = false;
 };
 SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
     dom.addClass(self.element, 'fx-text-rendered');
+    self.rendered = true;
 };
 
 SnaprFX.filters.text.prototype.deactivate = function(elements){  var self = this;

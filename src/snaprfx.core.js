@@ -103,25 +103,27 @@ SnaprFX.prototype.init = function(options){  var self = this;
     filter_request.open("get", self.options.filter_pack + 'filter-pack.json', true);
     filter_request.send();
 
-    /** @expose */
-    self.load_sticker_pack = new Deferred();
-    var sticker_request = new XMLHttpRequest();
-    sticker_request.onload = function(){
-        self.sticker_pack = JSON.parse(sticker_request.response).sticker_pack;
-        if(!self.sticker_pack.target_canvas){
-            self.sticker_pack.target_canvas = {width:800, height:800};
-        }
-        self.sticker_pack.by_slug = {};
-        self.sticker_pack.base_path = self.options.sticker_pack;
-        self.sticker_pack.sections.forEach( function(section){
-            section.stickers.forEach( function(sticker){
-                self.sticker_pack.by_slug[sticker.slug] = sticker;
+    if(self.options.sticker_pack){
+        /** @expose */
+        self.load_sticker_pack = new Deferred();
+        var sticker_request = new XMLHttpRequest();
+        sticker_request.onload = function(){
+            self.sticker_pack = JSON.parse(sticker_request.response).sticker_pack;
+            if(!self.sticker_pack.target_canvas){
+                self.sticker_pack.target_canvas = {width:800, height:800};
+            }
+            self.sticker_pack.by_slug = {};
+            self.sticker_pack.base_path = self.options.sticker_pack;
+            self.sticker_pack.sections.forEach( function(section){
+                section.stickers.forEach( function(sticker){
+                    self.sticker_pack.by_slug[sticker.slug] = sticker;
+                });
             });
-        });
-        self.load_sticker_pack.resolve(self.sticker_pack);
-    };
-    sticker_request.open("get", self.options.sticker_pack + 'sticker-pack.json', true);
-    sticker_request.send();
+            self.load_sticker_pack.resolve(self.sticker_pack);
+        };
+        sticker_request.open("get", self.options.sticker_pack + 'sticker-pack.json', true);
+        sticker_request.send();
+    }
 
     self.current_filter = '_original';
     self.filter_specs = { _original: { name: "*Original*", slug: "_original", layers: [] } };
@@ -274,6 +276,11 @@ SnaprFX.prototype.update_element = function(){  var self = this;
  */
 SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
+    if(!self.deferred || !self.deferred.resolved){
+        console.warn('Not ready yet');
+        return;
+    }
+
     self.deferred = new Deferred();
 
     dom.addClass(document.body, 'fx-processing');
@@ -287,7 +294,8 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             filter: self.current_filter,
             editable: false,
             width: self.options.width,
-            height: self.options.height
+            height: self.options.height,
+            size: self.options.size
         };
         for(var key in defaults){
             if(!(key in options)){
@@ -408,8 +416,6 @@ SnaprFX.prototype.output = function(options){  var self = this;
 
     var deferred = new Deferred();
 
-    self.current_options = self.options;
-
     self.apply_filter({
         output: true,
         width: options.width,
@@ -418,8 +424,6 @@ SnaprFX.prototype.output = function(options){  var self = this;
     });
     self.deferred.done(function(){
         deferred.resolve(self.canvas.get_data_url());
-
-        self.render_options = self.current_options;
     });
 
     return deferred;
