@@ -83,7 +83,11 @@ SnaprFX.filters.text.prototype.set_canvas_font = function(){  var self = this;
 
 SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
-    self.rendered = (fx.options.render_text !== false || fx.render_options.render_text || fx.render_options.output) && (!fx.render_options.editable || fx.options.disable_text_edit);
+    if((fx.options.render_text !== false || fx.render_options.render_text || fx.render_options.output) && (!fx.render_options.editable || fx.options.disable_text_edit)){
+        self.rerender();
+    }else{
+        self.unrender();
+    }
     self.spec = layer;
     self.draggable = layer.position && layer.position.draggable;
     self.deferred = new Deferred();
@@ -161,7 +165,6 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
             return lines;
         }
 
-        console.log(self.text);
         var lines = word_wrap(self.text, max_width);
         var finite = 1000;
         while(finite && (!lines || (lines.length - 1) * self.text_style.lineHeight + self.text_style.fontSize > max_height)){
@@ -227,7 +230,6 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
         if(self.slug !== fx.render_options.active_text && !layer.removed){
 
             for(var l=0; l < lines.length; l++){
-
 
                 if(debug_borders){
 
@@ -621,11 +623,15 @@ SnaprFX.filters.text.prototype.remove = function(){  var self = this;
     self.spec.removed = true;
 };
 SnaprFX.filters.text.prototype.unrender = function(){  var self = this;
-    dom.removeClass(self.element, 'fx-text-rendered');
+    if(self.element){
+        dom.removeClass(self.element, 'fx-text-rendered');
+    }
     self.rendered = false;
 };
 SnaprFX.filters.text.prototype.rerender = function(){  var self = this;
-    dom.addClass(self.element, 'fx-text-rendered');
+    if(self.element){
+        dom.addClass(self.element, 'fx-text-rendered');
+    }
     self.rendered = true;
 };
 
