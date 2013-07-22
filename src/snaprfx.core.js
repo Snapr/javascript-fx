@@ -276,6 +276,11 @@ SnaprFX.prototype.update_element = function(){  var self = this;
  */
 SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
+    if(!self.deferred || !self.deferred.resolved){
+        console.warn('Not ready yet');
+        return;
+    }
+
     self.deferred = new Deferred();
 
     dom.addClass(document.body, 'fx-processing');
