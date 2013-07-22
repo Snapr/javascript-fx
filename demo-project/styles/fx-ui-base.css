@@ -87,6 +87,13 @@ fieldset {
   padding-bottom: 1em;
   border-bottom: solid #262626 1px;
 }
+.x-demo-area .x-settings .x-source fieldset a .image-crop,
+.x-demo-area .x-settings .x-effects fieldset a .image-crop,
+.x-demo-area .x-settings .x-stickers fieldset a .image-crop {
+  display: block;
+  height: 56px;
+  overflow: hidden;
+}
 .x-demo-area .x-settings .x-source fieldset a img,
 .x-demo-area .x-settings .x-effects fieldset a img,
 .x-demo-area .x-settings .x-stickers fieldset a img {
