@@ -93,7 +93,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
     self.draggable = layer.position && layer.position.draggable;
     self.deferred = new Deferred();
 
-    self.canvas.set_size({height:fx.canvas.width, width:fx.canvas.height}).done(function(){
+    self.canvas.set_size({width:fx.canvas.width, height:fx.canvas.height}).done(function(){
         self.canvas.clear();
 
         self.calculate_position(layer, fx);
