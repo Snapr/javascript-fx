@@ -154,6 +154,9 @@ SnaprFX.prototype.set_url = function(url, callback){  var self = this;
         });
     });
 
+    // destroy rendered version with no text/stickers
+    self.without_extras = null;
+
     return deferred;
 };
 
