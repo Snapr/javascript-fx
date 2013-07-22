@@ -234,7 +234,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
                     self.canvas.context.strokeStyle = '#ff0000';
                     // draws bounding box
                     self.canvas.context.strokeRect(
-                        l*5+self.position.left * self.x_scale_factor*self.render_scale,
+                        x,
                         y+l*self.text_style.lineHeight*self.render_scale,
                         max_width*self.render_scale,
                         self.text_style.lineHeight*self.render_scale
