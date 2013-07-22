@@ -7,6 +7,7 @@
 var debug_borders = false;
 
 SnaprFX.prototype.add_text = function(spec){  var self = this;
+    self.unrender_editables();
     spec.filter = new SnaprFX.filters.text(spec, self) ;
     self.filter_specs[self.current_filter].layers.push(spec);
 };
