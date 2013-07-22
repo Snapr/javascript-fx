@@ -107,9 +107,9 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
             height: self.image.height * self.scale_factor
         };
 
-        if(self.spec.position && self.spec.position.center){
-            css.left = self.spec.position.center.x * self.scale_factor - css.width/2;
-            css.top = self.spec.position.center.y * self.scale_factor - css.height/2;
+        if(self.spec.position && self.spec.position.x){
+            css.left = self.spec.position.x * self.scale_factor - css.width/2;
+            css.top = self.spec.position.y * self.scale_factor - css.height/2;
         }else{
             css.left = parent.canvas.width/2 - css.width/2;
             css.top = parent.canvas.height/2 - css.height/2;
