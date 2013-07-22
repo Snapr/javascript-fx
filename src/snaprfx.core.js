@@ -371,7 +371,6 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
                     }
                 };
                 self.original.set_size(self.render_options).done(function(){
-
                     self.canvas.set_size({width:self.original.width, height:self.original.height}).done(draw_original);
                 });
             }
@@ -424,6 +423,12 @@ SnaprFX.prototype.output = function(options){  var self = this;
     });
     self.deferred.done(function(){
         deferred.resolve(self.canvas.get_data_url());
+    });
+
+    deferred.done(function(){
+        self.original.set_size(self.options).done(function(){
+            self.canvas.set_size({width:self.original.width, height:self.original.height});
+        });
     });
 
     return deferred;
