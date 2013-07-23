@@ -579,6 +579,7 @@ SnaprFX.filters.text.prototype.change_style = function(css){  var self = this;
     dom.setStyle(self.text_element, css);
     if('text-align' in css){
         self.element.style.textAlign = css['text-align'];
+        self.text_style.textAlign = css['text-align'];
     }
 
     self.check_size();
