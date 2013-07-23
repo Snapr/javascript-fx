@@ -54,6 +54,9 @@ fieldset {
   white-space: normal;
   padding: 1em;
 }
+.x-demo-area .x-preview .x-preview-image-area {
+  min-height: 40px;
+}
 .x-demo-area .x-preview .x-preview-image {
   width: 400px;
 }
