@@ -144,6 +144,24 @@ fieldset {
   padding: 10px;
   border-radius: 5px;
 }
+.x-initializing-indicator {
+  display: none;
+}
+.initializing .x-preview-image-area {
+  position: relative;
+}
+.initializing .x-preview-image-area .x-initializing-indicator {
+  display: block;
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 20;
+  width: 60px;
+  margin-left: -40px;
+  padding: 10px;
+  border-radius: 5px;
+}
 .collapsible .toggle-section {
   cursor: pointer;
   background-color: rgba(0, 0, 0, 0.3);

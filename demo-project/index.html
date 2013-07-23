@@ -54,6 +54,10 @@
                     render_text: false
                 });
 
+            image.deferred.done(function(){
+                $(document.body).removeClass('initializing');
+            });
+
             image.load_filter_pack.done(function(pack){
                 $('.x-effects').append(
                     $('<fieldset><h3>No Filter</h3><a> <img src="'+pack.base_path+'original-thumb.png">Original </a></fieldset>')
@@ -281,7 +285,7 @@
 
 
 </head>
-<body>
+<body class="initializing">
 
 
     <div class="x-demo-area ">
@@ -294,6 +298,10 @@
                 <div class="x-activity-indicator">
                     <div class="x-spinner"></div>
                     Rendering..
+                </div>
+                <div class="x-initializing-indicator">
+                    <div class="x-spinner"></div>
+                    Loading..
                 </div>
                 <img class="x-preview-image">
             </div>
