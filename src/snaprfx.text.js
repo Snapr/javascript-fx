@@ -121,7 +121,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
         // set font properties on canvas
         self.set_canvas_font();
         self.canvas.context.textAlign = self.text_style.textAlign || 'left';
-        self.canvas.context.textBaseline = self.text_style.textBaseline || 'top';
+        self.canvas.context.textBaseline = 'middle';
         self.canvas.context.fillStyle = self.text_style.fillStyle;
 
         self.text_style.fontSize = parseInt(self.text_element.style.fontSize, 10);
@@ -207,26 +207,13 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
         }
         x = x * self.render_scale;
 
-        // set y position for text based on alignment
-        switch(self.text_style.textBaseline){
-            case 'alphabetic':
-            case 'ideographic':
-            case 'bottom':
-                // start No. of extra lines up from bottom
-                y = self.position.bottom - (self.text_style.lineHeight * (lines.length - 1));
-                break;
-            case 'middle':
-                y = (max_height / 2 + self.position.top) - ((self.text_style.lineHeight * (lines.length - 1)) / 2);
-                break;
-            default:  // top, hanging
-                // start at top
-                y = self.position.top;
-
-        }
-        y = y * self.render_scale;
 
         // draw text
         // ---------
+
+        var text_position = self.text_element.getBoundingClientRect();
+        var midline = (text_position.bottom - text_position.top) / 2 + text_position.top - overlay_position.top;
+        var first_line_offest = (lines.length-1)/2 * self.text_style.lineHeight;
 
         if(self.slug !== fx.render_options.active_text && !layer.removed){
 
@@ -238,15 +225,15 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
                     // draws bounding box
                     self.canvas.context.strokeRect(
                         x,
-                        y+l*self.text_style.lineHeight*self.render_scale,
+                        ((midline - first_line_offest)+l*self.text_style.lineHeight)*self.render_scale,
                         max_width*self.render_scale,
                         self.text_style.lineHeight*self.render_scale
                     );
                 }
 
-                if( debug_logging ){ console.log('drawing text', lines[l], x, y+l*self.text_style.lineHeight*self.render_scale, max_width*self.render_scale); }
+                if( debug_logging ){ console.log('drawing text', lines[l], x, ((midline - first_line_offest)+l*self.text_style.lineHeight)*self.render_scale, max_width*self.render_scale); }
 
-                self.canvas.context.fillText(lines[l], x, y+l*self.text_style.lineHeight*self.render_scale, max_width*self.render_scale);
+                self.canvas.context.fillText(lines[l], x, ((midline - first_line_offest)+l*self.text_style.lineHeight)*self.render_scale, max_width*self.render_scale);
 
             }
 
