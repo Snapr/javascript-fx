@@ -167,23 +167,27 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
         }
 
         var lines = word_wrap(self.text, max_width);
-        var finite = 1000;
-        while(finite && (!lines || (lines.length - 1) * self.text_style.lineHeight + self.text_style.fontSize > max_height)){
-            finite--;
+
+        // Shrink to fit
+        // -------------
+
+        // var finite = 1000;
+        // while(finite && (!lines || (lines.length - 1) * self.text_style.lineHeight + self.text_style.fontSize > max_height)){
+        //     finite--;
 
 
-            self.text_style.fontSize = self.text_style.fontSize * 0.8;
-            self.text_element.style.fontSize = self.text_style.fontSize + 'px';
+        //     self.text_style.fontSize = self.text_style.fontSize * 0.8;
+        //     self.text_element.style.fontSize = self.text_style.fontSize + 'px';
 
-            self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
-            self.text_element.style.lineHeight = self.text_style.lineHeight + 'px';
+        //     self.text_style.lineHeight = self.text_style.lineHeight * 0.8;
+        //     self.text_element.style.lineHeight = self.text_style.lineHeight + 'px';
 
-            self.set_canvas_font();
+        //     self.set_canvas_font();
 
-            lines = word_wrap(self.text, max_width);
+        //     lines = word_wrap(self.text, max_width);
 
-        }
-        if(!finite){ console.warn('render shrunk text 1000 times without success!'); }
+        // }
+        // if(!finite){ console.warn('render shrunk text 1000 times without success!'); }
 
 
         // positioning
@@ -233,7 +237,7 @@ SnaprFX.filters.text.prototype.update = function(layer, fx){  var self = this;
 
                 if( debug_logging ){ console.log('drawing text', lines[l], x, ((midline - first_line_offest)+l*self.text_style.lineHeight)*self.render_scale, max_width*self.render_scale); }
 
-                self.canvas.context.fillText(lines[l], x, ((midline - first_line_offest)+l*self.text_style.lineHeight)*self.render_scale, max_width*self.render_scale);
+                self.canvas.context.fillText(lines[l], x, ((midline - first_line_offest)+l*self.text_style.lineHeight)*self.render_scale);
 
             }
 
