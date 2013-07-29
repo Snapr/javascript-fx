@@ -96,6 +96,13 @@ SnaprFX.prototype.init = function(options){  var self = this;
     filter_request.onload = function(){
         self.filter_pack = JSON.parse(filter_request.response).filter_pack;
         self.filter_pack.base_path = self.options.filter_pack;
+        self.filter_pack.by_slug = {};
+        self.filter_pack.sections.forEach(function(section){
+            section.filters.forEach( function(filter){
+                filter.section = section;
+                self.filter_pack.by_slug[filter.slug] = filter;
+            });
+        });
         self.load_filter_pack.resolve(self.filter_pack);
 
         self.load_fonts();
@@ -331,13 +338,25 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             // put it in an array to avoid live nodeList updating
             for (var i = current.length - 1; i >= 0; i--) {
                 self.elements.old_text.push(current[i]);
-            };
+            }
 
             // destroy rendered version with no text/stickers
             self.without_extras = null;
         }
 
         if(debug_logging){ console.group(options.filter); }
+
+
+        if(
+            (self.filter_specs[options.filter].details.settings && self.filter_specs[options.filter].details.settings.locked)
+            ||
+            (self.filter_specs[options.filter].details.section.settings && self.filter_specs[options.filter].details.section.settings.locked)
+        ){
+            self.elements.locked.style.display = 'block';
+            self.elements.locked.innerText = 'To use bonus items you must download the app.';
+        }else{
+            self.elements.locked.style.display = 'none  ';
+        }
 
         self.current_filter = options.filter;
 
@@ -397,6 +416,9 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 };
 
 SnaprFX.prototype.load_filter = function(filter){  var self = this;
+
+    var details = self.filter_pack.by_slug[filter];
+
     var deferred = new Deferred();
     var filter_request = new XMLHttpRequest();
     filter_request.onload = function(){
@@ -406,6 +428,7 @@ SnaprFX.prototype.load_filter = function(filter){  var self = this;
         if(!self.filter_specs[filter].target_canvas){
             self.filter_specs[filter].target_canvas = {width:800, height:800};
         }
+        self.filter_specs[filter].details = details;
         deferred.resolve();
     };
     filter_request.open("get", self.filter_pack.base_path + 'filters/' + filter + '/filter.json', true);
@@ -661,18 +684,24 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
         width: self.options.width
     });
 
+    // locked filter layer
+    var locked = self.elements.locked = dom.div('fx-locked-layer');
+    dom.setStyle(locked, {
+        display: 'none',
+        position:  'absolute',
+        top:  0,
+        left:  0,
+        height:  '100%',
+        width:  '100%'
+    });
+
     // put wrapper on page
     self.elements.image.parentNode.insertBefore(wrapper, self.elements.image.nextSibling);
 
     // put elements in wrapper
     wrapper.appendChild(self.elements.image);
     wrapper.appendChild(overlay);
-
-    var offset = overlay.getBoundingClientRect();
-    self.elements.overlay.offset_cache = {
-        left: offset.left + window.pageXOffset,
-        top: offset.top + window.pageYOffset
-    };
+    wrapper.appendChild(locked);
 
     if(debug_canvas){ dom.addClass(overlay, 'fx-debug'); }
 };

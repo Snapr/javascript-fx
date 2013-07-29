@@ -69,7 +69,7 @@
                 );
                 $.each(pack.sections, function(i, section){
                     var section_el = $('<fieldset>');
-                    section_el.append($('<h3>'+section.name+'</h3>'));
+                    section_el.append($('<h3>'+section.name+'</h3>').toggleClass('x-locked', !!(section.settings && section.settings.locked)));
                     $('.x-effects').append(section_el);
                     $.each(section.filters, function(i, filter){
                         section_el.append(
@@ -85,7 +85,7 @@
                                 image.deferred.done(function(){
                                     $(document.body).removeClass('x-processing');
                                 });
-                            })
+                            }).toggleClass('x-locked', !!(filter.settings && filter.settings.locked))
                         );
                     });
                 });
@@ -94,14 +94,14 @@
             image.load_sticker_pack.done(function(pack){
                 $.each(pack.sections, function(i, section){
                     var section_el = $('<fieldset>');
-                    section_el.append($('<h3>'+section.name+'</h3>'));
+                    section_el.append($('<h3>'+section.name+'</h3>').toggleClass('x-locked', !!(section.settings && section.settings.locked)));
                     $('.x-stickers').append(section_el);
                     $.each(section.stickers, function(i, sticker){
                         section_el.append(
                             $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'.png">'+sticker.name+' </a>')
                             .click(function(){
                                 image.add_sticker(sticker.slug);
-                            })
+                            }).toggleClass('x-locked', !!(sticker.settings && sticker.settings.locked))
                         );
                     });
                 });
