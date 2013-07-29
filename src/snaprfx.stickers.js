@@ -224,13 +224,15 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
                 var width = parseInt(self.initial.width, 10) * self.scale;
                 var height = parseInt(self.initial.height, 10) * self.scale;
 
+                var offset = self.parent.elements.overlay.getBoundingClientRect();
+
                 dom.setStyle(self.element, {
                     webkitTransform: 'rotate('+Math.round(self.rotation/(2*Math.PI) * 360)+'deg)',
                     transform: 'rotate('+Math.round(self.rotation/(2*Math.PI) * 360)+'deg)',
                     width: width + 'px',
                     height: height + 'px',
-                    top: self.scale_from.y - height/2 - self.parent.elements.overlay.offset_cache.top + 'px',
-                    left: self.scale_from.x - width/2 - self.parent.elements.overlay.offset_cache.left + 'px'
+                    top: self.scale_from.y - height/2 - offset.top - window.pageXOffset + 'px',
+                    left: self.scale_from.x - width/2 - offset.left - window.pageYOffset + 'px'
                 });
             }
         };
