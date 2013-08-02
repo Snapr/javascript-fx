@@ -8,6 +8,11 @@
 /** @expose */
 SnaprFX.prototype.add_sticker = function(slug){  var self = this;
 
+    if(!self.deferred || !self.deferred.resolved){
+        console.warn('Not ready yet');
+        return;
+    }
+
     var sticker = new SnaprFX.sticker(slug, self);
     self.stickers.push(sticker);
     sticker.deferred.done(function(){
