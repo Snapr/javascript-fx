@@ -353,7 +353,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             (self.filter_specs[options.filter].details.section.settings && self.filter_specs[options.filter].details.section.settings.locked)
         ){
             self.elements.locked.style.display = 'block';
-            self.elements.locked.innerText = 'To use bonus items you must download the app.';
+            self.elements.locked_text.innerText = 'To use bonus items you must download the app.';
         }else{
             self.elements.locked.style.display = 'none  ';
         }
@@ -694,6 +694,9 @@ SnaprFX.prototype.create_overlay_elements = function(){  var self = this;
         height:  '100%',
         width:  '100%'
     });
+    var locked_text = self.elements.locked_text = dom.div('fx-locked-text');
+    locked.appendChild(locked_text);
+
 
     // put wrapper on page
     self.elements.image.parentNode.insertBefore(wrapper, self.elements.image.nextSibling);
