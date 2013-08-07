@@ -348,9 +348,13 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
 
         if(
-            (self.filter_specs[options.filter].details.settings && self.filter_specs[options.filter].details.settings.locked)
-            ||
-            (self.filter_specs[options.filter].details.section.settings && self.filter_specs[options.filter].details.section.settings.locked)
+            options.filter !== '_original'
+            &&
+            (
+                (self.filter_specs[options.filter].details.settings && self.filter_specs[options.filter].details.settings.locked)
+                ||
+                (self.filter_specs[options.filter].details.section.settings && self.filter_specs[options.filter].details.section.settings.locked)
+            )
         ){
             self.elements.locked.style.display = 'block';
             self.elements.locked_text.innerText = 'To use bonus items you must download the app.';

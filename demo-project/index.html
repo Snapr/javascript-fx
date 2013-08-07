@@ -26,7 +26,7 @@
 
 
     var filter_pack = '../filter-packs/snapr/',
-        sticker_pack = '../sticker-packs/classic-cats/';
+        sticker_pack = '../sticker-packs/summer-lovin/';
 
 
     $(function(){
@@ -100,7 +100,11 @@
                         section_el.append(
                             $('<a> <img src="'+pack.base_path+'assets/thumbs/'+sticker.slug+'.png">'+sticker.name+' </a>')
                             .click(function(){
-                                image.add_sticker(sticker.slug);
+                                if((sticker.settings && sticker.settings.locked) || (section.settings && section.settings.locked)){
+                                    alert('locked!');
+                                }else{
+                                    image.add_sticker(sticker.slug);
+                                }
                             }).toggleClass('x-locked', !!(sticker.settings && sticker.settings.locked))
                         );
                     });
