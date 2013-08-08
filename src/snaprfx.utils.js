@@ -176,16 +176,24 @@ SnaprFX.utils = {
              * @this {Object}
              */
             exif_reader.onloadend = function(){
-                var exif = new JpegMeta.JpegFile(this.result, 'test.jpg');
+                var exif, data;
+                try{
+                    exif = new JpegMeta.JpegFile(this.result, 'photo.jpg');
+                    data = {
+                        latitude: exif.gps && exif.gps.latitude && exif.gps.latitude.value,
+                        longitude: exif.gps && exif.gps.longitude && exif.gps.longitude.value,
+                        date: exif.exif && exif.exif.DateTimeOriginal && exif.exif.DateTimeOriginal.value,
+                        orientation: exif.tiff && exif.tiff.Orientation && exif.tiff.Orientation.value
+                    };
+                }catch(e){
+                    exif = null;
+                    data = {};
+                }
+
                 // exif reader no longer needed - GC can eat it
                 exif_reader = null;
                 xhr = null;
-                deferred.resolve({
-                    latitude: exif.gps && exif.gps.latitude && exif.gps.latitude.value,
-                    longitude: exif.gps && exif.gps.longitude && exif.gps.longitude.value,
-                    date: exif.exif && exif.exif.DateTimeOriginal && exif.exif.DateTimeOriginal.value,
-                    orientation: exif.tiff && exif.tiff.Orientation && exif.tiff.Orientation.value
-                });
+                deferred.resolve(data);
             };
             var blob = new Blob([this.response]);
             exif_reader.readAsBinaryString(blob);
