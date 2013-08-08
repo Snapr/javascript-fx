@@ -39,7 +39,6 @@ window['SnaprFX'] = SnaprFX;
 // SnaprFX
 // -------
 
-/** @expose */
 SnaprFX.prototype.deferred = null;
 
 
@@ -47,6 +46,8 @@ SnaprFX.prototype.deferred = null;
 //     url: original image url (may be blob/file),
 //     width/height: absolute dimentions - stretch to fit
 //     size/aspect: max width or height / crop image to force this aspect (w/h)
+//     filter_pack: filter pack path
+//     sticker_pack: sticker pack path
 // }
 SnaprFX.prototype.init = function(options){  var self = this;
 
@@ -77,8 +78,10 @@ SnaprFX.prototype.init = function(options){  var self = this;
                 height: self.original.height
             });
 
+            // place original on working canvas
             self.canvas.context.drawImage(self.original.canvas, 0, 0);
 
+            // update img on page
             self.update_element();
 
             // timeout needed to ensure width/height
@@ -86,16 +89,19 @@ SnaprFX.prototype.init = function(options){  var self = this;
             setTimeout(function(){
                 self.create_overlay_elements();
                 self.deferred.resolve();
-            }, 1);
+            }, 4);
         });
     });
 
-    /** @expose */
     self.load_filter_pack = new Deferred();
     var filter_request = new XMLHttpRequest();
     filter_request.onload = function(){
+
         self.filter_pack = JSON.parse(filter_request.response).filter_pack;
+
         self.filter_pack.base_path = self.options.filter_pack;
+
+        // build by_slug object for easy access
         self.filter_pack.by_slug = {};
         self.filter_pack.sections.forEach(function(section){
             section.filters.forEach( function(filter){
@@ -103,6 +109,7 @@ SnaprFX.prototype.init = function(options){  var self = this;
                 self.filter_pack.by_slug[filter.slug] = filter;
             });
         });
+
         self.load_filter_pack.resolve(self.filter_pack);
 
         self.load_fonts();
@@ -110,15 +117,20 @@ SnaprFX.prototype.init = function(options){  var self = this;
     filter_request.open("get", self.options.filter_pack + 'filter-pack.json', true);
     filter_request.send();
 
+    // get sticker pack
     if(self.options.sticker_pack){
-        /** @expose */
         self.load_sticker_pack = new Deferred();
         var sticker_request = new XMLHttpRequest();
         sticker_request.onload = function(){
+
             self.sticker_pack = JSON.parse(sticker_request.response).sticker_pack;
+
+            // default target canvas
             if(!self.sticker_pack.target_canvas){
                 self.sticker_pack.target_canvas = {width:800, height:800};
             }
+
+            // build by_slug object for easy access
             self.sticker_pack.by_slug = {};
             self.sticker_pack.base_path = self.options.sticker_pack;
             self.sticker_pack.sections.forEach( function(section){
@@ -126,14 +138,17 @@ SnaprFX.prototype.init = function(options){  var self = this;
                     self.sticker_pack.by_slug[sticker.slug] = sticker;
                 });
             });
+
             self.load_sticker_pack.resolve(self.sticker_pack);
         };
         sticker_request.open("get", self.options.sticker_pack + 'sticker-pack.json', true);
         sticker_request.send();
     }
 
+    // create default "original" filter
     self.current_filter = '_original';
     self.filter_specs = { _original: { name: "*Original*", slug: "_original", layers: [] } };
+
     self.stickers = [];
     self.text = [];
 };
@@ -179,6 +194,7 @@ SnaprFX.prototype.set_options = function(options){  var self = this;
         self.apply_filter({render_text: true, editable:false});
     }
 
+    // some options has matching classes to add/remove
     if(self.options.disable_text_edit === true){
         dom.addClass(self.elements.overlay, 'fx-text-disabled');
     }else{
@@ -240,8 +256,10 @@ SnaprFX.prototype.load_fonts = function(){  var self = this;
     });
 };
 
-// loads the original image onto this.canvas
-// includes any stickers unless 'stickers' === false
+/**
+ * loads the original image onto this.canvas
+ * includes any stickers unless 'stickers' === false
+ */
 SnaprFX.prototype.load_original = function(stickers){  var self = this;
 
     var deferred = new Deferred();
@@ -273,19 +291,19 @@ SnaprFX.prototype.load_original = function(stickers){  var self = this;
     return deferred;
 };
 
-// sets the html element's src to our canvas data
+/**
+ * sets the html element's src to our canvas data
+ */
 SnaprFX.prototype.update_element = function(){  var self = this;
     self.options.element.setAttribute('src', self.canvas.get_data_url());
 };
 
 /**
- * apply filter specified by 'filter' or reapply last filter
- * apply stickers unless stickers: false
- * @param {Object} options.
- * @expose
+ * apply filter specified by 'filter' option or reapply last filter
  */
 SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
+    // don't try to apply filter if still initialising
     if(!self.deferred || !self.deferred.resolved){
         console.warn('Not ready yet');
         return;
@@ -295,6 +313,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
     dom.addClass(document.body, 'fx-processing');
 
+    // timeout ensures fx-processing class is a applied
     setTimeout(function(){
 
         options = options || {};
@@ -302,7 +321,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
         // defaults
         var defaults = {
             filter: self.current_filter,
-            editable: false,
+            editable: false,  // if true editables are not rendered in
             width: self.options.width,
             height: self.options.height,
             size: self.options.size
@@ -315,21 +334,27 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
 
         self.render_options = options;
 
+        // if text and stickers are not editable they should be rendered in
+        // if this is an output text and stickers should be rendered in
         if(!options.editable && !options.output){
             self.deferred.done(function(){
+
+                // if we haven't overriden text rendering
                 if(self.options.render_text !== false || self.render_options.render_text){
+                    // render each text layer
                     self.text.forEach( function(text){
                         text.rerender();
                     });
                 }
 
+                // render each sticker layer
                 self.stickers.forEach( function(sticker){
                     sticker.rerender();
                 });
             });
         }
 
-        // remove text frames from prev filter
+        // remove text frames from previous filter
         if(options.filter != self.current_filter){
 
             // remember current text as old
@@ -357,7 +382,7 @@ SnaprFX.prototype.apply_filter = function(options){  var self = this;
             )
         ){
             self.elements.locked.style.display = 'block';
-            self.elements.locked_text.innerText = 'To use bonus items you must download the app.';
+            self.elements.locked_text.innerText = 'Bonus items are only available in the app!';
         }else{
             self.elements.locked.style.display = 'none  ';
         }
