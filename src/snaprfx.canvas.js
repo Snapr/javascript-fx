@@ -68,27 +68,46 @@ SnaprFX.Canvas.prototype.place_image = function() {  var self = this;
     var deferred = new Deferred();
 
     self.image.aspect = self.image.width/self.image.height;
+    var iw = self.image.naturalWidth,
+        ih = self.image.naturalHeight;
+
+        // from https://github.com/stomita/ios-imagefile-megapixel
+        if (iw * ih > 1024 * 1024) { // subsampling may happen over megapixel image
+            var test_canvas = document.createElement('canvas');
+            test_canvas.width = test_canvas.height = 1;
+            var test_context = test_canvas.getContext('2d');
+            test_context.drawImage(self.image, -iw + 1, 0);
+            // subsampled image becomes half smaller in rendering size.
+            // check alpha channel value to confirm image is covering edge pixel or not.
+            // if alpha value is 0 image is not covering, hence subsampled.
+            if(test_context.getImageData(0, 0, 1, 1).data[3] === 0){
+                ih = ih/2;
+                iw = iw/2;
+            }
+            test_canvas = test_context = null;
+        }
+
     var x1 = 0,
         y1 = 0,
-        x2 = self.image.width,
-        y2 = self.image.height;
+        x2 = iw,
+        y2 = ih;
     if(self.options.size){
         if(self.options.aspect){
             var chop;
             if(self.image.aspect > self.options.aspect){
                 self.height = self.canvas.height = self.options.size;
                 self.width = self.canvas.width = self.height * self.options.aspect;
-                chop = self.image.width - (self.image.height * self.options.aspect);
+                chop = iw - (ih * self.options.aspect);
 
                 x1 = chop/2;
-                x2 = self.image.width-chop;
+                x2 = iw-chop;
             }else{
                 self.width = self.canvas.width = self.options.size;
                 self.height = self.canvas.height = self.width / self.options.aspect;
-                chop = (self.image.height - (self.image.width / self.options.aspect));
+                chop = (ih - (iw / self.options.aspect));
 
                 y1 = chop/2;
-                y2 = self.image.height-chop;
+                y2 = ih-chop;
             }
         }else{
             if(self.image.aspect > 1){
@@ -101,16 +120,16 @@ SnaprFX.Canvas.prototype.place_image = function() {  var self = this;
         }
     }else{
         // scale canvas to image size
-        self.width = self.canvas.width = self.options.width || self.image.width;
-        self.height = self.canvas.height = self.options.height || self.image.height;
+        self.width = self.canvas.width = self.options.width || iw;
+        self.height = self.canvas.height = self.options.height || ih;
     }
 
     // Draw the image onto the canvas
+    self.context.save();
     self.context.translate(self.canvas.width/2, self.canvas.height/2);
     self.context.rotate(self.options.rotation);
     self.context.drawImage(self.image, x1, y1, x2, y2, self.canvas.width/-2, self.canvas.height/-2, self.canvas.width, self.canvas.height);
-    self.context.rotate(-self.options.rotation);
-    self.context.translate(self.canvas.width/-2, self.canvas.height/-2);
+    self.context.restore();
 
     // notify that it's ready
     deferred.resolve();
