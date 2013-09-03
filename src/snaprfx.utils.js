@@ -196,7 +196,7 @@ SnaprFX.utils = {
                 deferred.resolve(data);
             };
             var blob = new Blob([this.response]);
-            exif_reader.readAsBinaryString(blob);
+            exif_reader.readAsArrayBuffer(blob);
         };
         xhr.send();
 
