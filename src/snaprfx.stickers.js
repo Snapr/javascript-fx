@@ -269,8 +269,8 @@ SnaprFX.sticker = function(slug, parent){  var self = this;
                     self.scale_from = {
 
                         // remember where the center is, the change in mouse distance/angle from this is scale/rotation
-                        x: bounds.left + bounds.width / 2 - 5 + window.scrollX,
-                        y: bounds.top + bounds.height / 2 - 5 + window.scrollY,
+                        x: bounds.left + bounds.width / 2 - 5 + window.pageXOffset,
+                        y: bounds.top + bounds.height / 2 - 5 + window.pageYOffset,
                         // remember distance from center to corner, change in this = change in scale
                         size: SnaprFX.utils.pythag(self.element.offsetHeight, self.element.offsetWidth) / 2 / self.scale,
                         // remember current scale so new scale can be proportional
